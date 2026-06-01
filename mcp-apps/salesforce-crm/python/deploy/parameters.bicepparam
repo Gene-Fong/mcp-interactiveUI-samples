@@ -1,0 +1,24 @@
+// Enterprise Salesforce Copilot — Azure Container Apps deployment parameters
+//
+// Copy this file to parameters.bicepparam (gitignored) and fill in real values.
+//
+// Usage:
+//   cp deploy/parameters.example.bicepparam deploy/parameters.bicepparam
+//   bash deploy/deploy.sh
+
+using './main.bicep'
+
+param environmentName  = 'lob-mcp-apps-env'
+param acrName          = 'lobmcpapps'         // must be globally unique, lowercase, no hyphens
+param location         = 'southindia'
+param imageTag         = 'latest'
+param logRetentionDays = 30
+
+// ── Salesforce credentials ────────────────────────────────────────────────────
+param sfInstanceUrl   = 'https://your-org.my.salesforce.com'
+param sfClientId      = '<YOUR_SALESFORCE_CLIENT_ID>'
+param sfClientSecret  = '<YOUR_SALESFORCE_CLIENT_SECRET>'
+
+// ── App Insights (optional) ───────────────────────────────────────────────────
+param appInsightsConnectionString = ''
+param appInsightsRoleName         = 'lob-mcp-sf'
