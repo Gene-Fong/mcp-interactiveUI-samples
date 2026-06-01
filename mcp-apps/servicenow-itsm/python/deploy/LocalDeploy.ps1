@@ -52,8 +52,7 @@ $ErrorActionPreference = "Stop"
 # Paths & MOS3 config
 # ---------------------------------------------------------------------------
 
-$App        = Split-Path -Parent $PSScriptRoot               # kit\sn-mcp-copilot\
-$Kit        = Split-Path -Parent $App                        # kit\
+$App        = Split-Path -Parent $PSScriptRoot               # servicenow-itsm\python\
 $VenvPython = "$App\.venv\Scripts\python.exe"
 $Pkg        = "servicenow_mcp"
 
@@ -134,13 +133,9 @@ if (-not $SkipServer -and -not $TunnelOnly) {
             -Command { & $VenvPython -m pip install --upgrade pip --quiet } `
             -Hint "Network issue? Check connection / corporate proxy."
 
-        Invoke-ExternalChecked -Step "pip install -e ../mcp-shared" `
-            -Command { & $VenvPython -m pip install -e "$Kit\mcp-shared" --quiet } `
-            -Hint "Ensure kit/mcp-shared/ exists and has a pyproject.toml."
-
         Invoke-ExternalChecked -Step "pip install -e ." `
             -Command { & $VenvPython -m pip install -e "$App" --quiet } `
-            -Hint "Check kit/sn-mcp-copilot/pyproject.toml for syntax errors or missing deps."
+            -Hint "Check pyproject.toml for syntax errors or missing deps."
 
         # Marker is touched only after all three installs succeed. If any
         # step above failed, the marker is absent and next run redoes the
@@ -151,11 +146,10 @@ if (-not $SkipServer -and -not $TunnelOnly) {
 
     # Widget build (only if missing or stale).
     # Staleness includes BOTH this LOB's widgets/src/ AND the shared
-    # mcp-shared/widgets/src/ — the latter is symlinked into the build via
-    # `file:../../mcp-shared` in widgets/package.json, so edits there are
-    # real source changes that must trigger a rebuild.
+    # widgets/mcp-shared/widgets/src/ — referenced via `file:./mcp-shared`
+    # in widgets/package.json, so edits there trigger a rebuild.
     $widgetHtml    = "$App\$Pkg\web\widget.html"
-    $widgetSrcDirs = @("$App\widgets\src", "$Kit\mcp-shared\widgets\src")
+    $widgetSrcDirs = @("$App\widgets\src", "$App\widgets\mcp-shared\widgets\src")
     $widgetStale   = $false
     if (-not (Test-Path $widgetHtml)) {
         $widgetStale = $true
