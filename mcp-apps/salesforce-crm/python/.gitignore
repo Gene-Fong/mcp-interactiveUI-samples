@@ -5,3 +5,4 @@ __pycache__/
 .mos3_token_cache.json
 node_modules/
 dist/
+deploy/parameters.bicepparam
