@@ -1,4 +1,4 @@
-﻿"""Salesforce CRM tool handlers, _TOOL_SPECS_LIST, PROMPT_SPECS. No MCP bootstrap here."""
+"""Salesforce CRM tool handlers, _TOOL_SPECS_LIST, PROMPT_SPECS. No MCP bootstrap here."""
 from __future__ import annotations
 
 import re
@@ -97,8 +97,9 @@ _ENTITY_SCHEMAS: dict[str, dict] = {
             _C("Department", "department"), _C("LeadSource", "lead_source"),
         ],
         "hiddenColumns": [_C("AccountId", "account_id")],
-        # name handled inline (multi-field LIKE on FirstName/LastName/Email)
+        # name handled inline (multi-field LIKE on FirstName/LastName)
         "filters": {
+            "name":         (None, "inline"),  # declared so _schema exposes it; handled in function body
             "account_id":   ("AccountId", "eq"),
             "account_name": ("Account.Name", "like"),
             "title":        ("Title", "like"),
@@ -189,6 +190,8 @@ def _build_where_clauses(entity_type: str, params: dict) -> list[str]:
         if pname not in spec:
             continue
         field, op = spec[pname]
+        if op == "inline":
+            continue  # handled by caller, not here
         if op == "like":
             clauses.append(f"{field} LIKE '%{_sq(str(val))}%'")
         elif op == "eq":
@@ -350,8 +353,8 @@ async def sf__get_leads(
     columns = cfg.get("columns", []) + cfg.get("hiddenColumns", [])
     api_names = ["Id"] + [c["apiName"] for c in columns if c["apiName"] != "Id"]
 
-    # Branch 1 — id + action="edit" → form
-    if lead_id and action == "edit":
+    # Branch 1 — id + action="edit"/"change" → form
+    if lead_id and action in ("edit", "change"):
         try:
             sf = get_client()
             form_fields = ("Id, FirstName, LastName, Company, Email, Phone, Status, LeadSource, "
@@ -541,8 +544,8 @@ async def sf__get_opportunities(
     columns = cfg.get("columns", []) + cfg.get("hiddenColumns", [])
     api_names = ["Id"] + [c["apiName"] for c in columns if c["apiName"] != "Id"]
 
-    # Branch 1 — id + action="edit" → form
-    if opportunity_id and action == "edit":
+    # Branch 1 — id + action="edit"/"change" → form
+    if opportunity_id and action in ("edit", "change"):
         try:
             sf = get_client()
             form_fields = ("Id, Name, AccountId, Account.Name, StageName, Amount, "
@@ -828,8 +831,8 @@ async def sf__get_accounts(
     columns = cfg.get("columns", []) + cfg.get("hiddenColumns", [])
     api_names = ["Id"] + [c["apiName"] for c in columns if c["apiName"] != "Id"]
 
-    # Branch 1 — explicit id + edit intent → return prefilled edit form
-    if account_id and action == "edit":
+    # Branch 1 — explicit id + edit/change intent → return prefilled edit form
+    if account_id and action in ("edit", "change"):
         try:
             sf = get_client()
             form_fields = ("Id, Name, Industry, Phone, Website, BillingCity, Type, "
@@ -1222,8 +1225,8 @@ async def sf__get_contacts(
     columns = cfg.get("columns", []) + cfg.get("hiddenColumns", [])
     api_names = ["Id"] + [c["apiName"] for c in columns if c["apiName"] != "Id"]
 
-    # Branch 1 — id + action="edit" → form
-    if contact_id and action == "edit":
+    # Branch 1 — id + action="edit"/"change" → form
+    if contact_id and action in ("edit", "change"):
         try:
             sf = get_client()
             form_fields = ("Id, FirstName, LastName, Email, Phone, Title, "
@@ -1404,8 +1407,8 @@ async def sf__get_cases(
     columns = cfg.get("columns", []) + cfg.get("hiddenColumns", [])
     api_names = ["Id"] + [c["apiName"] for c in columns if c["apiName"] != "Id"]
 
-    # Branch 1 — id + action="edit" → form
-    if case_id and action == "edit":
+    # Branch 1 — id + action="edit"/"change" → form
+    if case_id and action in ("edit", "change"):
         try:
             sf = get_client()
             form_fields = ("Id, CaseNumber, Subject, Status, Priority, Type, "
@@ -1630,8 +1633,8 @@ async def sf__get_tasks(
     columns = cfg.get("columns", []) + cfg.get("hiddenColumns", [])
     api_names = ["Id"] + [c["apiName"] for c in columns if c["apiName"] != "Id"]
 
-    # Branch 1 — id + action="edit" → form
-    if task_id and action == "edit":
+    # Branch 1 — id + action="edit"/"change" → form
+    if task_id and action in ("edit", "change"):
         try:
             sf = get_client()
             form_fields = ("Id, Subject, Status, Priority, ActivityDate, Description, "
@@ -1952,8 +1955,8 @@ async def sf__get_campaigns(
     columns = cfg.get("columns", []) + cfg.get("hiddenColumns", [])
     api_names = ["Id"] + [c["apiName"] for c in columns if c["apiName"] != "Id"]
 
-    # Branch 1 — id + action="edit" → form
-    if campaign_id and action == "edit":
+    # Branch 1 — id + action="edit"/"change" → form
+    if campaign_id and action in ("edit", "change"):
         try:
             sf = get_client()
             form_fields = "Id, Name, Status, Type, StartDate, EndDate, BudgetedCost, ActualCost"
@@ -2093,31 +2096,56 @@ async def sf__update_campaign(
     )
 
 
-async def sf__get_pending_approvals() -> types.CallToolResult:
-    log.info("sf__get_pending_approvals")
+async def sf__get_pending_approvals(
+    submitted_by: str = "",
+    target_type: str = "",
+) -> types.CallToolResult:
+    log.info("sf__get_pending_approvals", submitted_by=submitted_by, target_type=target_type)
     try:
         sf = get_client()
-        records = await sf.query(
+        soql = (
             "SELECT Id, ProcessInstance.TargetObjectId, "
-            "ProcessInstance.Status, ProcessInstance.TargetObject.Name, CreatedDate "
+            "ProcessInstance.Status, ProcessInstance.TargetObject.Name, "
+            "ProcessInstance.CreatedBy.Name, CreatedDate "
             "FROM ProcessInstanceWorkitem "
             "WHERE ProcessInstance.Status = 'Pending' "
-            "ORDER BY CreatedDate DESC LIMIT 10"
+            "ORDER BY CreatedDate DESC LIMIT 20"
         )
+        records = await sf.query(soql)
     except SalesforceAuthError as exc:
         return _error_result(f"Salesforce authentication failed: {exc}")
     except SalesforceAPIError as exc:
         return _error_result(f"Salesforce API error: {exc}")
     except Exception as exc:
         return _error_result(f"Unexpected error fetching approvals: {exc}")
-    items = [
-        {"id": r.get("Id"),
-         "target_id": (r.get("ProcessInstance") or {}).get("TargetObjectId") or "",
-         "target_name": ((r.get("ProcessInstance") or {}).get("TargetObject") or {}).get("Name") or "",
-         "status": (r.get("ProcessInstance") or {}).get("Status") or "",
-         "created_date": r.get("CreatedDate") or ""}
-        for r in records
-    ]
+
+    # Derive object type from TargetObjectId prefix
+    _PREFIX_TYPE = {"001": "Account", "003": "Contact", "006": "Opportunity",
+                    "500": "Case", "00Q": "Lead", "00T": "Task", "701": "Campaign"}
+
+    items = []
+    for r in records:
+        pi = r.get("ProcessInstance") or {}
+        target_id = pi.get("TargetObjectId") or ""
+        obj_type = _PREFIX_TYPE.get(target_id[:3], "Record")
+        submitter = (pi.get("CreatedBy") or {}).get("Name") or ""
+        item = {
+            "id": r.get("Id"),
+            "target_id": target_id,
+            "target_name": (pi.get("TargetObject") or {}).get("Name") or "",
+            "target_type": obj_type,
+            "submitted_by": submitter,
+            "status": pi.get("Status") or "",
+            "created_date": r.get("CreatedDate") or "",
+        }
+        items.append(item)
+
+    # Apply client-side filters
+    if submitted_by:
+        items = [i for i in items if submitted_by.lower() in i["submitted_by"].lower()]
+    if target_type:
+        items = [i for i in items if target_type.lower() in i["target_type"].lower()]
+
     structured = {"type": "approvals", "total": len(items), "items": items}
     if not items:
         summary = "No pending approvals."
@@ -2231,33 +2259,33 @@ def manage_crm_prompt() -> list[PromptMessage]:
 # ── Registries ────────────────────────────────────────────────────────────────
 
 _TOOL_SPECS_LIST = [
-    {"name": "sf__get_leads",             "description": "Get Salesforce Leads (5 most recent). Pass lead_id to view one record; add action='edit' to open the edit form. Filters: name, company, campaign_id, email, phone, status, lead_source.", "handler": sf__get_leads},
+    {"name": "sf__get_leads",             "description": "Get Salesforce Leads (5 most recent). Pass lead_id to view one record; add action='edit' (or 'change') to open the edit form. Filters: name, company, campaign_id, email, phone, status, lead_source.", "handler": sf__get_leads},
     {"name": "sf__create_lead",           "description": "Create a new Lead in Salesforce. Requires last_name and company. Optional: first_name, email, phone, status, lead_source, title, annual_revenue.", "handler": sf__create_lead},
     {"name": "sf__update_lead",           "description": "Update an existing Lead in Salesforce by its record Id. Only fields provided will be updated. Fields: first_name, last_name, company, email, phone, status, lead_source, title, annual_revenue.", "handler": sf__update_lead},
-    {"name": "sf__get_opportunities",     "description": "Get Salesforce Opportunities (5 most recent). Pass opportunity_id to view one record; add action='edit' to open the edit form. Filters: account_id, account_name (parent-traversal LIKE on Account.Name — e.g. 'opps for Acme'), name, stage, amount_min, amount_max, close_date_from, close_date_to, probability_min, probability_max, type, lead_source.", "handler": sf__get_opportunities},
+    {"name": "sf__get_opportunities",     "description": "Get Salesforce Opportunities (5 most recent). Pass opportunity_id to view one record; add action='edit' (or 'change') to open the edit form. Filters: account_id, account_name (parent-traversal LIKE on Account.Name — e.g. 'opps for Acme'), name, stage, amount_min, amount_max, close_date_from, close_date_to, probability_min, probability_max, type, lead_source.", "handler": sf__get_opportunities},
     {"name": "sf__create_opportunity",    "description": "Create a new Opportunity in Salesforce. Requires name, stage, close_date. Optional: amount, probability, account_name (server resolves to AccountId; errors with suggestions if not found), type, lead_source.", "handler": sf__create_opportunity},
     {"name": "sf__update_opportunity",    "description": "Update an existing Opportunity in Salesforce by its record Id. Only fields provided will be updated. Fields: name, stage, amount, close_date, probability, type, lead_source. (Account is not reassignable from this tool — it is read-only on the edit form.)", "handler": sf__update_opportunity},
     {"name": "sf__get_opportunity_products",      "description": "Get line items (products) on an opportunity. Required: opportunity_id. Returns Product Name, Code, Quantity, Unit Price, Total Price.", "handler": sf__get_opportunity_products},
     {"name": "sf__get_opportunity_contact_roles", "description": "Get contact roles on an opportunity — the people directly attached to this deal with their roles (Decision Maker, Influencer, etc.) and primary flag. Required: opportunity_id.", "handler": sf__get_opportunity_contact_roles},
-    {"name": "sf__get_accounts",          "description": "Get Salesforce Accounts (5 most recent). Pass account_id to view one record; add action='edit' to open the edit form. Filters: name, industry, sic, account_number, ticker_symbol, annual_revenue_min, annual_revenue_max, type.", "handler": sf__get_accounts},
+    {"name": "sf__get_accounts",          "description": "Get Salesforce Accounts (5 most recent). Pass account_id to view one record; add action='edit' (or 'change') to open the edit form. Filters: name, industry, sic, account_number, ticker_symbol, annual_revenue_min, annual_revenue_max, type.", "handler": sf__get_accounts},
     {"name": "sf__create_account",        "description": "Create a new Account in Salesforce. Requires name. Optional: industry, phone, website, billing_city, type, account_number, annual_revenue, sic, ticker_symbol.", "handler": sf__create_account},
     {"name": "sf__update_account",        "description": "Update an existing Account in Salesforce by its record Id. Only fields provided will be updated. Fields: name, industry, phone, website, billing_city, type, account_number, annual_revenue, sic, ticker_symbol.", "handler": sf__update_account},
-    {"name": "sf__get_contacts",          "description": "Get Salesforce Contacts (5 most recent). Pass contact_id to view one record; add action='edit' to open the edit form. Filters: account_id, account_name (parent-traversal LIKE on Account.Name — e.g. 'contacts at Acme'), name (first/last LIKE), title (LIKE — e.g. 'contacts with title Manager'), department, lead_source.", "handler": sf__get_contacts},
+    {"name": "sf__get_contacts",          "description": "Get Salesforce Contacts (5 most recent). Pass contact_id to view one record; add action='edit' (or 'change') to open the edit form. Filters: account_id, account_name (parent-traversal LIKE on Account.Name — e.g. 'contacts at Acme'), name (first/last LIKE), title (LIKE — e.g. 'contacts with title Manager'), department, lead_source.", "handler": sf__get_contacts},
     {"name": "sf__create_contact",        "description": "Create a new Contact in Salesforce. Requires last_name. Optional: first_name, email, phone, title, account_id, account_name (server resolves to AccountId; errors with suggestions if not found), department, lead_source.", "handler": sf__create_contact},
     {"name": "sf__update_contact",        "description": "Update an existing Contact in Salesforce by its record Id. Only fields provided will be updated. Fields: first_name, last_name, email, phone, title, account_id, department, lead_source. (Reassigning Account by name is not supported here — pass account_id explicitly if you must change it.)", "handler": sf__update_contact},
-    {"name": "sf__get_cases",             "description": "Get Salesforce Cases (5 most recent). Pass case_id to view one record; add action='edit' to open the edit form. Filters: account_id, account_name (parent-traversal LIKE on Account.Name — e.g. 'cases for Acme'), subject (search by subject), case_number, priority, status, type.", "handler": sf__get_cases},
+    {"name": "sf__get_cases",             "description": "Get Salesforce Cases (5 most recent). Pass case_id to view one record; add action='edit' (or 'change') to open the edit form. Filters: account_id, account_name (parent-traversal LIKE on Account.Name — e.g. 'cases for Acme'), subject (search by subject), case_number, priority, status, type.", "handler": sf__get_cases},
     {"name": "sf__create_case",           "description": "Create a new Salesforce Case. Required: subject. Optional: priority (High/Medium/Low), status (New/Working/Escalated/Closed), account_id, account_name (server resolves to AccountId; alert with suggestions if not found), contact_id, contact_name (server resolves to ContactId; alert with suggestions if not found), description, type.", "handler": sf__create_case},
     {"name": "sf__update_case",           "description": "Update a Salesforce Case. Required: case_id. Optional: status, priority, subject, description, resolution (Internal Comments), type. (Account is read-only on the edit form — not reassignable from this tool.)", "handler": sf__update_case},
     {"name": "sf__get_case_activity",     "description": "Get activity for a Salesforce Case by Id — runs parallel queries for case comments and related tasks. Returns both sections (comments above, tasks below).", "handler": sf__get_case_activity},
-    {"name": "sf__get_tasks",             "description": "Get Salesforce Tasks (5 most recent). Pass task_id to view one record; add action='edit' to open the edit form. Filters: subject, status, priority, activity_date_from, activity_date_to, related_name (matches tasks linked to an Account/Opportunity/Contact/Lead whose name contains the string — e.g. related_name='Acme').", "handler": sf__get_tasks},
+    {"name": "sf__get_tasks",             "description": "Get Salesforce Tasks (5 most recent). Pass task_id to view one record; add action='edit' (or 'change') to open the edit form. Filters: subject, status, priority, activity_date_from, activity_date_to, related_name (matches tasks linked to an Account/Opportunity/Contact/Lead whose name contains the string — e.g. related_name='Acme').", "handler": sf__get_tasks},
     {"name": "sf__create_task",           "description": "Create a new Salesforce Task (activity). Required: subject. Optional: priority, status, activity_date (YYYY-MM-DD), description, who_name (Contact/Lead person — server resolves to WhoId; alert with suggestions if not found), what_name (Account/Opportunity/Campaign — server resolves to WhatId; alert with suggestions if not found).", "handler": sf__create_task},
     {"name": "sf__update_task",           "description": "Update a Salesforce Task. Required: task_id. Optional: subject, priority, status, activity_date, description.", "handler": sf__update_task},
     {"name": "sf__convert_lead",          "description": "Convert a Salesforce Lead atomically into Account + Contact (and optionally Opportunity) via the native SOAP convertLead operation. Required: lead_id. Optional: account_id (reuse existing Account), contact_id (reuse existing Contact), do_not_create_opportunity (default false), opportunity_name, converted_status (auto-resolved from active IsConverted status if blank). On success, returns the new Opportunity as a single-row list view; falls back to a textual success card if no opportunity was created.", "handler": sf__convert_lead},
     {"name": "sf__get_pipeline_dashboard","description": "Get the Salesforce opportunity pipeline grouped by stage. Returns deal count and total amount per stage.", "handler": sf__get_pipeline_dashboard},
-    {"name": "sf__get_campaigns",         "description": "Get Salesforce Campaigns (5 most recent). Pass campaign_id to view one record; add action='edit' to open the edit form. Filters: name, status, type.", "handler": sf__get_campaigns},
+    {"name": "sf__get_campaigns",         "description": "Get Salesforce Campaigns (5 most recent). Pass campaign_id to view one record; add action='edit' (or 'change') to open the edit form. Filters: name, status, type.", "handler": sf__get_campaigns},
     {"name": "sf__create_campaign",       "description": "Create a new Salesforce Campaign. Required: name. Optional: status (Planned/Active/Completed/Aborted), type, start_date (YYYY-MM-DD), end_date (YYYY-MM-DD), budgeted_cost, actual_cost.", "handler": sf__create_campaign},
     {"name": "sf__update_campaign",       "description": "Update a Salesforce Campaign. Required: campaign_id. Optional: name, status, type, start_date, end_date, budgeted_cost, actual_cost.", "handler": sf__update_campaign},
-    {"name": "sf__get_pending_approvals", "description": "Get pending Salesforce approval requests assigned to the current user. Returns pending ProcessInstance workitems requiring action.", "handler": sf__get_pending_approvals},
+    {"name": "sf__get_pending_approvals", "description": "Get pending Salesforce approval requests assigned to the current user. Returns pending ProcessInstance workitems requiring action. Filters: submitted_by (LIKE on submitter name), target_type (Account/Contact/Opportunity/Case/Lead/Task/Campaign).", "handler": sf__get_pending_approvals},
     {"name": "sf__approve_record",        "description": "Approve a pending Salesforce approval. Required: approval_id (the ProcessInstanceWorkitem Id from sf__get_pending_approvals items[].id). Optional: comments. Returns the refreshed pending approvals list.", "handler": sf__approve_record},
     {"name": "sf__reject_record",         "description": "Reject a pending Salesforce approval. Required: approval_id. Optional: comments. Returns the refreshed pending approvals list.", "handler": sf__reject_record},
     {"name": "sf__show_create_form",      "description": "Use this when the user asks to create a new Salesforce lead, account, contact, opportunity, case, task, or campaign. Opens the interactive creation form — do NOT call sf__create_lead or other direct create tools. Pass entity name (lead/account/contact/opportunity/case/task/campaign). Pass prefill dict to pre-populate fields (e.g. {\"account_name\": \"GlobalFizz\", \"amount\": \"2000000\", \"stage\": \"Qualification\"}).", "handler": sf__show_create_form},

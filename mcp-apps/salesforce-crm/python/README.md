@@ -273,6 +273,9 @@ Then run:
 
 First run provisions: Resource Group, Container Registry, Container Apps Environment, Container App, Log Analytics, Managed Identity. Takes 5–10 minutes.
 
+> [!NOTE]
+> **Response speed depends on your Azure Container Apps plan.** The default Consumption plan cold-starts containers on each request after idle timeout (~5–15 s first response). For production or demo use, consider a **Dedicated plan** or set `minReplicas: 1` in your container app config to keep the container warm.
+
 **Validate:**
 1. The script prints a public Azure FQDN. Test it:
 ```powershell

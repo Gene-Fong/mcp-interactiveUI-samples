@@ -8,7 +8,7 @@
     "functions": [
         {
             "name": "sf__get_leads",
-            "description": "Get Salesforce Leads (5 most recent). Pass lead_id to view one record; add action='edit' to open the edit form. Filters: name, company, campaign_id, email, phone, status, lead_source."
+            "description": "Get Salesforce Leads (5 most recent). Pass lead_id to view one record; add action='edit' (or 'change') to open the edit form. Filters: name, company, campaign_id, email, phone, status, lead_source."
         },
         {
             "name": "sf__create_lead",
@@ -20,7 +20,7 @@
         },
         {
             "name": "sf__get_opportunities",
-            "description": "Get Salesforce Opportunities (5 most recent). Pass opportunity_id to view one record; add action='edit' to open the edit form. Filters: account_id, account_name (parent-traversal LIKE on Account.Name \u2014 e.g. 'opps for Acme'), name, stage, amount_min, amount_max, close_date_from, close_date_to, probability_min, probability_max, type, lead_source."
+            "description": "Get Salesforce Opportunities (5 most recent). Pass opportunity_id to view one record; add action='edit' (or 'change') to open the edit form. Filters: account_id, account_name (parent-traversal LIKE on Account.Name \u2014 e.g. 'opps for Acme'), name, stage, amount_min, amount_max, close_date_from, close_date_to, probability_min, probability_max, type, lead_source."
         },
         {
             "name": "sf__create_opportunity",
@@ -40,7 +40,7 @@
         },
         {
             "name": "sf__get_accounts",
-            "description": "Get Salesforce Accounts (5 most recent). Pass account_id to view one record; add action='edit' to open the edit form. Filters: name, industry, sic, account_number, ticker_symbol, annual_revenue_min, annual_revenue_max, type."
+            "description": "Get Salesforce Accounts (5 most recent). Pass account_id to view one record; add action='edit' (or 'change') to open the edit form. Filters: name, industry, sic, account_number, ticker_symbol, annual_revenue_min, annual_revenue_max, type."
         },
         {
             "name": "sf__create_account",
@@ -52,7 +52,7 @@
         },
         {
             "name": "sf__get_contacts",
-            "description": "Get Salesforce Contacts (5 most recent). Pass contact_id to view one record; add action='edit' to open the edit form. Filters: account_id, account_name (parent-traversal LIKE on Account.Name \u2014 e.g. 'contacts at Acme'), name (first/last LIKE), title (LIKE \u2014 e.g. 'contacts with title Manager'), department, lead_source."
+            "description": "Get Salesforce Contacts (5 most recent). Pass contact_id to view one record; add action='edit' (or 'change') to open the edit form. Filters: account_id, account_name (parent-traversal LIKE on Account.Name \u2014 e.g. 'contacts at Acme'), name (first/last LIKE), title (LIKE \u2014 e.g. 'contacts with title Manager'), department, lead_source."
         },
         {
             "name": "sf__create_contact",
@@ -64,7 +64,7 @@
         },
         {
             "name": "sf__get_cases",
-            "description": "Get Salesforce Cases (5 most recent). Pass case_id to view one record; add action='edit' to open the edit form. Filters: account_id, account_name (parent-traversal LIKE on Account.Name \u2014 e.g. 'cases for Acme'), subject (search by subject), case_number, priority, status, type."
+            "description": "Get Salesforce Cases (5 most recent). Pass case_id to view one record; add action='edit' (or 'change') to open the edit form. Filters: account_id, account_name (parent-traversal LIKE on Account.Name \u2014 e.g. 'cases for Acme'), subject (search by subject), case_number, priority, status, type."
         },
         {
             "name": "sf__create_case",
@@ -80,7 +80,7 @@
         },
         {
             "name": "sf__get_tasks",
-            "description": "Get Salesforce Tasks (5 most recent). Pass task_id to view one record; add action='edit' to open the edit form. Filters: subject, status, priority, activity_date_from, activity_date_to, related_name (matches tasks linked to an Account/Opportunity/Contact/Lead whose name contains the string \u2014 e.g. related_name='Acme')."
+            "description": "Get Salesforce Tasks (5 most recent). Pass task_id to view one record; add action='edit' (or 'change') to open the edit form. Filters: subject, status, priority, activity_date_from, activity_date_to, related_name (matches tasks linked to an Account/Opportunity/Contact/Lead whose name contains the string \u2014 e.g. related_name='Acme')."
         },
         {
             "name": "sf__create_task",
@@ -100,7 +100,7 @@
         },
         {
             "name": "sf__get_campaigns",
-            "description": "Get Salesforce Campaigns (5 most recent). Pass campaign_id to view one record; add action='edit' to open the edit form. Filters: name, status, type."
+            "description": "Get Salesforce Campaigns (5 most recent). Pass campaign_id to view one record; add action='edit' (or 'change') to open the edit form. Filters: name, status, type."
         },
         {
             "name": "sf__create_campaign",
@@ -131,7 +131,7 @@
         {
             "type": "RemoteMCPServer",
             "spec": {
-                "url": "https://lob-mcp-apps-sf.gentlepond-dd579c1b.southindia.azurecontainerapps.io/mcp",
+                "url": "https://localhost:8080/mcp",
                 "mcp_tool_description": {
                     "file": "mcp-tools.json"
                 }
