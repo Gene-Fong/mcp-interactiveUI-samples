@@ -27,7 +27,7 @@
 
 **Ask - Salesforce** brings your Salesforce org straight into Microsoft 365 Copilot. Type something like *"show me the latest leads"* or *"what's in the pipeline?"* and a **live, interactive widget** renders right inside the chat — **no tab switching, no context loss**. You can read records, create new ones, update what's there, run pipeline dashboards, and clear approvals, all from the Copilot side panel.
 
-🔗 **What makes this feel native:** lookup fields accept plain names instead of 15-character Salesforce Ids. Type *"Acme Corp"* in an Opportunity's Account field, and the agent resolves it to the correct record on Save. If multiple matches exist, it shows up to five suggestions so you can pick the right one. See [§2 → RESOLVE FK](#resolve-fk--type-names-not-ids) for the full flow.
+🔗 **Name resolution:** lookup fields accept plain names instead of 15-character Salesforce Ids. Type *"Acme Corp"* in an Opportunity's Account field, and the agent resolves it to the correct record on Save. If multiple matches exist, it shows up to five suggestions so you can pick the right one. See [§2 → RESOLVE FK](#resolve-fk--type-names-not-ids) for the full flow.
 
 > [!TIP]
 > Works with any Salesforce org that exposes the REST API — Developer Edition, sandbox, or production.

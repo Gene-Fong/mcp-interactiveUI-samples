@@ -27,7 +27,7 @@
 
 **Ask - ServiceNow** brings your ServiceNow instance straight into Microsoft 365 Copilot. Type something like *"show me open incidents"* or *"resolve INC0010001"* and a **live, interactive widget** renders right inside the chat — **no tab switching, no context loss**. You can read records, create new ones, update what's there, work the approval queue, and search knowledge, all from the Copilot side panel.
 
-🔗 **What makes this feel native:** lookup fields accept plain names instead of internal IDs. Type *"Beth Anglin"* in an incident's Caller field, and the agent resolves it to the correct person on Save. If multiple matches exist, it shows up to five suggestions so you can pick the right one. The same applies to Assigned To, Requested For, Opened For, and HR Service fields. See [§2 → RESOLVE FK](#resolve-fk--type-names-not-ids) for the full flow.
+🔗 **Name resolution:** lookup fields accept plain names instead of internal IDs. Type *"Beth Anglin"* in an incident's Caller field, and the agent resolves it to the correct person on Save. If multiple matches exist, it shows up to five suggestions so you can pick the right one. The same applies to Assigned To, Requested For, Opened For, and HR Service fields. See [§2 → RESOLVE FK](#resolve-fk--type-names-not-ids) for the full flow.
 
 > [!TIP]
 > Works with any ServiceNow instance that exposes the Table API — free PDI, sub-production, or enterprise. HR Case operations additionally require the **HR Service Delivery** plugin (`com.sn_hr_core`).

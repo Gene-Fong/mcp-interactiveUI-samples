@@ -94,7 +94,7 @@ MCP server that recommends learning and training courses with embedded video pre
 
 ### Enterprise LOB MCP Apps
 
-> **Pre-built M365 Copilot agents for enterprise LOB systems** — each with interactive React widgets, one-command deploy, and production-ready patterns. The missing abstraction layer that turns lengthy integration projects into days.
+> **Pre-built M365 Copilot agents for enterprise LOB systems** — each with interactive React widgets, one-command deploy, and production-ready patterns.
 
 <p align="center">
   <img src="https://img.shields.io/badge/🏛️_Salesforce-CRM-00A1E0?style=for-the-badge" alt="Salesforce" />
@@ -112,7 +112,7 @@ Every major LOB platform exposes a different API paradigm — Salesforce uses SO
 
 Each app ships with:
 - A **Python MCP server** with production patterns — caching, structured logging, telemetry, and error handling
-- An **interactive React widget** on Fluent UI v9 that renders inline in Copilot chat — not text summaries, real UI
+- An **interactive React widget** on Fluent UI v9 that renders inline in Copilot chat
 - A **one-command deploy path** to either a local dev tunnel or Azure Container Apps
 
 | # | App | Tools | Landing page |
