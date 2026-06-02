@@ -245,21 +245,24 @@ function ViewHeader({ icon, title, count, brand, onNew, newLabel, theme, cacheIn
 // shared, 2026-05-29). Pass systemName="Salesforce" so the wording reflects
 // this LOB. See Project-Theory/lob-mcp-apps/fk-alert-pattern-playbook.md §7a.
 
-function InlineFormRow({ colSpan, title, titleColor, fields, onSave, onCancel, saving, theme }: {
+function InlineFormRow({ colSpan, title, titleColor, fields, onSave, onCancel, saving, theme, columns }: {
   colSpan: number; title: string; titleColor?: string;
-  fields: { label: string; key: string; value: string; onChange: (v: string) => void; type?: 'select'; options?: string[]; inputType?: string; readonly?: boolean }[];
-  onSave: () => void; onCancel: () => void; saving: boolean; theme: 'light' | 'dark';
+  fields: { label: string; key: string; value: string; onChange: (v: string) => void; type?: 'select'; options?: string[]; inputType?: string; readonly?: boolean; fullWidth?: boolean }[];
+  onSave: () => void; onCancel: () => void; saving: boolean; theme: 'light' | 'dark'; columns?: number;
 }) {
   const t = slds(theme);
   const formBg = tokens.colorNeutralBackground3;
   const accent = titleColor || t.brand;
+  const cols = columns || 3;
+  const normalFields = fields.filter(f => !f.fullWidth);
+  const wideFields = fields.filter(f => f.fullWidth);
   return (
     <TableRow>
       <TableCell colSpan={colSpan} style={{ padding: 0 }}>
         <div style={{ padding: '14px 16px', borderLeft: `3px solid ${accent}`, background: formBg }}>
           <div style={{ fontSize: '14px', fontWeight: 600, color: accent, marginBottom: '10px' }}>{title}</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 12px', marginBottom: '12px' }}>
-            {fields.map(f =>
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: '10px 12px', marginBottom: wideFields.length ? '10px' : '12px' }}>
+            {normalFields.map(f =>
               f.readonly ? (
                 <Field key={f.key} label={f.label} size="small">
                   <Input size="small" value={f.value || '—'} disabled style={{ color: t.textWeak }} />
@@ -273,6 +276,15 @@ function InlineFormRow({ colSpan, title, titleColor, fields, onSave, onCancel, s
               )
             )}
           </div>
+          {wideFields.length > 0 && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px 12px', marginBottom: '12px' }}>
+              {wideFields.map(f => (
+                <Field key={f.key} label={f.label} size="small">
+                  <Input size="small" type={f.inputType || 'text'} value={f.value} onChange={(_, d) => f.onChange(d.value)} />
+                </Field>
+              ))}
+            </div>
+          )}
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
             <Button appearance="secondary" size="small" onClick={onCancel} disabled={saving}
               style={{ borderRadius: '4px', height: '32px', padding: '0 16px', border: `1px solid ${t.border}` }}>Cancel</Button>
@@ -1018,7 +1030,7 @@ function CasesView({ items: initItems, callTool, toast, theme, cacheInfo: initCa
     { label: 'Status', key: 'status', value: f.status, onChange: (v: string) => setF('status', v), type: 'select' as const, options: CASE_STATUSES },
     { label: 'Priority', key: 'priority', value: f.priority, onChange: (v: string) => setF('priority', v), type: 'select' as const, options: CASE_PRIOS },
     { label: 'Account (type full name) 🔗', key: 'account_name', value: f.account_name, onChange: (v: string) => setF('account_name', v), readonly: isEdit },
-    { label: 'Description', key: 'description', value: f.description, onChange: (v: string) => setF('description', v) },
+    { label: 'Description', key: 'description', value: f.description, onChange: (v: string) => setF('description', v), fullWidth: true },
   ];
 
   return (
@@ -1144,7 +1156,7 @@ function TasksView({ items: initItems, callTool, toast, theme, cacheInfo: initCa
     { label: 'Due Date', key: 'activity_date', value: f.activity_date, onChange: (v: string) => setF('activity_date', v), inputType: 'date' },
     { label: 'Name — Contact / Lead (type full name) 🔗', key: 'who_name', value: f.who_name, onChange: (v: string) => setF('who_name', v), readonly: isEdit },
     { label: 'Related To — Account / Opportunity / Campaign (type full name) 🔗', key: 'what_name', value: f.what_name, onChange: (v: string) => setF('what_name', v), readonly: isEdit },
-    { label: 'Description', key: 'description', value: f.description, onChange: (v: string) => setF('description', v) },
+    { label: 'Description', key: 'description', value: f.description, onChange: (v: string) => setF('description', v), fullWidth: true },
   ];
 
   return (
