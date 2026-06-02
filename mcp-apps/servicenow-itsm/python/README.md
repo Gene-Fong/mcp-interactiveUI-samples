@@ -114,6 +114,8 @@ Every ServiceNow record number carries its type in the prefix (`INC` / `REQ` / `
 - *"show INC0010001"* → displays that single incident
 - *"get CHG0000079"* → displays that single change request
 
+![single record by number](img/get%20incident%20INC0010012%20-%20single%20INC-CHG%20IDENTIFY.png)
+
 #### EDIT — modify a record
 
 Say *"edit"* followed by a record number and the inline form opens, pre-filled with current values. Change what you need and hit Save.
@@ -163,6 +165,8 @@ Fields marked with 🔗 accept plain names. Type a name, hit Save — the agent 
 If your request could apply to more than one entity type, the agent asks first.
 
 *"show me the network outage from yesterday"* → Agent: *"Is that an incident, request, change request, problem, or HR case?"*
+
+![agent disambiguation prompt](img/get%20me%20-%20SN%20%E2%80%94%20CLARIFY%20%28disambiguation%20prompt%29.png)
 
 ---
 
