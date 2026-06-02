@@ -280,6 +280,20 @@ def _error_result(message: str) -> types.CallToolResult:
     )
 
 
+def _sf_api_alert(action: str, entity: str, exc: Exception) -> types.CallToolResult:
+    """Return a user-visible alert for Salesforce API errors (4xx).
+
+    Unlike _error_result (which sets isError=True and gets mangled by MOS3
+    into 'Method Not Found'), this returns a structured alert that the widget
+    can display gracefully while keeping the form open.
+    """
+    msg = f"{entity} was NOT {action}d. Salesforce rejected the request: {exc}"
+    return types.CallToolResult(
+        content=[types.TextContent(type="text", text=msg)],
+        structuredContent={"type": "alert", "message": msg},
+    )
+
+
 def _flatten_record(r: dict, columns: list[dict]) -> dict:
     result: dict[str, Any] = {"id": r.get("Id", "")}
     for col in columns:
@@ -474,7 +488,7 @@ async def sf__create_lead(
     except SalesforceAuthError as exc:
         return _error_result(f"Salesforce authentication failed: {exc}")
     except SalesforceAPIError as exc:
-        return _error_result(f"Failed to create lead: {exc}")
+        return _sf_api_alert("create", "Lead", exc)
     except Exception as exc:
         return _error_result(f"Unexpected error creating lead: {exc}")
     _cache_invalidate("leads")
@@ -506,7 +520,7 @@ async def sf__update_lead(
     except SalesforceAuthError as exc:
         return _error_result(f"Salesforce authentication failed: {exc}")
     except SalesforceAPIError as exc:
-        return _error_result(f"Failed to update lead: {exc}")
+        return _sf_api_alert("update", "Lead", exc)
     except Exception as exc:
         return _error_result(f"Unexpected error updating lead: {exc}")
     _cache_invalidate("leads")
@@ -658,7 +672,7 @@ async def sf__create_opportunity(
     except SalesforceAuthError as exc:
         return _error_result(f"Salesforce authentication failed: {exc}")
     except SalesforceAPIError as exc:
-        return _error_result(f"Failed to create opportunity: {exc}")
+        return _sf_api_alert("create", "Opportunity", exc)
     except Exception as exc:
         return _error_result(f"Unexpected error creating opportunity: {exc}")
     _cache_invalidate("opportunities")
@@ -688,7 +702,7 @@ async def sf__update_opportunity(
     except SalesforceAuthError as exc:
         return _error_result(f"Salesforce authentication failed: {exc}")
     except SalesforceAPIError as exc:
-        return _error_result(f"Failed to update opportunity: {exc}")
+        return _sf_api_alert("update", "Opportunity", exc)
     except Exception as exc:
         return _error_result(f"Unexpected error updating opportunity: {exc}")
     _cache_invalidate("opportunities")
@@ -1162,7 +1176,7 @@ async def sf__create_account(
     except SalesforceAuthError as exc:
         return _error_result(f"Salesforce authentication failed: {exc}")
     except SalesforceAPIError as exc:
-        return _error_result(f"Failed to create account: {exc}")
+        return _sf_api_alert("create", "Account", exc)
     except Exception as exc:
         return _error_result(f"Unexpected error creating account: {exc}")
     _cache_invalidate("accounts")
@@ -1196,7 +1210,7 @@ async def sf__update_account(
     except SalesforceAuthError as exc:
         return _error_result(f"Salesforce authentication failed: {exc}")
     except SalesforceAPIError as exc:
-        return _error_result(f"Failed to update account: {exc}")
+        return _sf_api_alert("update", "Account", exc)
     except Exception as exc:
         return _error_result(f"Unexpected error updating account: {exc}")
     _cache_invalidate("accounts")
@@ -1346,7 +1360,7 @@ async def sf__create_contact(
     except SalesforceAuthError as exc:
         return _error_result(f"Salesforce authentication failed: {exc}")
     except SalesforceAPIError as exc:
-        return _error_result(f"Failed to create contact: {exc}")
+        return _sf_api_alert("create", "Contact", exc)
     except Exception as exc:
         return _error_result(f"Unexpected error creating contact: {exc}")
     _cache_invalidate("contacts")
@@ -1377,7 +1391,7 @@ async def sf__update_contact(
     except SalesforceAuthError as exc:
         return _error_result(f"Salesforce authentication failed: {exc}")
     except SalesforceAPIError as exc:
-        return _error_result(f"Failed to update contact: {exc}")
+        return _sf_api_alert("update", "Contact", exc)
     except Exception as exc:
         return _error_result(f"Unexpected error updating contact: {exc}")
     _cache_invalidate("contacts")
@@ -1525,7 +1539,7 @@ async def sf__create_case(
     except SalesforceAuthError as exc:
         return _error_result(f"Salesforce authentication failed: {exc}")
     except SalesforceAPIError as exc:
-        return _error_result(f"Failed to create case: {exc}")
+        return _sf_api_alert("create", "Case", exc)
     except Exception as exc:
         return _error_result(f"Unexpected error creating case: {exc}")
     _cache_invalidate("cases")
@@ -1555,7 +1569,7 @@ async def sf__update_case(
     except SalesforceAuthError as exc:
         return _error_result(f"Salesforce authentication failed: {exc}")
     except SalesforceAPIError as exc:
-        return _error_result(f"Failed to update case: {exc}")
+        return _sf_api_alert("update", "Case", exc)
     except Exception as exc:
         return _error_result(f"Unexpected error updating case: {exc}")
     _cache_invalidate("cases")
@@ -1760,7 +1774,7 @@ async def sf__create_task(
     except SalesforceAuthError as exc:
         return _error_result(f"Salesforce authentication failed: {exc}")
     except SalesforceAPIError as exc:
-        return _error_result(f"Failed to create task: {exc}")
+        return _sf_api_alert("create", "Task", exc)
     except Exception as exc:
         return _error_result(f"Unexpected error creating task: {exc}")
     _cache_invalidate("tasks")
@@ -1788,7 +1802,7 @@ async def sf__update_task(
     except SalesforceAuthError as exc:
         return _error_result(f"Salesforce authentication failed: {exc}")
     except SalesforceAPIError as exc:
-        return _error_result(f"Failed to update task: {exc}")
+        return _sf_api_alert("update", "Task", exc)
     except Exception as exc:
         return _error_result(f"Unexpected error updating task: {exc}")
     _cache_invalidate("tasks")
@@ -2056,7 +2070,7 @@ async def sf__create_campaign(
     except SalesforceAuthError as exc:
         return _error_result(f"Salesforce authentication failed: {exc}")
     except SalesforceAPIError as exc:
-        return _error_result(f"Failed to create campaign: {exc}")
+        return _sf_api_alert("create", "Campaign", exc)
     except Exception as exc:
         return _error_result(f"Unexpected error creating campaign: {exc}")
     _cache_invalidate("campaigns")
@@ -2086,7 +2100,7 @@ async def sf__update_campaign(
     except SalesforceAuthError as exc:
         return _error_result(f"Salesforce authentication failed: {exc}")
     except SalesforceAPIError as exc:
-        return _error_result(f"Failed to update campaign: {exc}")
+        return _sf_api_alert("update", "Campaign", exc)
     except Exception as exc:
         return _error_result(f"Unexpected error updating campaign: {exc}")
     _cache_invalidate("campaigns")

@@ -75,7 +75,7 @@ Each sn__get_* tool supports a fixed list of filters (see the tool's description
 - Do NOT invent a workaround or pass it to a different param.
 - Respond in one sentence: "I can filter <entity> by <list>. <requested_filter> isn't supported."
 
-FK filters on sn__get_* tools: prefer the `<fk>_name` param when the tool's description lists it (e.g. sn__get_incidents accepts `assigned_to_name` and `caller_name` — pass them directly: `sn__get_incidents(assigned_to_name="Joe")`). The server runs a dot-walked CONTAINS query — no chain, no extra round-trip. Only chain via sn__get_users(name=...) or sn__get_hr_services(name=...) for tools whose description does NOT list a `<fk>_name` param.
+FK filters on sn__get_* tools: prefer the `<fk>_name` param when the tool's description lists it (e.g. sn__get_incidents accepts `assigned_to_name` and `caller_name` — pass them directly: `sn__get_incidents(assigned_to_name="Joe")`). The server runs a dot-walked CONTAINS query — no chain, no extra round-trip. Only chain via sn__get_users(name=...) or sn__get_hr_services(name=...) for tools whose description does NOT list a `<fk>_name` param. When chaining, do NOT render the intermediate lookup — only show the final result.
 
 ## Confirmation before direct writes
 - Only confirm before calling create/update/delete tools directly (i.e. NOT form tools).
