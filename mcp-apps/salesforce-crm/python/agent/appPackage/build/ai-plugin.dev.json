@@ -8,7 +8,7 @@
     "functions":  [
                       {
                           "name":  "sf__get_leads",
-                          "description":  "Get Salesforce Leads (5 most recent). Pass lead_id to view one record; add action=\u0027edit\u0027 to open the edit form. Filters: name, company, campaign_id, email, phone, status, lead_source."
+                          "description":  "Get Salesforce Leads (5 most recent). Pass lead_id to view one record; add action=\u0027edit\u0027 (or \u0027change\u0027) to open the edit form. Filters: name, company, campaign_id, email, phone, status, lead_source."
                       },
                       {
                           "name":  "sf__create_lead",
@@ -20,7 +20,7 @@
                       },
                       {
                           "name":  "sf__get_opportunities",
-                          "description":  "Get Salesforce Opportunities (5 most recent). Pass opportunity_id to view one record; add action=\u0027edit\u0027 to open the edit form. Filters: account_id, account_name (parent-traversal LIKE on Account.Name — e.g. \u0027opps for Acme\u0027), name, stage, amount_min, amount_max, close_date_from, close_date_to, probability_min, probability_max, type, lead_source."
+                          "description":  "Get Salesforce Opportunities (5 most recent). Pass opportunity_id to view one record; add action=\u0027edit\u0027 (or \u0027change\u0027) to open the edit form. Filters: account_id, account_name (parent-traversal LIKE on Account.Name — e.g. \u0027opps for Acme\u0027), name, stage, amount_min, amount_max, close_date_from, close_date_to, probability_min, probability_max, type, lead_source."
                       },
                       {
                           "name":  "sf__create_opportunity",
@@ -40,7 +40,7 @@
                       },
                       {
                           "name":  "sf__get_accounts",
-                          "description":  "Get Salesforce Accounts (5 most recent). Pass account_id to view one record; add action=\u0027edit\u0027 to open the edit form. Filters: name, industry, sic, account_number, ticker_symbol, annual_revenue_min, annual_revenue_max, type."
+                          "description":  "Get Salesforce Accounts (5 most recent). Pass account_id to view one record; add action=\u0027edit\u0027 (or \u0027change\u0027) to open the edit form. Filters: name, industry, sic, account_number, ticker_symbol, annual_revenue_min, annual_revenue_max, type."
                       },
                       {
                           "name":  "sf__create_account",
@@ -52,7 +52,7 @@
                       },
                       {
                           "name":  "sf__get_contacts",
-                          "description":  "Get Salesforce Contacts (5 most recent). Pass contact_id to view one record; add action=\u0027edit\u0027 to open the edit form. Filters: account_id, account_name (parent-traversal LIKE on Account.Name — e.g. \u0027contacts at Acme\u0027), name (first/last LIKE), title (LIKE — e.g. \u0027contacts with title Manager\u0027), department, lead_source."
+                          "description":  "Get Salesforce Contacts (5 most recent). Pass contact_id to view one record; add action=\u0027edit\u0027 (or \u0027change\u0027) to open the edit form. Filters: account_id, account_name (parent-traversal LIKE on Account.Name — e.g. \u0027contacts at Acme\u0027), name (first/last LIKE), title (LIKE — e.g. \u0027contacts with title Manager\u0027), department, lead_source."
                       },
                       {
                           "name":  "sf__create_contact",
@@ -64,7 +64,7 @@
                       },
                       {
                           "name":  "sf__get_cases",
-                          "description":  "Get Salesforce Cases (5 most recent). Pass case_id to view one record; add action=\u0027edit\u0027 to open the edit form. Filters: account_id, account_name (parent-traversal LIKE on Account.Name — e.g. \u0027cases for Acme\u0027), subject (search by subject), case_number, priority, status, type."
+                          "description":  "Get Salesforce Cases (5 most recent). Pass case_id to view one record; add action=\u0027edit\u0027 (or \u0027change\u0027) to open the edit form. Filters: account_id, account_name (parent-traversal LIKE on Account.Name — e.g. \u0027cases for Acme\u0027), subject (search by subject), case_number, priority, status, type."
                       },
                       {
                           "name":  "sf__create_case",
@@ -80,7 +80,7 @@
                       },
                       {
                           "name":  "sf__get_tasks",
-                          "description":  "Get Salesforce Tasks (5 most recent). Pass task_id to view one record; add action=\u0027edit\u0027 to open the edit form. Filters: subject, status, priority, activity_date_from, activity_date_to, related_name (matches tasks linked to an Account/Opportunity/Contact/Lead whose name contains the string — e.g. related_name=\u0027Acme\u0027)."
+                          "description":  "Get Salesforce Tasks (5 most recent). Pass task_id to view one record; add action=\u0027edit\u0027 (or \u0027change\u0027) to open the edit form. Filters: subject, status, priority, activity_date_from, activity_date_to, related_name (matches tasks linked to an Account/Opportunity/Contact/Lead whose name contains the string — e.g. related_name=\u0027Acme\u0027)."
                       },
                       {
                           "name":  "sf__create_task",
@@ -100,7 +100,7 @@
                       },
                       {
                           "name":  "sf__get_campaigns",
-                          "description":  "Get Salesforce Campaigns (5 most recent). Pass campaign_id to view one record; add action=\u0027edit\u0027 to open the edit form. Filters: name, status, type."
+                          "description":  "Get Salesforce Campaigns (5 most recent). Pass campaign_id to view one record; add action=\u0027edit\u0027 (or \u0027change\u0027) to open the edit form. Filters: name, status, type."
                       },
                       {
                           "name":  "sf__create_campaign",
@@ -112,7 +112,7 @@
                       },
                       {
                           "name":  "sf__get_pending_approvals",
-                          "description":  "Get pending Salesforce approval requests assigned to the current user. Returns pending ProcessInstance workitems requiring action."
+                          "description":  "Get pending Salesforce approval requests assigned to the current user. Returns pending ProcessInstance workitems requiring action. Filters: submitted_by (LIKE on submitter name), target_type (Account/Contact/Opportunity/Case/Lead/Task/Campaign)."
                       },
                       {
                           "name":  "sf__approve_record",
@@ -131,12 +131,12 @@
                      {
                          "type":  "RemoteMCPServer",
                          "spec":  {
-                                      "url":  "https://lob-mcp-apps-sf.gentlepond-dd579c1b.southindia.azurecontainerapps.io/mcp",
+                                      "url":  "https://z7g35ldb-8080.inc1.devtunnels.ms/mcp",
                                       "mcp_tool_description":  {
                                                                    "tools":  [
                                                                                  {
                                                                                      "name":  "sf__get_leads",
-                                                                                     "description":  "Get Salesforce Leads (5 most recent). Pass lead_id to view one record; add action=\u0027edit\u0027 to open the edit form. Filters: name, company, campaign_id, email, phone, status, lead_source.",
+                                                                                     "description":  "Get Salesforce Leads (5 most recent). Pass lead_id to view one record; add action=\u0027edit\u0027 (or \u0027change\u0027) to open the edit form. Filters: name, company, campaign_id, email, phone, status, lead_source.",
                                                                                      "inputSchema":  {
                                                                                                          "properties":  {
                                                                                                                             "lead_id":  {
@@ -304,7 +304,7 @@
                                                                                  },
                                                                                  {
                                                                                      "name":  "sf__get_opportunities",
-                                                                                     "description":  "Get Salesforce Opportunities (5 most recent). Pass opportunity_id to view one record; add action=\u0027edit\u0027 to open the edit form. Filters: account_id, account_name (parent-traversal LIKE on Account.Name — e.g. \u0027opps for Acme\u0027), name, stage, amount_min, amount_max, close_date_from, close_date_to, probability_min, probability_max, type, lead_source.",
+                                                                                     "description":  "Get Salesforce Opportunities (5 most recent). Pass opportunity_id to view one record; add action=\u0027edit\u0027 (or \u0027change\u0027) to open the edit form. Filters: account_id, account_name (parent-traversal LIKE on Account.Name — e.g. \u0027opps for Acme\u0027), name, stage, amount_min, amount_max, close_date_from, close_date_to, probability_min, probability_max, type, lead_source.",
                                                                                      "inputSchema":  {
                                                                                                          "properties":  {
                                                                                                                             "opportunity_id":  {
@@ -530,7 +530,7 @@
                                                                                  },
                                                                                  {
                                                                                      "name":  "sf__get_accounts",
-                                                                                     "description":  "Get Salesforce Accounts (5 most recent). Pass account_id to view one record; add action=\u0027edit\u0027 to open the edit form. Filters: name, industry, sic, account_number, ticker_symbol, annual_revenue_min, annual_revenue_max, type.",
+                                                                                     "description":  "Get Salesforce Accounts (5 most recent). Pass account_id to view one record; add action=\u0027edit\u0027 (or \u0027change\u0027) to open the edit form. Filters: name, industry, sic, account_number, ticker_symbol, annual_revenue_min, annual_revenue_max, type.",
                                                                                      "inputSchema":  {
                                                                                                          "properties":  {
                                                                                                                             "account_id":  {
@@ -710,7 +710,7 @@
                                                                                  },
                                                                                  {
                                                                                      "name":  "sf__get_contacts",
-                                                                                     "description":  "Get Salesforce Contacts (5 most recent). Pass contact_id to view one record; add action=\u0027edit\u0027 to open the edit form. Filters: account_id, account_name (parent-traversal LIKE on Account.Name — e.g. \u0027contacts at Acme\u0027), name (first/last LIKE), title (LIKE — e.g. \u0027contacts with title Manager\u0027), department, lead_source.",
+                                                                                     "description":  "Get Salesforce Contacts (5 most recent). Pass contact_id to view one record; add action=\u0027edit\u0027 (or \u0027change\u0027) to open the edit form. Filters: account_id, account_name (parent-traversal LIKE on Account.Name — e.g. \u0027contacts at Acme\u0027), name (first/last LIKE), title (LIKE — e.g. \u0027contacts with title Manager\u0027), department, lead_source.",
                                                                                      "inputSchema":  {
                                                                                                          "properties":  {
                                                                                                                             "contact_id":  {
@@ -870,7 +870,7 @@
                                                                                  },
                                                                                  {
                                                                                      "name":  "sf__get_cases",
-                                                                                     "description":  "Get Salesforce Cases (5 most recent). Pass case_id to view one record; add action=\u0027edit\u0027 to open the edit form. Filters: account_id, account_name (parent-traversal LIKE on Account.Name — e.g. \u0027cases for Acme\u0027), subject (search by subject), case_number, priority, status, type.",
+                                                                                     "description":  "Get Salesforce Cases (5 most recent). Pass case_id to view one record; add action=\u0027edit\u0027 (or \u0027change\u0027) to open the edit form. Filters: account_id, account_name (parent-traversal LIKE on Account.Name — e.g. \u0027cases for Acme\u0027), subject (search by subject), case_number, priority, status, type.",
                                                                                      "inputSchema":  {
                                                                                                          "properties":  {
                                                                                                                             "case_id":  {
@@ -1047,7 +1047,7 @@
                                                                                  },
                                                                                  {
                                                                                      "name":  "sf__get_tasks",
-                                                                                     "description":  "Get Salesforce Tasks (5 most recent). Pass task_id to view one record; add action=\u0027edit\u0027 to open the edit form. Filters: subject, status, priority, activity_date_from, activity_date_to, related_name (matches tasks linked to an Account/Opportunity/Contact/Lead whose name contains the string — e.g. related_name=\u0027Acme\u0027).",
+                                                                                     "description":  "Get Salesforce Tasks (5 most recent). Pass task_id to view one record; add action=\u0027edit\u0027 (or \u0027change\u0027) to open the edit form. Filters: subject, status, priority, activity_date_from, activity_date_to, related_name (matches tasks linked to an Account/Opportunity/Contact/Lead whose name contains the string — e.g. related_name=\u0027Acme\u0027).",
                                                                                      "inputSchema":  {
                                                                                                          "properties":  {
                                                                                                                             "task_id":  {
@@ -1247,7 +1247,7 @@
                                                                                  },
                                                                                  {
                                                                                      "name":  "sf__get_campaigns",
-                                                                                     "description":  "Get Salesforce Campaigns (5 most recent). Pass campaign_id to view one record; add action=\u0027edit\u0027 to open the edit form. Filters: name, status, type.",
+                                                                                     "description":  "Get Salesforce Campaigns (5 most recent). Pass campaign_id to view one record; add action=\u0027edit\u0027 (or \u0027change\u0027) to open the edit form. Filters: name, status, type.",
                                                                                      "inputSchema":  {
                                                                                                          "properties":  {
                                                                                                                             "campaign_id":  {
@@ -1383,10 +1383,17 @@
                                                                                  },
                                                                                  {
                                                                                      "name":  "sf__get_pending_approvals",
-                                                                                     "description":  "Get pending Salesforce approval requests assigned to the current user. Returns pending ProcessInstance workitems requiring action.",
+                                                                                     "description":  "Get pending Salesforce approval requests assigned to the current user. Returns pending ProcessInstance workitems requiring action. Filters: submitted_by (LIKE on submitter name), target_type (Account/Contact/Opportunity/Case/Lead/Task/Campaign).",
                                                                                      "inputSchema":  {
                                                                                                          "properties":  {
-
+                                                                                                                            "submitted_by":  {
+                                                                                                                                                 "default":  "",
+                                                                                                                                                 "type":  "string"
+                                                                                                                                             },
+                                                                                                                            "target_type":  {
+                                                                                                                                                "default":  "",
+                                                                                                                                                "type":  "string"
+                                                                                                                                            }
                                                                                                                         },
                                                                                                          "type":  "object",
                                                                                                          "required":  [

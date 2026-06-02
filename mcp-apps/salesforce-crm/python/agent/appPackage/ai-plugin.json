@@ -112,7 +112,7 @@
         },
         {
             "name": "sf__get_pending_approvals",
-            "description": "Get pending Salesforce approval requests assigned to the current user. Returns pending ProcessInstance workitems requiring action."
+            "description": "Get pending Salesforce approval requests assigned to the current user. Returns pending ProcessInstance workitems requiring action. Filters: submitted_by (LIKE on submitter name), target_type (Account/Contact/Opportunity/Case/Lead/Task/Campaign)."
         },
         {
             "name": "sf__approve_record",
@@ -131,7 +131,7 @@
         {
             "type": "RemoteMCPServer",
             "spec": {
-                "url": "https://localhost:8080/mcp",
+                "url": "https://z7g35ldb-8080.inc1.devtunnels.ms/mcp",
                 "mcp_tool_description": {
                     "file": "mcp-tools.json"
                 }

@@ -1231,9 +1231,18 @@
         },
         {
             "name": "sf__get_pending_approvals",
-            "description": "Get pending Salesforce approval requests assigned to the current user. Returns pending ProcessInstance workitems requiring action.",
+            "description": "Get pending Salesforce approval requests assigned to the current user. Returns pending ProcessInstance workitems requiring action. Filters: submitted_by (LIKE on submitter name), target_type (Account/Contact/Opportunity/Case/Lead/Task/Campaign).",
             "inputSchema": {
-                "properties": {},
+                "properties": {
+                    "submitted_by": {
+                        "default": "",
+                        "type": "string"
+                    },
+                    "target_type": {
+                        "default": "",
+                        "type": "string"
+                    }
+                },
                 "type": "object",
                 "required": []
             },
