@@ -8,7 +8,16 @@
 - 💻 Local laptop or ☁️ Azure Container Apps
 - ⚡ One-command deploy
 
-![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white) ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white) ![Fluent UI](https://img.shields.io/badge/Fluent_UI-v9-0078D4) ![FastMCP](https://img.shields.io/badge/FastMCP-1.26-6E40C9) ![ServiceNow](https://img.shields.io/badge/ServiceNow-ITSM%20%2B%20HR-81B5A1?logo=servicenow&logoColor=white) ![M365 Copilot](https://img.shields.io/badge/M365-Copilot-7B83EB) ![Azure](https://img.shields.io/badge/Azure-Container_Apps-0078D4?logo=microsoftazure&logoColor=white) ![Version](https://img.shields.io/badge/version-0.5.0-blue)
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white" alt="Python" />
+  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white" alt="React" />
+  <img src="https://img.shields.io/badge/Fluent_UI-v9-0078D4" alt="Fluent UI" />
+  <img src="https://img.shields.io/badge/FastMCP-1.26-6E40C9" alt="FastMCP" />
+  <img src="https://img.shields.io/badge/ServiceNow-ITSM%20%2B%20HR-81B5A1?logo=servicenow&logoColor=white" alt="ServiceNow" />
+  <img src="https://img.shields.io/badge/M365-Copilot-7B83EB" alt="M365 Copilot" />
+  <img src="https://img.shields.io/badge/Azure-Container_Apps-0078D4?logo=microsoftazure&logoColor=white" alt="Azure" />
+  <img src="https://img.shields.io/badge/version-0.5.0-blue" alt="Version" />
+</p>
 
 **Jump to:** [What this is](#1-what-this-is) · [How it works](#2-how-it-works) · [Install](#3-install) · [Troubleshooting](#4-troubleshooting)
 
