@@ -127,6 +127,47 @@ MCP server that recommends learning and training courses with embedded video pre
 | Show me a course on Semantic Kernel. | Renders the course widget with video player. |
 | What training is available for Azure AI? | Returns a recommended course card. |
 
+---
+
+### Enterprise LOB MCP Apps
+
+> **Pre-built M365 Copilot agents for enterprise LOB systems** — each with interactive React widgets, one-command deploy, and production-ready patterns.
+
+<p align="center">
+  <img src="https://img.shields.io/badge/🏛️_Salesforce-CRM-00A1E0?style=for-the-badge" alt="Salesforce" />
+  <img src="https://img.shields.io/badge/🎫_ServiceNow-ITSM-293E40?style=for-the-badge" alt="ServiceNow" />
+  <br/><br/>
+  <img src="https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white" alt="Python" />
+  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black" alt="React" />
+  <img src="https://img.shields.io/badge/Fluent_UI-v9-0078D4" alt="Fluent UI" />
+  <img src="https://img.shields.io/badge/FastMCP-1.26-6E40C9" alt="FastMCP" />
+  <img src="https://img.shields.io/badge/M365-Copilot-7B83EB" alt="M365 Copilot" />
+  <img src="https://img.shields.io/badge/Azure-Container_Apps-0078D4?logo=microsoftazure&logoColor=white" alt="Azure" />
+</p>
+
+Every major LOB platform exposes a different API paradigm — Salesforce uses SOQL, ServiceNow provides GlideRecord. Integrating even a single system into M365 Copilot requires dedicated engineering effort spanning OAuth, data model mapping, pagination, rate limits, and building a UI that makes results **actually useful** rather than dumping raw JSON into chat. These apps solve that.
+
+Each app ships with:
+- A **Python MCP server** with production patterns — caching, structured logging, telemetry, and error handling
+- An **interactive React widget** on Fluent UI v9 that renders inline in Copilot chat
+- A **one-command deploy path** to either a local dev tunnel or Azure Container Apps
+
+| # | App | Tools | Landing page |
+|---|---|---|---|
+| 1 | 🏛️ **Ask - Salesforce** | 30 | [mcp-apps/salesforce-crm/python/](mcp-apps/salesforce-crm/python/README.md) |
+| 2 | 🎫 **Ask - ServiceNow** | 31 | [mcp-apps/servicenow-itsm/python/](mcp-apps/servicenow-itsm/python/README.md) |
+
+[![Watch the demo](https://img.youtube.com/vi/eELXlXAn2ac/maxresdefault.jpg)](https://youtu.be/eELXlXAn2ac)
+
+| Prompt | What it does |
+|---|---|
+| Show me the latest leads. | Lists recent Salesforce leads in a sortable table with inline edit/create. |
+| Show qualification opportunities for Acme. | Filters opportunities by stage and account name. |
+| Show me the sales pipeline dashboard. | Aggregates open opportunities by stage with a bar chart. |
+| Show me open incidents. | Lists recent ServiceNow incidents with priority indicators. |
+| Resolve INC0010001 as solved remotely. | Opens the resolve form with close-code picklist. |
+| Search knowledge for VPN setup. | Searches published ServiceNow knowledge base articles. |
+
 ## Repository structure
 
 ```
@@ -134,6 +175,8 @@ mcp-apps/                        # MCP Apps SDK samples
   employee-training/node/        # Learning course recommendations
   expense-submission/node/       # Expense filing with Entra SSO & file handling
   fieldops/node/                 # Field service dispatch
+  salesforce-crm/python/         # Enterprise Salesforce CRM (30 tools)
+  servicenow-itsm/python/        # Enterprise ServiceNow ITSM + HR (31 tools)
   trey-research/node/            # HR consultant management
   zava-insurance/node/           # Insurance claims management
 
