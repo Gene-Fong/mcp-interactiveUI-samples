@@ -24,7 +24,7 @@ export function PriorityPill({ priority, theme }: { priority: string; theme: 'li
 
 export function StatePill({ state, theme }: { state: string; theme: 'light' | 'dark' }) {
   const key = (state || '').toLowerCase();
-  const style = STATE_STYLES[key] || { background: '#EAEAEA', color: '#555', border: tokens.colorNeutralStroke2 };
+  const style = STATE_STYLES[key] || { background: tokens.colorNeutralBackground2, color: tokens.colorNeutralForeground2, border: tokens.colorNeutralStroke2 };
   return (
     <span style={{
       display: 'inline-block', padding: '4px 12px', borderRadius: '4px',

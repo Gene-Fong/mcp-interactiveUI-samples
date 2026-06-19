@@ -20,6 +20,7 @@ import {
 } from '@fluentui/react-components';
 import {
   AddRegular,
+  ArrowSwapRegular,
   ChevronDownRegular,
   ChevronRightRegular,
   ChevronUpRegular,

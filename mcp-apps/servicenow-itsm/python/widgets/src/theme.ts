@@ -52,7 +52,7 @@ if (typeof document !== 'undefined' && !document.getElementById(nowStyleId)) {
   style.id = nowStyleId;
   style.textContent = `
     @keyframes snowRowFlash {
-      0%   { background: #E3F2E8; }
+      0%   { background: var(--colorPaletteGreenBackground1); }
       100% { background: transparent; }
     }
     @keyframes shimmer {
@@ -60,28 +60,24 @@ if (typeof document !== 'undefined' && !document.getElementById(nowStyleId)) {
       100% { background-position: -200% 0; }
     }
     .snow-edit-btn:hover {
-      color: #293E40 !important;
-      border-color: #293E40 !important;
+      color: var(--colorBrandForeground1) !important;
+      border-color: var(--colorBrandForeground1) !important;
     }
     .fui-Input:focus-within {
-      box-shadow: 0 0 3px #81B5A1;
-      border-color: #81B5A1;
+      box-shadow: 0 0 3px var(--colorBrandStroke1);
+      border-color: var(--colorBrandStroke1);
     }
     select:focus {
       outline: none;
-      box-shadow: 0 0 3px #81B5A1;
-      border-color: #81B5A1 !important;
+      box-shadow: 0 0 3px var(--colorBrandStroke1);
+      border-color: var(--colorBrandStroke1) !important;
     }
     .skel {
       height: 14px;
       border-radius: 4px;
-      background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+      background: linear-gradient(90deg, var(--colorNeutralBackground3) 25%, var(--colorNeutralBackground1) 50%, var(--colorNeutralBackground3) 75%);
       background-size: 200% 100%;
       animation: shimmer 1.5s infinite;
-    }
-    [data-theme="dark"] .skel {
-      background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
-      background-size: 200% 100%;
     }
   `;
   document.head.appendChild(style);

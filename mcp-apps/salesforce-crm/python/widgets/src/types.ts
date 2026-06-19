@@ -106,7 +106,7 @@ export interface Approval {
 
 // ── List data ─────────────────────────────────────────────────────────────
 export interface SfListData {
-  type: 'accounts' | 'leads' | 'contacts' | 'opportunities' | 'cases' | 'tasks' | 'campaigns' | 'approvals';
+  type: 'accounts' | 'leads' | 'contacts' | 'opportunities' | 'cases' | 'tasks' | 'campaigns' | 'approvals' | 'case_activity';
   total?: number;
   items: any[];
   error?: boolean;
