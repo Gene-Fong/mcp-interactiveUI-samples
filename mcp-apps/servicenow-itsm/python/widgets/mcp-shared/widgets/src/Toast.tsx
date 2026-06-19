@@ -58,16 +58,12 @@ export function ToastContainer() {
       aria-live="polite"
       aria-atomic="true"
       style={{
-        position: 'fixed',
-        top: 12,
-        left: '50%',
-        transform: 'translateX(-50%)',
+        position: 'sticky',
+        top: 0,
+        left: 0,
+        right: 0,
+        width: '100%',
         zIndex: 999,
-        // Persistent toasts (durationMs=0, used for FK alerts) get extra width
-        // so suggestion lists like "Did you mean: A, B, C, D, E?" fit on
-        // fewer lines.
-        minWidth: isPersistent ? 560 : 280,
-        maxWidth: isPersistent ? 'min(95vw, 1200px)' : 'min(90vw, 600px)',
       }}
     >
       <MessageBar intent={intent}>

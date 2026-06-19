@@ -12,8 +12,8 @@ createRoot(document.getElementById('root')!).render(
   <ErrorBoundary>
     <McpBridgeProvider appName="gtc-snow-widget">
       <FluentWrapper>
-        <ServiceNowApp />
         <ToastContainer />
+        <ServiceNowApp />
       </FluentWrapper>
     </McpBridgeProvider>
   </ErrorBoundary>

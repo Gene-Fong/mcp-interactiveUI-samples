@@ -3,7 +3,8 @@
 // In production builds (vite build) the alias is OFF and the real package is used.
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { FluentProvider, webLightTheme, webDarkTheme, Text } from '@fluentui/react-components';
+import { FluentProvider, webLightTheme, webDarkTheme, Text, Button } from '@fluentui/react-components';
+import { ArrowMaximizeRegular, ArrowMinimizeRegular } from '@fluentui/react-icons';
 import { mockCallTool } from './mock-call-tool';
 
 // Pass-through ONLY components that do NOT use bridge hooks internally.
@@ -14,6 +15,7 @@ import { mockCallTool } from './mock-call-tool';
 // in this file instead so they bind to the mock context.
 export { ToastContainer, useToast } from '@gtc/mcp-shared/widgets/src/Toast';
 export { ErrorBoundary } from '@gtc/mcp-shared/widgets/src/ErrorBoundary';
+export { FkHint } from '@gtc/mcp-shared/widgets/src/FkHint';
 
 // ── Mock McpBridge ─────────────────────────────────────────────────────────
 interface BridgeCtx {
@@ -109,20 +111,14 @@ export function ExpandButton() {
   const { canExpand, isFullscreen, requestFullscreen, exitFullscreen } = useMcpBridge();
   if (!canExpand) return null;
   return (
-    <button
+    <Button
+      appearance="subtle"
+      size="small"
+      icon={isFullscreen ? <ArrowMinimizeRegular /> : <ArrowMaximizeRegular />}
       onClick={isFullscreen ? exitFullscreen : requestFullscreen}
-      aria-label={isFullscreen ? 'Exit expanded view' : 'Expand to fullscreen'}
-      aria-pressed={isFullscreen}
+      aria-label={isFullscreen ? 'Exit expanded view' : 'Expand'}
       title={isFullscreen ? 'Exit expanded view' : 'Expand'}
-      style={{
-        background: 'rgba(255,255,255,0.92)', border: '1px solid rgba(255,255,255,0.95)',
-        color: '#111', borderRadius: '4px', padding: '4px 10px', cursor: 'pointer',
-        fontSize: '12px', fontWeight: 600, display: 'flex', alignItems: 'center',
-        gap: '4px', boxShadow: '0 1px 4px rgba(0,0,0,0.18)',
-      }}
-    >
-      {isFullscreen ? '✕ Exit' : '⤢ Expand'}
-    </button>
+    />
   );
 }
 

@@ -12,8 +12,8 @@ createRoot(document.getElementById('root')!).render(
   <ErrorBoundary>
     <McpBridgeProvider appName="gtc-sf-widget">
       <FluentWrapper>
-        <SalesforceApp />
         <ToastContainer />
+        <SalesforceApp />
       </FluentWrapper>
     </McpBridgeProvider>
   </ErrorBoundary>
