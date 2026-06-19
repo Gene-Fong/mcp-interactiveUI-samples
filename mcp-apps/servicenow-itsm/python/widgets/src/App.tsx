@@ -64,7 +64,9 @@ export function ServiceNowApp() {
   if (!data) {
     return (
       <div className={styles.shell} style={shellStyle}>
-        <SkeletonTable />
+        <div role="status" aria-live="polite">
+          <SkeletonTable />
+        </div>
       </div>
     );
   }
@@ -72,22 +74,24 @@ export function ServiceNowApp() {
   if (data.error) {
     return (
       <div className={styles.shell} style={shellStyle}>
-        <div className={styles.card} style={{ border: `1px solid ${t.border}` }}>
-          <div className={styles.headerBar} style={{ background: '#293E40' }}>
-            <span style={{ fontSize: '14px', fontWeight: 600, color: '#fff' }}>Error</span>
-            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-              <ExpandButton />
+        <div role="alert" aria-live="assertive">
+          <div className={styles.card} style={{ border: `1px solid ${t.border}` }}>
+            <div className={styles.headerBar} style={{ background: '#293E40' }}>
+              <span style={{ fontSize: '14px', fontWeight: 600, color: '#fff' }}>Error</span>
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                <ExpandButton />
+              </div>
             </div>
+            <div style={{
+              padding: '12px 16px', fontSize: '13px', fontWeight: 500,
+              background: theme === 'dark' ? '#3D1111' : '#FDE7E7',
+              color: theme === 'dark' ? '#F87171' : t.error,
+              borderLeft: `3px solid ${t.error}`,
+            }}>
+              {data.message || 'An unknown error occurred.'}
+            </div>
+            <NowFooter theme={theme} />
           </div>
-          <div style={{
-            padding: '12px 16px', fontSize: '13px', fontWeight: 500,
-            background: theme === 'dark' ? '#3D1111' : '#FDE7E7',
-            color: theme === 'dark' ? '#F87171' : t.error,
-            borderLeft: `3px solid ${t.error}`,
-          }}>
-            {data.message || 'An unknown error occurred.'}
-          </div>
-          <NowFooter theme={theme} />
         </div>
       </div>
     );

@@ -39,7 +39,7 @@ export function KnowledgeView({ items, theme, cacheInfo }: { items: KnowledgeArt
         brand={tokens.colorPaletteTealForeground2}
         cacheInfo={cacheInfo} />
 
-      <Table size="small" style={{ borderCollapse: 'collapse' }}>
+      <Table aria-label="Knowledge articles" size="small" style={{ borderCollapse: 'collapse' }}>
         <TableHeader>
           <TableRow style={{ background: t.headerBg }}>
             <TableHeaderCell style={headerCellStyle}>Number</TableHeaderCell>

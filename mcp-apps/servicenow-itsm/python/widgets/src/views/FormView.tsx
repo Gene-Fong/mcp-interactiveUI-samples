@@ -87,6 +87,14 @@ export function FormView({ entity, prefill, mode = 'create', recordId, callTool,
   const entityLabel = isIncident ? 'Incident' : isChange ? 'Change Request' : isProblem ? 'Problem' : isHrCase ? 'HR Case' : 'Request';
   const titleFieldLabel = isHrCase ? 'Subject' : 'Short Description';
   const title = `${isEdit ? 'Edit' : 'New'} ${entityLabel}`;
+  const titleFieldId = `${mode}-${entity}-title`;
+  const descriptionFieldId = `${mode}-${entity}-description`;
+  const workNoteFieldId = `${mode}-${entity}-work-note`;
+  const callerFieldId = `${mode}-${entity}-caller`;
+  const assignedToFieldId = `${mode}-${entity}-assigned-to`;
+  const requestedForFieldId = `${mode}-${entity}-requested-for`;
+  const openedForFieldId = `${mode}-${entity}-opened-for`;
+  const hrServiceFieldId = `${mode}-${entity}-hr-service`;
 
   const handleSubmit = async () => {
     if (!shortDesc.trim()) { toast('Short Description is required', 'error'); return; }
@@ -196,7 +204,7 @@ export function FormView({ entity, prefill, mode = 'create', recordId, callTool,
         borderBottom: isIncident ? '2px solid #A893F2' : '2px solid #81B5A1',
       }}>
         <div className={styles.headerLeft}>
-          <span style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>{title}</span>
+          <h2 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#fff' }}>{title}</h2>
         </div>
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
           <ExpandButton />
@@ -205,21 +213,21 @@ export function FormView({ entity, prefill, mode = 'create', recordId, callTool,
 
       <div style={{ padding: '16px' }}>
           <div style={{ marginBottom: '12px' }}>
-            <label style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>{titleFieldLabel} *</label>
-            <Input size="small" value={shortDesc} onChange={(_, d) => setShortDesc(d.value)}
+            <label htmlFor={titleFieldId} style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>{titleFieldLabel} *</label>
+            <Input id={titleFieldId} size="small" value={shortDesc} onChange={(_, d) => setShortDesc(d.value)}
               placeholder={`Brief summary of the ${entity.replace('_', ' ')}`}
               style={{ width: '100%', marginTop: '4px' }} />
           </div>
           <div style={{ marginBottom: '12px' }}>
-            <label style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Description</label>
-            <Textarea size="small" value={description} onChange={(_, d) => setDescription(d.value)}
+            <label htmlFor={descriptionFieldId} style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Description</label>
+            <Textarea id={descriptionFieldId} size="small" value={description} onChange={(_, d) => setDescription(d.value)}
               placeholder="Detailed description (optional)" rows={3} resize="vertical"
               style={{ width: '100%', marginTop: '4px' }} />
           </div>
           {isEdit && (
             <div style={{ marginBottom: '12px' }}>
-              <label style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Work Note <span style={{ color: t.textWeak, fontWeight: 400 }}>(internal — appended to journal)</span></label>
-              <Textarea size="small" value={workNote} onChange={(_, d) => setWorkNote(d.value)}
+              <label htmlFor={workNoteFieldId} style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Work Note <span style={{ color: t.textWeak, fontWeight: 400 }}>(internal — appended to journal)</span></label>
+              <Textarea id={workNoteFieldId} size="small" value={workNote} onChange={(_, d) => setWorkNote(d.value)}
                 placeholder="Optional internal note…" rows={2} resize="vertical"
                 style={{ width: '100%', marginTop: '4px' }} />
             </div>
@@ -227,80 +235,80 @@ export function FormView({ entity, prefill, mode = 'create', recordId, callTool,
           {isEdit && isIncident && (
             <>
               <div style={{ marginBottom: '12px' }}>
-                <label style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Caller (type full name)</label>
-                <Input size="small" value={callerName} onChange={(_, d) => setCallerName(d.value)} placeholder={prefill?.caller_id || 'e.g. Joe Smith'} style={{ width: '100%', marginTop: '4px' }} />
+                <label htmlFor={callerFieldId} style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Caller (type full name)</label>
+                <Input id={callerFieldId} size="small" value={callerName} onChange={(_, d) => setCallerName(d.value)} placeholder={prefill?.caller_id || 'e.g. Joe Smith'} style={{ width: '100%', marginTop: '4px' }} />
               </div>
               <div style={{ marginBottom: '12px' }}>
-                <label style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Assigned To (type full name)</label>
-                <Input size="small" value={assignedToName} onChange={(_, d) => setAssignedToName(d.value)} placeholder={prefill?.assigned_to || 'e.g. Alice Chen'} style={{ width: '100%', marginTop: '4px' }} />
+                <label htmlFor={assignedToFieldId} style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Assigned To (type full name)</label>
+                <Input id={assignedToFieldId} size="small" value={assignedToName} onChange={(_, d) => setAssignedToName(d.value)} placeholder={prefill?.assigned_to || 'e.g. Alice Chen'} style={{ width: '100%', marginTop: '4px' }} />
               </div>
             </>
           )}
           {isEdit && (isChange || isProblem) && (
             <div style={{ marginBottom: '12px' }}>
-              <label style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Assigned to (type full name)</label>
-              <Input size="small" value={assignedToName} onChange={(_, d) => setAssignedToName(d.value)} placeholder={prefill?.assigned_to || 'e.g. Alice Chen'} style={{ width: '100%', marginTop: '4px' }} />
+              <label htmlFor={assignedToFieldId} style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Assigned to (type full name)</label>
+              <Input id={assignedToFieldId} size="small" value={assignedToName} onChange={(_, d) => setAssignedToName(d.value)} placeholder={prefill?.assigned_to || 'e.g. Alice Chen'} style={{ width: '100%', marginTop: '4px' }} />
             </div>
           )}
           {isEdit && entity === 'request' && (
             <div style={{ marginBottom: '12px' }}>
-              <label style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Requested for (type full name)</label>
-              <Input size="small" value={requestedForName} onChange={(_, d) => setRequestedForName(d.value)} placeholder="e.g. Joe Smith" style={{ width: '100%', marginTop: '4px' }} />
+              <label htmlFor={requestedForFieldId} style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Requested for (type full name)</label>
+              <Input id={requestedForFieldId} size="small" value={requestedForName} onChange={(_, d) => setRequestedForName(d.value)} placeholder="e.g. Joe Smith" style={{ width: '100%', marginTop: '4px' }} />
             </div>
           )}
           {isEdit && isHrCase && (
             <>
               <div style={{ marginBottom: '12px' }}>
-                <label style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Opened for (type full name)</label>
-                <Input size="small" value={openedForName} onChange={(_, d) => setOpenedForName(d.value)} placeholder="e.g. Joe Smith" style={{ width: '100%', marginTop: '4px' }} />
+                <label htmlFor={openedForFieldId} style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Opened for (type full name)</label>
+                <Input id={openedForFieldId} size="small" value={openedForName} onChange={(_, d) => setOpenedForName(d.value)} placeholder="e.g. Joe Smith" style={{ width: '100%', marginTop: '4px' }} />
               </div>
               <div style={{ marginBottom: '12px' }}>
-                <label style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Assigned to (type full name)</label>
-                <Input size="small" value={assignedToName} onChange={(_, d) => setAssignedToName(d.value)} placeholder="e.g. Alice Chen" style={{ width: '100%', marginTop: '4px' }} />
+                <label htmlFor={assignedToFieldId} style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Assigned to (type full name)</label>
+                <Input id={assignedToFieldId} size="small" value={assignedToName} onChange={(_, d) => setAssignedToName(d.value)} placeholder="e.g. Alice Chen" style={{ width: '100%', marginTop: '4px' }} />
               </div>
               <div style={{ marginBottom: '12px' }}>
-                <label style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>HR Service (type full name)</label>
-                <Input size="small" value={hrServiceName} onChange={(_, d) => setHrServiceName(d.value)} placeholder="e.g. VPN Access" style={{ width: '100%', marginTop: '4px' }} />
+                <label htmlFor={hrServiceFieldId} style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>HR Service (type full name)</label>
+                <Input id={hrServiceFieldId} size="small" value={hrServiceName} onChange={(_, d) => setHrServiceName(d.value)} placeholder="e.g. VPN Access" style={{ width: '100%', marginTop: '4px' }} />
               </div>
             </>
           )}
           {!isEdit && isIncident && (
             <>
               <div style={{ marginBottom: '12px' }}>
-                <label style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Caller (type full name)</label>
-                <Input size="small" value={callerName} onChange={(_, d) => setCallerName(d.value)} placeholder="e.g. Joe Smith" style={{ width: '100%', marginTop: '4px' }} />
+                <label htmlFor={callerFieldId} style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Caller (type full name)</label>
+                <Input id={callerFieldId} size="small" value={callerName} onChange={(_, d) => setCallerName(d.value)} placeholder="e.g. Joe Smith" style={{ width: '100%', marginTop: '4px' }} />
               </div>
               <div style={{ marginBottom: '12px' }}>
-                <label style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Assigned To (type full name)</label>
-                <Input size="small" value={assignedToName} onChange={(_, d) => setAssignedToName(d.value)} placeholder="e.g. Alice Chen" style={{ width: '100%', marginTop: '4px' }} />
+                <label htmlFor={assignedToFieldId} style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Assigned To (type full name)</label>
+                <Input id={assignedToFieldId} size="small" value={assignedToName} onChange={(_, d) => setAssignedToName(d.value)} placeholder="e.g. Alice Chen" style={{ width: '100%', marginTop: '4px' }} />
               </div>
             </>
           )}
           {!isEdit && (isChange || isProblem) && (
             <div style={{ marginBottom: '12px' }}>
-              <label style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Assigned to (type full name)</label>
-              <Input size="small" value={assignedToName} onChange={(_, d) => setAssignedToName(d.value)} placeholder="e.g. Alice Chen" style={{ width: '100%', marginTop: '4px' }} />
+              <label htmlFor={assignedToFieldId} style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Assigned to (type full name)</label>
+              <Input id={assignedToFieldId} size="small" value={assignedToName} onChange={(_, d) => setAssignedToName(d.value)} placeholder="e.g. Alice Chen" style={{ width: '100%', marginTop: '4px' }} />
             </div>
           )}
           {!isEdit && entity === 'request' && (
             <div style={{ marginBottom: '12px' }}>
-              <label style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Requested for (type full name)</label>
-              <Input size="small" value={requestedForName} onChange={(_, d) => setRequestedForName(d.value)} placeholder="e.g. Joe Smith" style={{ width: '100%', marginTop: '4px' }} />
+              <label htmlFor={requestedForFieldId} style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Requested for (type full name)</label>
+              <Input id={requestedForFieldId} size="small" value={requestedForName} onChange={(_, d) => setRequestedForName(d.value)} placeholder="e.g. Joe Smith" style={{ width: '100%', marginTop: '4px' }} />
             </div>
           )}
           {!isEdit && isHrCase && (
             <>
               <div style={{ marginBottom: '12px' }}>
-                <label style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Opened for (type full name)</label>
-                <Input size="small" value={openedForName} onChange={(_, d) => setOpenedForName(d.value)} placeholder="e.g. Joe Smith" style={{ width: '100%', marginTop: '4px' }} />
+                <label htmlFor={openedForFieldId} style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Opened for (type full name)</label>
+                <Input id={openedForFieldId} size="small" value={openedForName} onChange={(_, d) => setOpenedForName(d.value)} placeholder="e.g. Joe Smith" style={{ width: '100%', marginTop: '4px' }} />
               </div>
               <div style={{ marginBottom: '12px' }}>
-                <label style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Assigned to (type full name)</label>
-                <Input size="small" value={assignedToName} onChange={(_, d) => setAssignedToName(d.value)} placeholder="e.g. Alice Chen" style={{ width: '100%', marginTop: '4px' }} />
+                <label htmlFor={assignedToFieldId} style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>Assigned to (type full name)</label>
+                <Input id={assignedToFieldId} size="small" value={assignedToName} onChange={(_, d) => setAssignedToName(d.value)} placeholder="e.g. Alice Chen" style={{ width: '100%', marginTop: '4px' }} />
               </div>
               <div style={{ marginBottom: '12px' }}>
-                <label style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>HR Service (type full name)</label>
-                <Input size="small" value={hrServiceName} onChange={(_, d) => setHrServiceName(d.value)} placeholder="e.g. VPN Access" style={{ width: '100%', marginTop: '4px' }} />
+                <label htmlFor={hrServiceFieldId} style={{ color: t.text, fontSize: '12px', fontWeight: 600 }}>HR Service (type full name)</label>
+                <Input id={hrServiceFieldId} size="small" value={hrServiceName} onChange={(_, d) => setHrServiceName(d.value)} placeholder="e.g. VPN Access" style={{ width: '100%', marginTop: '4px' }} />
               </div>
             </>
           )}
@@ -360,7 +368,7 @@ export function FormView({ entity, prefill, mode = 'create', recordId, callTool,
           <div className={styles.formActions}>
             <Button size="small" appearance="primary" onClick={handleSubmit}
               disabled={submitting || !shortDesc.trim()}
-              style={{ background: '#81B5A1', borderColor: '#81B5A1', minWidth: '90px' }}>
+              style={{ background: '#4A8C6F', borderColor: '#4A8C6F', minWidth: '90px' }}>
               {submitting ? <Spinner size="tiny" /> : 'Save'}
             </Button>
             <Button size="small" appearance="subtle" onClick={handleCancel} disabled={submitting} style={{ color: t.textWeak }}>Cancel</Button>

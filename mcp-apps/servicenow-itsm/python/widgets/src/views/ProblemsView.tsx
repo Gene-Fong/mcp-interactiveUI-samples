@@ -177,7 +177,7 @@ export function ProblemsView({ items: initItems, callTool, toast, theme, cacheIn
         brand={tokens.colorPaletteMagentaForeground2}
         cacheInfo={cacheInfo} onRefresh={handleRefresh} refreshing={refreshing} />
 
-      <Table size="small" style={{ borderCollapse: 'collapse' }}>
+      <Table aria-label="Problems" size="small" style={{ borderCollapse: 'collapse' }}>
         <TableHeader>
           <TableRow style={{ background: t.headerBg }}>
             <TableHeaderCell style={headerCellStyle}>Number</TableHeaderCell>
@@ -206,7 +206,7 @@ export function ProblemsView({ items: initItems, callTool, toast, theme, cacheIn
                 {isFullscreen && <TableCell style={cellStyle}>{p.assigned_to || '—'}</TableCell>}
                 {isFullscreen && (
                   <TableCell style={cellStyle}>
-                    <Button appearance="subtle" size="small" icon={<EyeRegular />} title="View" onClick={(e: React.MouseEvent) => { e.stopPropagation(); setViewingRecord(p); }} />
+                    <Button appearance="subtle" size="small" icon={<EyeRegular />} title="View" aria-label={`View ${p.number || 'details'}`} onClick={(e: React.MouseEvent) => { e.stopPropagation(); setViewingRecord(p); }} />
                   </TableCell>
                 )}
               </TableRow>

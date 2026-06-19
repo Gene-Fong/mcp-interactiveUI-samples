@@ -63,7 +63,7 @@ export function ApprovalsView({ items, callTool, toast, theme, cacheInfo: _cache
       <ViewHeader icon={<CheckmarkRegular style={{ fontSize: '18px' }} />} title="Pending Approvals" count={localItems.length}
         brand={tokens.colorPalettePlumForeground2} />
 
-      <Table size="small" style={{ borderCollapse: 'collapse' }}>
+      <Table aria-label="Approvals" size="small" style={{ borderCollapse: 'collapse' }}>
         <TableHeader>
           <TableRow style={{ background: t.headerBg }}>
             {isFullscreen && <TableHeaderCell style={headerCellStyle}>Approver</TableHeaderCell>}

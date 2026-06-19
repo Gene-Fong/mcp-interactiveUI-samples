@@ -68,7 +68,7 @@ export function TasksView({ items: initItems, callTool, toast, theme, cacheInfo:
   return (
     <div className={styles.card} style={{ border: `1px solid ${t.border}` }}>
       <ViewHeader icon={<CheckmarkRegular style={{ fontSize: '18px', color: '#fff' }} />} title="Tasks" count={localItems.length} brand={tokens.colorPaletteTealForeground2} theme={theme} cacheInfo={cacheInfo} onRefresh={isFullscreen ? handleRefresh : undefined} refreshing={refreshing} />
-      <Table size="small" aria-label="Data table" style={{ borderCollapse: 'collapse' }}>
+      <Table size="small" aria-label="Tasks" style={{ borderCollapse: 'collapse' }}>
         <TableHeader>
           <TableRow style={{ background: t.headerBg }}>
             {['Subject', 'Status', 'Priority', 'Due Date', 'Related To'].map(h => <TableHeaderCell key={h} style={{ ...H_CELL, color: t.textWeak }}>{h}</TableHeaderCell>)}

@@ -108,7 +108,7 @@ export function LeadsView({ items: initItems, callTool, toast, theme, cacheInfo:
   return (
     <div className={styles.card} style={{ border: `1px solid ${t.border}` }}>
       <ViewHeader icon={<PeopleRegular style={{ fontSize: '18px', color: '#fff' }} />} title="Leads" count={localItems.length} brand={tokens.colorPaletteLavenderForeground2} theme={theme} cacheInfo={cacheInfo} onRefresh={isFullscreen ? handleRefresh : undefined} refreshing={refreshing} />
-      <Table size="small" aria-label="Data table" style={{ borderCollapse: 'collapse' }}>
+      <Table size="small" aria-label="Leads" style={{ borderCollapse: 'collapse' }}>
         <TableHeader>
           <TableRow style={{ background: t.headerBg }}>
             {['Name', 'Company', 'Status', 'Source', 'Email'].map(h => <TableHeaderCell key={h} style={{ ...H_CELL, color: t.textWeak }}>{h}</TableHeaderCell>)}

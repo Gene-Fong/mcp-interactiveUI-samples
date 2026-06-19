@@ -15,7 +15,9 @@ export function ViewHeader({ icon, title, count, brand, onNew, newLabel, theme, 
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: `1px solid ${tokens.colorNeutralStroke2}` }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <span style={{ fontSize: '18px', color: brand }}>{icon}</span>
-        <span style={{ fontSize: '14px', fontWeight: 600, color: tokens.colorNeutralForeground1 }}>{title}</span>
+        <div style={{ fontSize: '14px', fontWeight: 600, color: tokens.colorNeutralForeground1 }}>
+          <h2 style={{ margin: 0, fontSize: 'inherit', fontWeight: 'inherit' }}>{title}</h2>
+        </div>
         <Badge appearance="tint" color="informative" size="small">
           {count} record{count !== 1 ? 's' : ''}
         </Badge>
@@ -23,7 +25,7 @@ export function ViewHeader({ icon, title, count, brand, onNew, newLabel, theme, 
           <span style={{ fontSize: '12px', color: tokens.colorNeutralForeground3, display: 'flex', alignItems: 'center', gap: '8px' }}>
             {cacheInfo.hit ? `cached ${timeAgo(cacheInfo.cached_at)}` : `live ${timeAgo(cacheInfo.cached_at)}`}
             {onRefresh && (
-              <Button appearance="subtle" size="small" icon={<ArrowSyncRegular />} onClick={onRefresh} disabled={refreshing} title="Force refresh from Salesforce" />
+              <Button appearance="subtle" size="small" icon={<ArrowSyncRegular />} onClick={onRefresh} disabled={refreshing} title="Force refresh from Salesforce" aria-label="Refresh data" />
             )}
           </span>
         )}
@@ -39,4 +41,3 @@ export function ViewHeader({ icon, title, count, brand, onNew, newLabel, theme, 
     </div>
   );
 }
-

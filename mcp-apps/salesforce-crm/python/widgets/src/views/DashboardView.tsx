@@ -21,7 +21,9 @@ export function SalesDashboardView({ data, theme }: { data: SalesDashboardData; 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: `1px solid ${t.border}` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <DataBarVerticalRegular style={{ fontSize: '20px', color: t.brand }} />
-          <Text size={400} weight="bold" style={{ color: tokens.colorNeutralForeground1 }}>Sales Dashboard</Text>
+          <div style={{ fontSize: '14px', fontWeight: 700, color: tokens.colorNeutralForeground1 }}>
+            <Text as="h2" size={400} weight="bold" style={{ margin: 0, fontSize: 'inherit', fontWeight: 'inherit', color: 'inherit' }}>Sales Dashboard</Text>
+          </div>
           <Badge appearance="tint" color="informative" size="small">
             {(data.top_accounts || []).length} records
           </Badge>

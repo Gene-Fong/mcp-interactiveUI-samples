@@ -225,7 +225,7 @@ export function IncidentsView({ items: initItems, callTool, toast, theme, cacheI
         brand="#6E50E8"
         cacheInfo={cacheInfo} onRefresh={handleRefresh} refreshing={refreshing} />
 
-      <Table size="small" style={{ borderCollapse: 'collapse' }}>
+      <Table aria-label="Incidents" size="small" style={{ borderCollapse: 'collapse' }}>
         <TableHeader>
           <TableRow style={{ background: t.headerBg }}>
             <TableHeaderCell style={headerCellStyle}>Number</TableHeaderCell>
@@ -270,7 +270,7 @@ export function IncidentsView({ items: initItems, callTool, toast, theme, cacheI
                 {isFullscreen && <TableCell style={cellStyle}><SlaPill slaDue={inc.sla_due} madeSla={inc.made_sla} theme={theme} /></TableCell>}
                 {isFullscreen && (
                   <TableCell style={cellStyle}>
-                    <Button appearance="subtle" size="small" icon={<EyeRegular />} title="View" onClick={(e: React.MouseEvent) => { e.stopPropagation(); setViewingRecord(inc); }} />
+                    <Button appearance="subtle" size="small" icon={<EyeRegular />} title="View" aria-label={`View ${inc.number || 'details'}`} onClick={(e: React.MouseEvent) => { e.stopPropagation(); setViewingRecord(inc); }} />
                   </TableCell>
                 )}
               </TableRow>
@@ -342,4 +342,3 @@ export function IncidentsView({ items: initItems, callTool, toast, theme, cacheI
     </div>
   );
 }
-

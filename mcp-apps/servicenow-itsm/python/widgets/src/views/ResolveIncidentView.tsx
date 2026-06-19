@@ -75,7 +75,7 @@ export function ResolveIncidentView({ sys_id, number, short_description, descrip
       <div className={styles.headerBar} style={{ background: 'linear-gradient(135deg, #6E50E8 0%, #8B73F5 100%)', borderBottom: '2px solid #A893F2' }}>
         <div className={styles.headerLeft}>
           <span style={{ fontSize: '18px', display: 'inline-flex' }}><LockClosedRegular /></span>
-          <span style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>Resolve Incident — {number}</span>
+          <h2 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#fff' }}>Resolve Incident — {number}</h2>
         </div>
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
           <ExpandButton />
@@ -129,18 +129,19 @@ export function ResolveIncidentView({ sys_id, number, short_description, descrip
           )}
 
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: t.text, marginBottom: '6px' }}>
+            <label htmlFor="resolution-code" style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: t.text, marginBottom: '6px' }}>
               Resolution Code <span style={{ color: t.error }}>*</span>
             </label>
-            <select value={closeCode} onChange={e => setCloseCode(e.target.value)} style={selectStyle}>
+            <select id="resolution-code" value={closeCode} onChange={e => setCloseCode(e.target.value)} style={selectStyle}>
               {CLOSE_CODES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: t.text, marginBottom: '6px' }}>
+            <label htmlFor="resolution-notes" style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: t.text, marginBottom: '6px' }}>
               Resolution Notes
             </label>
             <textarea
+              id="resolution-notes"
               value={closeNotes}
               onChange={e => setCloseNotes(e.target.value)}
               placeholder="Describe how the incident was resolved…"

@@ -4,7 +4,7 @@ import { tokens } from '@fluentui/react-components';
 // ── SkeletonTable ──────────────────────────────────────────────────────────
 export function SkeletonTable() {
   return (
-    <div style={{ padding: '16px' }} role="status" aria-label="Loading content" aria-live="polite">
+    <div style={{ padding: '16px' }} role="status" aria-live="polite" aria-label="Loading data">
       <style>{`@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}.skel{height:14px;border-radius:4px;background:linear-gradient(90deg,#e8e8e8 25%,#f5f5f5 50%,#e8e8e8 75%);background-size:200% 100%;animation:shimmer 1.5s infinite}[data-theme="dark"] .skel{background:linear-gradient(90deg,#333 25%,#444 50%,#333 75%);background-size:200% 100%}`}</style>
       <div style={{ textAlign: 'center', padding: '8px 0 16px', fontSize: '13px', color: tokens.colorNeutralForeground3 }}>
         Loading data…
@@ -24,4 +24,3 @@ export function SkeletonTable() {
     </div>
   );
 }
-

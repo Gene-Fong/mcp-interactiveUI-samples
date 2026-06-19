@@ -41,7 +41,7 @@ export function SalesforceApp() {
   const t = slds(theme);
   const shellStyle: React.CSSProperties = { padding: '12px', fontSize: '12px' };
 
-  if (!data) return <div className={styles.shell} style={shellStyle}><SkeletonTable /></div>;
+  if (!data) return <div className={styles.shell} style={shellStyle} role="status" aria-live="polite"><SkeletonTable /></div>;
 
   if ((data as any).type === 'form') {
     const fd = data as any;
@@ -65,7 +65,7 @@ export function SalesforceApp() {
           <div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', borderBottom: `1px solid ${t.border}` }}>
             <Text size={400} weight="semibold" style={{ color: tokens.colorPaletteRedForeground1 }}>Error</Text>
           </div>
-          <div style={{ padding: '16px 24px', background: tokens.colorPaletteRedBackground1, color: t.danger, borderLeft: `3px solid ${t.danger}`, fontSize: '13px', fontWeight: 500 }}>
+          <div role="alert" aria-live="assertive" style={{ padding: '16px 24px', background: tokens.colorPaletteRedBackground1, color: t.danger, borderLeft: `3px solid ${t.danger}`, fontSize: '13px', fontWeight: 500 }}>
             {ed.message || 'An unknown error occurred.'}
           </div>
           <SldsFooter theme={theme} />

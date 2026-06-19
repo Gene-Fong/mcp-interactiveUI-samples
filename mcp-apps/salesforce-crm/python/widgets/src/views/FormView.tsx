@@ -128,7 +128,9 @@ export function FormView({ entity, prefill, fkSelections, mode = 'create', recor
   return (
     <div className={styles.card} style={{ border: `1px solid ${t.border}`, background: t.surface }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: `1px solid ${t.border}` }}>
-        <Text size={400} weight="semibold" style={{ color: FORM_BRAND[entity] || tokens.colorNeutralForeground1 }}>{isEdit ? 'Edit' : 'New'} {entityLabel}</Text>
+        <div style={{ fontSize: '14px', fontWeight: 600, color: FORM_BRAND[entity] || tokens.colorNeutralForeground1 }}>
+          <Text as="h2" size={400} weight="semibold" style={{ margin: 0, fontSize: 'inherit', fontWeight: 'inherit', color: 'inherit' }}>{isEdit ? 'Edit' : 'New'} {entityLabel}</Text>
+        </div>
         <ExpandButton />
       </div>
       {(
@@ -136,10 +138,12 @@ export function FormView({ entity, prefill, fkSelections, mode = 'create', recor
           {fkSelections && Object.keys(fkSelections).length > 0 && (
             <div style={{ marginBottom: '18px', padding: '12px 14px', background: t.surfaceAlt || t.surface, border: `1px solid ${t.border}`, borderRadius: '6px' }}>
               {Object.entries(fkSelections).map(([fkKey, fkDef]) => (
-                <div key={fkKey} style={{ marginBottom: '10px' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: t.textWeak, marginBottom: '6px' }}>
-                    {fkDef.label}
-                  </div>
+                <fieldset key={fkKey} style={{ border: 'none', margin: 0, marginBottom: '10px', padding: 0 }}>
+                  <legend style={{ fontSize: 'inherit', fontWeight: 600, padding: 0 }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: t.textWeak, marginBottom: '6px', display: 'inline-block' }}>
+                      {fkDef.label}
+                    </span>
+                  </legend>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     {fkDef.options.map(opt => (
                       <label key={opt.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: t.text }}>
@@ -155,7 +159,7 @@ export function FormView({ entity, prefill, fkSelections, mode = 'create', recor
                       </label>
                     ))}
                   </div>
-                </div>
+                </fieldset>
               ))}
             </div>
           )}

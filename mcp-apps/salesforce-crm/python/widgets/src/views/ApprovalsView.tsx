@@ -33,7 +33,7 @@ export function ApprovalsView({ items: initItems, callTool, toast, theme }: { it
   return (
     <div className={styles.card} style={{ border: `1px solid ${t.border}` }}>
       <ViewHeader icon={<CheckmarkRegular style={{ fontSize: '18px', color: '#fff' }} />} title="Pending Approvals" count={localItems.length} brand={tokens.colorPalettePlumForeground2} theme={theme} />
-      <Table size="small" aria-label="Data table" style={{ borderCollapse: 'collapse' }}>
+      <Table size="small" aria-label="Approvals" style={{ borderCollapse: 'collapse' }}>
         <TableHeader>
           <TableRow style={{ background: t.headerBg }}>
             {['Record', 'Type', 'Submitted By', 'Status', 'Created', ''].map(h => <TableHeaderCell key={h} style={{ ...H_CELL, color: t.textWeak }}>{h}</TableHeaderCell>)}

@@ -1,8 +1,8 @@
 // ── Skeleton Loading Shimmer ────────────────────────────────────────────────
 export function SkeletonTable() {
   return (
-    <div style={{ padding: '16px' }}>
-      <div style={{ textAlign: 'center', padding: '8px 0 16px', fontSize: '13px', color: '#888' }}>
+    <div role="status" aria-live="polite" aria-label="Loading data" style={{ padding: '16px' }}>
+      <div style={{ textAlign: 'center', padding: '8px 0 16px', fontSize: '13px', color: '#636363' }}>
         Loading data…
       </div>
       <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>

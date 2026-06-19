@@ -48,7 +48,7 @@ export function CampaignsView({ items: initItems, callTool, toast, theme, cacheI
   return (
     <div className={styles.card} style={{ border: `1px solid ${t.border}` }}>
       <ViewHeader icon={<DocumentRegular style={{ fontSize: '18px', color: '#fff' }} />} title="Campaigns" count={items.length} brand={tokens.colorPaletteMarigoldForeground2} theme={theme} cacheInfo={cacheInfo} onRefresh={isFullscreen ? handleRefresh : undefined} refreshing={refreshing} />
-      <Table size="small" aria-label="Data table" style={{ borderCollapse: 'collapse' }}>
+      <Table size="small" aria-label="Campaigns" style={{ borderCollapse: 'collapse' }}>
         <TableHeader>
           <TableRow style={{ background: t.headerBg }}>
             {['Name', 'Status', 'Type', 'Start', 'End', '# Leads'].map(h => <TableHeaderCell key={h} style={{ ...H_CELL, color: t.textWeak }}>{h}</TableHeaderCell>)}

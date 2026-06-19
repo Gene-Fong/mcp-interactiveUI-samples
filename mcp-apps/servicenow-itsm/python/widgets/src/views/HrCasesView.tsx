@@ -174,7 +174,7 @@ export function HrCasesView({ items: initItems, callTool, toast, theme, cacheInf
       <ViewHeader icon={<PersonRegular style={{ fontSize: '18px' }} />} title="HR Cases" count={localItems.length}
         brand={tokens.colorPaletteLavenderForeground2}
         cacheInfo={cacheInfo} onRefresh={handleRefresh} refreshing={refreshing} />
-      <Table size="small" style={{ borderCollapse: 'collapse' }}>
+      <Table aria-label="HR cases" size="small" style={{ borderCollapse: 'collapse' }}>
         <TableHeader>
           <TableRow style={{ background: t.headerBg }}>
             <TableHeaderCell style={hdS}>Number</TableHeaderCell>
@@ -199,7 +199,7 @@ export function HrCasesView({ items: initItems, callTool, toast, theme, cacheInf
                   <TableCell style={cellS}><StatePill state={c.state} theme={theme} /></TableCell>
                   {isFullscreen && (
                     <TableCell style={cellS}>
-                      <Button appearance="subtle" size="small" icon={<EyeRegular />} title="View" onClick={(e: React.MouseEvent) => { e.stopPropagation(); setViewingRecord(c); }} />
+                      <Button appearance="subtle" size="small" icon={<EyeRegular />} title="View" aria-label={`View ${c.number || 'details'}`} onClick={(e: React.MouseEvent) => { e.stopPropagation(); setViewingRecord(c); }} />
                     </TableCell>
                   )}
                 </TableRow>

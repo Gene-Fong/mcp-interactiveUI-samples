@@ -90,7 +90,7 @@ export function ContactsView({ items: initItems, callTool, toast, theme, cacheIn
   return (
     <div className={styles.card} style={{ border: `1px solid ${t.border}` }}>
       <ViewHeader icon={<PersonRegular style={{ fontSize: '18px', color: '#fff' }} />} title="Contacts" count={localItems.length} brand={tokens.colorPaletteMagentaForeground2} theme={theme} cacheInfo={cacheInfo} onRefresh={isFullscreen ? handleRefresh : undefined} refreshing={refreshing} />
-      <Table size="small" aria-label="Data table" style={{ borderCollapse: 'collapse' }}>
+      <Table size="small" aria-label="Contacts" style={{ borderCollapse: 'collapse' }}>
         <TableHeader>
           <TableRow style={{ background: t.headerBg }}>
             {['Name', 'Account', 'Title', 'Email', 'Phone'].map(h => <TableHeaderCell key={h} style={{ ...H_CELL, color: t.textWeak }}>{h}</TableHeaderCell>)}

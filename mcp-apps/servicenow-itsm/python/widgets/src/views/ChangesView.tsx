@@ -64,7 +64,7 @@ function ChangeTasksTable({ items, theme }: { items: ChangeTask[]; theme: 'light
   return (
     <div>
       <div style={{ fontSize: '12px', fontWeight: 600, color: t.text, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}><WrenchRegular style={{ fontSize: '14px' }} /> Change Tasks ({items.length})</div>
-      <Table size="small" style={{ borderCollapse: 'collapse' }}>
+      <Table aria-label="Change tasks" size="small" style={{ borderCollapse: 'collapse' }}>
         <TableHeader>
           <TableRow>
             <TableHeaderCell style={subHeaderStyle}>Number</TableHeaderCell>
@@ -261,7 +261,7 @@ export function ChangesView({ items: initItems, callTool, toast, theme, cacheInf
         brand={tokens.colorPaletteMarigoldForeground2}
         cacheInfo={cacheInfo} onRefresh={handleRefresh} refreshing={refreshing} />
 
-      <Table size="small" style={{ borderCollapse: 'collapse' }}>
+      <Table aria-label="Change requests" size="small" style={{ borderCollapse: 'collapse' }}>
         <TableHeader>
           <TableRow style={{ background: t.headerBg }}>
             {isFullscreen && <TableHeaderCell style={{ ...headerCellStyle, width: 28 }} />}
@@ -285,6 +285,15 @@ export function ChangesView({ items: initItems, callTool, toast, theme, cacheInf
             <React.Fragment key={cr.sys_id}>
               <TableRow className="snow-row"
                 onClick={() => { if (isFullscreen) toggleExpand(cr.sys_id); }}
+                onKeyDown={(e) => {
+                  if (isFullscreen && (e.key === 'Enter' || e.key === ' ')) {
+                    e.preventDefault();
+                    toggleExpand(cr.sys_id);
+                  }
+                }}
+                tabIndex={0}
+                role="row"
+                aria-expanded={isFullscreen ? expandedId === cr.sys_id : undefined}
                 style={{
                   cursor: isFullscreen ? 'pointer' : 'default',
                   borderBottom: idx === localItems.length - 1 && (!isFullscreen || expandedId !== cr.sys_id) ? 'none' : `1px solid ${t.border}`,
@@ -307,7 +316,7 @@ export function ChangesView({ items: initItems, callTool, toast, theme, cacheInf
                 {isFullscreen && <TableCell style={cellStyle}>{(cr as any).planned_end || '—'}</TableCell>}
                 {isFullscreen && (
                   <TableCell style={cellStyle}>
-                    <Button appearance="subtle" size="small" icon={<EyeRegular />} title="View" onClick={(e: React.MouseEvent) => { e.stopPropagation(); setViewingRecord(cr); }} />
+                    <Button appearance="subtle" size="small" icon={<EyeRegular />} title="View" aria-label={`View ${cr.number || 'details'}`} onClick={(e: React.MouseEvent) => { e.stopPropagation(); setViewingRecord(cr); }} />
                   </TableCell>
                 )}
               </TableRow>

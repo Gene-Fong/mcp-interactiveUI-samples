@@ -107,7 +107,7 @@ export function OpportunitiesView({ items: initItems, callTool, toast, theme, ca
   return (
     <div className={styles.card} style={{ border: `1px solid ${t.border}` }}>
       <ViewHeader icon={<MoneyRegular style={{ fontSize: '18px', color: '#fff' }} />} title="Opportunities" count={localItems.length} brand={tokens.colorPaletteCornflowerForeground2} theme={theme} cacheInfo={cacheInfo} onRefresh={isFullscreen ? handleRefresh : undefined} refreshing={refreshing} />
-      <Table size="small" aria-label="Data table" style={{ borderCollapse: 'collapse' }}>
+      <Table size="small" aria-label="Opportunities" style={{ borderCollapse: 'collapse' }}>
         <TableHeader>
           <TableRow style={{ background: t.headerBg }}>
             {['Name', 'Account', 'Stage', 'Amount', 'Close Date', 'Prob %'].map(h => <TableHeaderCell key={h} style={{ ...H_CELL, color: t.textWeak }}>{h}</TableHeaderCell>)}

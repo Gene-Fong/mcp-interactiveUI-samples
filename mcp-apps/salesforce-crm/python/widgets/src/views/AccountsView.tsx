@@ -88,7 +88,7 @@ export function AccountsView({ items: initItems, callTool, toast, theme, cacheIn
   return (
     <div className={styles.card} style={{ border: `1px solid ${t.border}` }}>
       <ViewHeader icon={<BuildingRegular style={{ fontSize: '18px', color: '#fff' }} />} title="Accounts" count={localItems.length} brand={tokens.colorPalettePinkForeground2} theme={theme} cacheInfo={cacheInfo} onRefresh={isFullscreen ? handleRefresh : undefined} refreshing={refreshing} />
-      <Table size="small" aria-label="Data table" style={{ borderCollapse: 'collapse' }}>
+      <Table size="small" aria-label="Accounts" style={{ borderCollapse: 'collapse' }}>
         <TableHeader>
           <TableRow style={{ background: t.headerBg }}>
             <TableHeaderCell style={{ ...H_CELL, color: t.textWeak }}>Account Name</TableHeaderCell>

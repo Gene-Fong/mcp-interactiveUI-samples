@@ -82,7 +82,7 @@ function RequestItemsTable({ items, callTool, toast, theme }: {
       <div style={{ fontSize: '12px', fontWeight: 600, color: t.text, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
         <DocumentBulletListRegular style={{ fontSize: '14px' }} /> Request Items ({items.length})
       </div>
-      <Table size="small" style={{ borderCollapse: 'collapse' }}>
+      <Table aria-label="Request items" size="small" style={{ borderCollapse: 'collapse' }}>
         <TableHeader>
           <TableRow>
             <TableHeaderCell style={subHeaderStyle}>Item</TableHeaderCell>
@@ -102,6 +102,7 @@ function RequestItemsTable({ items, callTool, toast, theme }: {
                 <input
                   type="number"
                   min="1"
+                  aria-label={`Quantity for ${item.short_description || item.name || 'item'}`}
                   value={editingQty[item.sys_id] ?? String(item.quantity || 1)}
                   onChange={(e) => setEditingQty(prev => ({ ...prev, [item.sys_id]: e.target.value }))}
                   onClick={(e) => e.stopPropagation()}
@@ -313,7 +314,7 @@ function IncidentsView({ items: initItems, callTool, toast, theme, cacheInfo: in
         brand="#6E50E8"
         cacheInfo={cacheInfo} onRefresh={handleRefresh} refreshing={refreshing} />
 
-      <Table size="small" style={{ borderCollapse: 'collapse' }}>
+      <Table aria-label="Incidents" size="small" style={{ borderCollapse: 'collapse' }}>
         <TableHeader>
           <TableRow style={{ background: t.headerBg }}>
             <TableHeaderCell style={headerCellStyle}>Number</TableHeaderCell>
@@ -358,7 +359,7 @@ function IncidentsView({ items: initItems, callTool, toast, theme, cacheInfo: in
                 {isFullscreen && <TableCell style={cellStyle}><SlaPill slaDue={inc.sla_due} madeSla={inc.made_sla} theme={theme} /></TableCell>}
                 {isFullscreen && (
                   <TableCell style={cellStyle}>
-                    <Button appearance="subtle" size="small" icon={<EyeRegular />} title="View" onClick={(e: React.MouseEvent) => { e.stopPropagation(); setViewingRecord(inc); }} />
+                    <Button appearance="subtle" size="small" icon={<EyeRegular />} title="View" aria-label={`View ${inc.number || 'details'}`} onClick={(e: React.MouseEvent) => { e.stopPropagation(); setViewingRecord(inc); }} />
                   </TableCell>
                 )}
               </TableRow>
@@ -623,7 +624,7 @@ export function RequestsView({ items: initItems, callTool, toast, theme, cacheIn
         brand={tokens.colorPaletteCornflowerForeground2}
         cacheInfo={cacheInfo} onRefresh={handleRefresh} refreshing={refreshing} />
 
-      <Table size="small" style={{ borderCollapse: 'collapse' }}>
+      <Table aria-label="Service requests" size="small" style={{ borderCollapse: 'collapse' }}>
         <TableHeader>
           <TableRow style={{ background: t.headerBg }}>
             <TableHeaderCell style={headerCellStyle}>Number</TableHeaderCell>
@@ -650,6 +651,15 @@ export function RequestsView({ items: initItems, callTool, toast, theme, cacheIn
               <TableRow
                 className="snow-row"
                 onClick={() => { if (isFullscreen) toggleExpand(req); }}
+                onKeyDown={(e) => {
+                  if (isFullscreen && (e.key === 'Enter' || e.key === ' ')) {
+                    e.preventDefault();
+                    toggleExpand(req);
+                  }
+                }}
+                tabIndex={0}
+                role="row"
+                aria-expanded={isFullscreen ? expandedId === req.sys_id : undefined}
                 style={{
                   cursor: isFullscreen ? 'pointer' : 'default',
                   borderBottom: idx === localItems.length - 1 && (!isFullscreen || expandedId !== req.sys_id) ? 'none' : `1px solid ${t.border}`,
@@ -671,7 +681,7 @@ export function RequestsView({ items: initItems, callTool, toast, theme, cacheIn
                 {isFullscreen && <TableCell style={cellStyle}><SlaPill slaDue={req.sla_due} madeSla={req.made_sla} theme={theme} /></TableCell>}
                 {isFullscreen && (
                   <TableCell style={cellStyle}>
-                    <Button appearance="subtle" size="small" icon={<EyeRegular />} title="View" onClick={(e: React.MouseEvent) => { e.stopPropagation(); setViewingRecord(req); }} />
+                    <Button appearance="subtle" size="small" icon={<EyeRegular />} title="View" aria-label={`View ${req.number || 'details'}`} onClick={(e: React.MouseEvent) => { e.stopPropagation(); setViewingRecord(req); }} />
                   </TableCell>
                 )}
               </TableRow>
