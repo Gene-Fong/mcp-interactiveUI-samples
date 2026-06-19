@@ -119,7 +119,7 @@ export function CasesView({ items: initItems, callTool, toast, theme, cacheInfo:
       </Table>
       {viewingCase && (
         <Dialog open={true} onOpenChange={() => setViewingCase(null)}>
-          <DialogSurface style={{ maxWidth: '640px', width: '90vw' }}>
+          <DialogSurface style={{ maxWidth: '820px', width: '92vw' }}>
             <DialogBody>
               <DialogTitle action={<Button appearance="subtle" icon={<DismissRegular />} onClick={() => setViewingCase(null)} aria-label="Close" />}>
                 {viewingCase.subject || 'Case'}
@@ -281,7 +281,7 @@ function TasksView({ items: initItems, callTool, toast, theme, cacheInfo: initCa
       </Table>
       {viewingTask && (
         <Dialog open={true} onOpenChange={() => setViewingTask(null)}>
-          <DialogSurface style={{ maxWidth: '640px', width: '90vw' }}>
+          <DialogSurface style={{ maxWidth: '820px', width: '92vw' }}>
             <DialogBody>
               <DialogTitle action={<Button appearance="subtle" icon={<DismissRegular />} onClick={() => setViewingTask(null)} aria-label="Close" />}>
                 {viewingTask.subject || 'Task'}
@@ -395,7 +395,7 @@ function CampaignsView({ items: initItems, callTool, toast, theme, cacheInfo: in
       </Table>
       {viewingCampaign && (
         <Dialog open={true} onOpenChange={() => setViewingCampaign(null)}>
-          <DialogSurface style={{ maxWidth: '640px', width: '90vw' }}>
+          <DialogSurface style={{ maxWidth: '820px', width: '92vw' }}>
             <DialogBody>
               <DialogTitle action={<Button appearance="subtle" icon={<DismissRegular />} onClick={() => setViewingCampaign(null)} aria-label="Close" />}>
                 {viewingCampaign.name || 'Campaign'}

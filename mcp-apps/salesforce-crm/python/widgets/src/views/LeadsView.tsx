@@ -112,7 +112,7 @@ export function LeadsView({ items: initItems, callTool, toast, theme, cacheInfo:
         <TableHeader>
           <TableRow style={{ background: t.headerBg }}>
             {['Name', 'Company', 'Status', 'Source', 'Email'].map(h => <TableHeaderCell key={h} style={{ ...H_CELL, color: t.textWeak }}>{h}</TableHeaderCell>)}
-            {isFullscreen && <TableHeaderCell style={{ ...H_CELL, width: 110, color: t.textWeak }} />}
+            {isFullscreen && <TableHeaderCell style={{ ...H_CELL, width: 180, color: t.textWeak }} />}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -125,8 +125,32 @@ export function LeadsView({ items: initItems, callTool, toast, theme, cacheInfo:
               <TableCell style={D_CELL}>{l.lead_source || '—'}</TableCell>
               <TableCell style={D_CELL}>{l.email || '—'}</TableCell>
               {isFullscreen && (
-                <TableCell style={D_CELL}>
-                  <Button size="small" icon={<EyeRegular />} appearance="subtle" title="View" aria-label={`View ${l.first_name} ${l.last_name}`.trim()} onClick={() => setViewingLead(l)} />
+                <TableCell style={{ ...D_CELL, overflow: 'visible', maxWidth: 'none', whiteSpace: 'nowrap' }}>
+                  <Button size="small" icon={<EyeRegular />} appearance="secondary" title="View" aria-label={`View ${l.first_name} ${l.last_name}`.trim()} onClick={() => setViewingLead(l)} />
+                  {l.is_converted ? (
+                    <Button
+                      size="small"
+                      appearance="secondary"
+                      icon={<CheckmarkRegular />}
+                      disabled
+                      style={{ marginLeft: '6px' }}
+                      aria-label={`${l.first_name} ${l.last_name} already converted`.trim()}
+                    >
+                      Converted
+                    </Button>
+                  ) : (
+                    <Button
+                      size="small"
+                      appearance="secondary"
+                      title="Convert Lead (creates Account + Contact + Opportunity)"
+                      aria-label={`Convert ${l.first_name} ${l.last_name}`.trim()}
+                      onClick={() => handleConvert(l.id)}
+                      disabled={convertingId === l.id}
+                      style={{ marginLeft: '6px' }}
+                    >
+                      {convertingId === l.id ? 'Converting…' : 'Convert'}
+                    </Button>
+                  )}
                 </TableCell>
               )}
             </TableRow>
@@ -159,16 +183,6 @@ export function LeadsView({ items: initItems, callTool, toast, theme, cacheInfo:
               <DialogActions>
                 <Button appearance="secondary" onClick={() => setViewingLead(null)}>Close</Button>
                 <Button appearance="primary" icon={<EditRegular />} onClick={() => { const lead = viewingLead; setViewingLead(null); if (lead) openEdit(lead); }}>Edit</Button>
-                <Button
-                  title="Convert Lead (creates Account + Contact + Opportunity)"
-                  appearance="outline"
-                  onClick={() => handleConvert(viewingLead.id)}
-                  disabled={convertingId === viewingLead.id || viewingLead.is_converted}
-                  icon={viewingLead.is_converted ? <CheckmarkRegular /> : undefined}
-                  style={{ opacity: viewingLead.is_converted ? 0.5 : 1 }}
-                >
-                  {convertingId === viewingLead.id ? 'Converting…' : (viewingLead.is_converted ? 'Converted' : 'Convert')}
-                </Button>
               </DialogActions>
             </DialogBody>
           </DialogSurface>

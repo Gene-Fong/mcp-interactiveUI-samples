@@ -135,7 +135,7 @@ export function OpportunitiesView({ items: initItems, callTool, toast, theme, ca
       </Table>
       {viewingOpp && (
         <Dialog open={true} onOpenChange={() => setViewingOpp(null)}>
-          <DialogSurface style={{ maxWidth: '640px', width: '90vw' }}>
+          <DialogSurface style={{ maxWidth: '820px', width: '92vw' }}>
             <DialogBody>
               <DialogTitle action={<Button appearance="subtle" icon={<DismissRegular />} onClick={() => setViewingOpp(null)} aria-label="Close" />}>
                 {viewingOpp.name || 'Opportunity'}

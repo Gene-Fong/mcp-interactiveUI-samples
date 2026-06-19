@@ -99,13 +99,11 @@ These require **dedicated tools outside the trio**:
 
 Ask for any entity by name. The agent returns the most recent records as a sortable table with ✏️ Edit / ➕ New controls per row.
 
-![get contacts widget](img/get%20contacts.png)
+![get leads widget](../media/ShowmeLeads.gif)
 
 #### FILTER — narrow the list
 
 Add conditions to your request — status, stage, account, date range. The agent figures out which filter to apply from your wording. Lookup fields (like Account) accept names — the agent resolves them to IDs when querying.
-
-![filtered leads list — Status = Contacted](img/get%20all%20contacted%20leads.png)
 
 #### IDENTIFY — show a specific record
 
@@ -117,22 +115,16 @@ Mention a name or ID. If it matches multiple records, the agent surfaces all mat
 
 Say *"edit"* followed by a name. If multiple match, pick from a list. If one matches, the form opens directly.
 
-![disambiguation list for "edit globalfizz opportunities"](img/edit%20globalfizz%20opportunities.png)
-
-![direct edit form when single match](img/edit%20Global%20Fizz%20-%20Copilot%20Studio.png)
-
 #### CREATE — open a pre-filled form
 
 The agent picks out values from your sentence — name, amount, probability — and pre-fills the form. You review, complete any remaining fields, and submit.
 
-![new opportunity form with pre-filled values](img/prefilled%20new.png)
+![create lead form](../media/CreateLead.gif)
 
 #### ACTION — one-shot state change
 
 - *"show my pending approvals"* → lists approvals; approve or reject inline from the widget
 - *"convert lead John Smith"* → creates linked Account + Contact + Opportunity
-
-![pending approvals with inline approve/reject](img/get%20approval.png)
 
 #### DRILL — expand child records
 
@@ -141,13 +133,11 @@ Opportunities and Cases have a ▾ expand icon on each row. Click it to see chil
 - **Opportunity** → products + contact roles
 - **Case** → comments + related tasks
 
-![inline edit form with Products and Contact Roles child sections](img/inline%20edit.png)
-
 #### DASHBOARD — pipeline analytics
 
 *"show me the sales pipeline dashboard"* aggregates open opportunities by stage and presents a horizontal bar chart with a top-accounts panel.
 
-![sales pipeline dashboard](img/show%20me%20sales%20pipeline%20dashboard.png)
+![sales pipeline dashboard](../media/SF-Sales-Dashboard.gif)
 
 #### RESOLVE FK — type names, not IDs
 
@@ -156,15 +146,11 @@ Fields marked with 🔗 accept plain names. Type a name, hit Save — the agent 
 > [!TIP]
 > Look for the 🔗 icon on form fields — those are the ones that accept names instead of IDs.
 
-![lookup field — fuzzy suggestions](img/relationship%20-%20suggestions%20if%20name%20not%20found.png)
-
 #### CLARIFY — agent asks when ambiguous
 
 If your request could apply to more than one entity type, the agent asks first.
 
 *"edit dumdum"* → Agent: *"Is that a Lead, Account, Contact, Opportunity, Case, Task, or Campaign?"*
-
-![agent asks for clarification](img/LLM%20asks%20for%20clarification.png)
 
 ---
 

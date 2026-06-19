@@ -99,13 +99,11 @@ These require **dedicated tools outside the trio**:
 
 Ask for any entity by name. The agent returns the most recent records as a sortable table with priority indicators and per-row ✏️ Edit / ▾ Expand controls.
 
-![get all incidents widget](img/get%20all%20incidents.png)
+![show open incidents](../media/Service%20Now-%20Open%20Incident.gif)
 
 #### FILTER — narrow the list
 
 Add conditions to your request — state, priority, assignee, date range. The agent figures out which filter to apply from your wording. Lookup fields (like Assigned To) accept names — the agent resolves them to IDs when querying.
-
-![incidents assigned to Beth Anglin](img/get%20all%20incidents%20assigned%20to%20Beth%20Anglin.png)
 
 #### IDENTIFY — show one record
 
@@ -114,28 +112,22 @@ Every ServiceNow record number carries its type in the prefix (`INC` / `REQ` / `
 - *"show INC0010001"* → displays that single incident
 - *"get CHG0000079"* → displays that single change request
 
-![single record by number](img/get%20incident%20INC0010012%20-%20single%20INC-CHG%20IDENTIFY.png)
-
 #### EDIT — modify a record
 
 Say *"edit"* followed by a record number and the inline form opens, pre-filled with current values. Change what you need and hit Save.
 
-![inline edit form on an incident row](img/inline%20edit%20incidents.png)
+![edit change request](../media/ServiceNow-Change%20Request.gif)
 
 #### CREATE — open a pre-filled form
 
 The agent picks out values from your sentence — caller, priority, description — and pre-fills the form. You review, complete any remaining fields, and submit.
-
-![create form with multiple inputs pre-filled](img/create%20a%20indent%20multiple%20inputs%20-%20create%20a%20hr%20case%20with%20HRC0001003%20with%20state%20awaiting%20approval%20and%20subject%20%20description.png)
 
 #### ACTION — one-shot state change
 
 - *"resolve INC0010005"* → opens the resolve form with a close-code picklist
 - *"show my pending approvals"* → lists approvals; approve or reject inline from the widget
 
-![resolve incident form](img/Resolve%20INC0010005.png)
-
-![pending approvals with inline approve/reject](img/get%20approvals.png)
+![resolve incident](../media/Resolve%20Incident.gif)
 
 #### DRILL — expand child records
 
@@ -144,12 +136,14 @@ Requests and Changes have a ▾ expand icon on each row. Click it to see child r
 - **Service Request** → request items
 - **Change Request** → change tasks
 
-![two-level drill-down](img/2%20level%20drill%20down.png)
+![show service requests](../media/Service-Now-ShowService-Request.gif)
 
 #### SEARCH — knowledge and catalog
 
 - *"search knowledge for VPN setup"* → searches published knowledge articles
 - *"browse service catalog"* → lists available catalog items
+
+![knowledge search results](../media/ServiceNow-Show-KB.gif)
 
 #### RESOLVE FK — type names, not IDs
 
@@ -158,15 +152,11 @@ Fields marked with 🔗 accept plain names. Type a name, hit Save — the agent 
 > [!TIP]
 > Look for the 🔗 icon on form fields — those are the ones that accept names instead of IDs.
 
-![HR Services lookup — fuzzy suggestions](img/HR%20Services%20not%20found%20-%20suggested..png)
-
 #### CLARIFY — agent asks when ambiguous
 
 If your request could apply to more than one entity type, the agent asks first.
 
 *"show me the network outage from yesterday"* → Agent: *"Is that an incident, request, change request, problem, or HR case?"*
-
-![agent disambiguation prompt](img/get%20me%20-%20SN%20%E2%80%94%20CLARIFY%20%28disambiguation%20prompt%29.png)
 
 ---
 

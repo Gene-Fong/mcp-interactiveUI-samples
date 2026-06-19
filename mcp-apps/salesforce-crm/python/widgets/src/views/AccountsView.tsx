@@ -121,7 +121,7 @@ export function AccountsView({ items: initItems, callTool, toast, theme, cacheIn
       {/* Account 360 View Dialog — expanded mode only */}
       {viewingAccount && (
         <Dialog open={true} onOpenChange={() => setViewingAccount(null)}>
-          <DialogSurface style={{ maxWidth: '640px', width: '90vw' }}>
+          <DialogSurface style={{ maxWidth: '820px', width: '92vw' }}>
             <DialogBody>
               <DialogTitle action={<Button appearance="subtle" icon={<DismissRegular />} onClick={() => setViewingAccount(null)} aria-label="Close" />}>
                 {viewingAccount.name}

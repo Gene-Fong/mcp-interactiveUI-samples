@@ -76,7 +76,7 @@ export function CampaignsView({ items: initItems, callTool, toast, theme, cacheI
       </Table>
       {viewingCampaign && (
         <Dialog open={true} onOpenChange={() => setViewingCampaign(null)}>
-          <DialogSurface style={{ maxWidth: '640px', width: '90vw' }}>
+          <DialogSurface style={{ maxWidth: '820px', width: '92vw' }}>
             <DialogBody>
               <DialogTitle action={<Button appearance="subtle" icon={<DismissRegular />} onClick={() => setViewingCampaign(null)} aria-label="Close" />}>
                 {viewingCampaign.name || 'Campaign'}
@@ -119,7 +119,7 @@ export function CampaignsView({ items: initItems, callTool, toast, theme, cacheI
                             <TableRow key={l.id}>
                               <TableCell style={D_CELL}>{l.first_name} {l.last_name}</TableCell>
                               <TableCell style={D_CELL}>{l.company || '—'}</TableCell>
-                              <TableCell style={D_CELL}><StatusPill status={l.status} theme={theme} /></TableCell>
+                              <TableCell style={D_CELL}><StatusPill status={(l.status || '').split(' - ').pop() || l.status} theme={theme} /></TableCell>
                               <TableCell style={D_CELL}>{l.email || '—'}</TableCell>
                             </TableRow>
                           ))}

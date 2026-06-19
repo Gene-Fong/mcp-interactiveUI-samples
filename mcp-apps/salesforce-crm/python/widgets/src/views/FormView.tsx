@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Field, Input, Spinner, Text, tokens } from '@fluentui/react-components';
 import { CheckmarkRegular } from '@fluentui/react-icons';
+import { DatePicker } from '@fluentui/react-datepicker-compat';
 import { ExpandButton, FkHint } from '@gtc/mcp-shared';
 import { FORM_BRAND, FORM_CREATE_TOOL, FORM_DEFS, FORM_ID_PARAM, FORM_LIST_TOOL, FORM_UPDATE_TOOL } from '../constants';
 import { FormSelect } from '../components/FormSelect';
@@ -167,6 +168,10 @@ export function FormView({ entity, prefill, fkSelections, mode = 'create', recor
             {fields.map(f =>
               f.type === 'select' ? (
                 <FormSelect key={f.key} label={f.label} value={values[f.key]} options={f.options || []} onChange={v => set(f.key, v)} theme={theme} />
+              ) : f.inputType === 'date' ? (
+                <Field key={f.key} label={f.label} size="small">
+                  <DatePicker size="small" placeholder="Select date" value={values[f.key] ? new Date(values[f.key] + 'T00:00:00') : null} onSelectDate={(d) => set(f.key, d ? d.toISOString().slice(0, 10) : '')} />
+                </Field>
               ) : (
                 <Field key={f.key} label={f.label} size="small">
                   <Input size="small" type={f.inputType || 'text'} value={values[f.key]} onChange={(_, d) => set(f.key, d.value)} style={{ background: t.surface, color: t.text }} />

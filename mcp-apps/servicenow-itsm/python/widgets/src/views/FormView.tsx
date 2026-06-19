@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Field, Input, Spinner, Textarea } from '@fluentui/react-components';
+import { SaveRegular } from '@fluentui/react-icons';
+import { DatePicker } from '@fluentui/react-datepicker-compat';
 import { ExpandButton } from '@gtc/mcp-shared';
 import { FkHint } from '@gtc/mcp-shared';
 import {
@@ -197,14 +199,9 @@ export function FormView({ entity, prefill, mode = 'create', recordId, callTool,
 
   return (
     <div className={styles.card} style={{ border: `1px solid ${t.border}`, background: t.surface }}>
-      <div className={styles.headerBar} style={{
-        background: isIncident
-          ? 'linear-gradient(135deg, #6E50E8 0%, #8B73F5 100%)'
-          : 'linear-gradient(135deg, #293E40 0%, #3A5A5C 100%)',
-        borderBottom: isIncident ? '2px solid #A893F2' : '2px solid #81B5A1',
-      }}>
-        <div className={styles.headerLeft}>
-          <h2 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#fff' }}>{title}</h2>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: `1px solid ${t.border}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <h2 style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: t.text }}>{title}</h2>
         </div>
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
           <ExpandButton />
@@ -331,32 +328,32 @@ export function FormView({ entity, prefill, mode = 'create', recordId, callTool,
             {isEdit && entity === 'request' && <FormSelect label="Request State" value={requestState} options={REQUEST_STATES} onChange={setRequestState} theme={theme} />}
             {isEdit && entity === 'request' && (
               <Field label="Due Date" size="small">
-                <Input size="small" type="date" value={dueDate} onChange={(_, d) => setDueDate(d.value)} />
+                <DatePicker size="small" placeholder="Select date" value={dueDate ? new Date(dueDate + 'T00:00:00') : null} onSelectDate={(d) => setDueDate(d ? d.toISOString().slice(0, 10) : '')} />
               </Field>
             )}
             {!isEdit && entity === 'request' && (
               <Field label="Due Date" size="small">
-                <Input size="small" type="date" value={dueDate} onChange={(_, d) => setDueDate(d.value)} />
+                <DatePicker size="small" placeholder="Select date" value={dueDate ? new Date(dueDate + 'T00:00:00') : null} onSelectDate={(d) => setDueDate(d ? d.toISOString().slice(0, 10) : '')} />
               </Field>
             )}
             {isEdit && isChange && (
               <Field label="Planned Start" size="small">
-                <Input size="small" type="date" value={plannedStart} onChange={(_, d) => setPlannedStart(d.value)} />
+                <DatePicker size="small" placeholder="Select date" value={plannedStart ? new Date(plannedStart + 'T00:00:00') : null} onSelectDate={(d) => setPlannedStart(d ? d.toISOString().slice(0, 10) : '')} />
               </Field>
             )}
             {!isEdit && isChange && (
               <Field label="Planned Start" size="small">
-                <Input size="small" type="date" value={plannedStart} onChange={(_, d) => setPlannedStart(d.value)} />
+                <DatePicker size="small" placeholder="Select date" value={plannedStart ? new Date(plannedStart + 'T00:00:00') : null} onSelectDate={(d) => setPlannedStart(d ? d.toISOString().slice(0, 10) : '')} />
               </Field>
             )}
             {isEdit && isChange && (
               <Field label="Planned End" size="small">
-                <Input size="small" type="date" value={plannedEnd} onChange={(_, d) => setPlannedEnd(d.value)} />
+                <DatePicker size="small" placeholder="Select date" value={plannedEnd ? new Date(plannedEnd + 'T00:00:00') : null} onSelectDate={(d) => setPlannedEnd(d ? d.toISOString().slice(0, 10) : '')} />
               </Field>
             )}
             {!isEdit && isChange && (
               <Field label="Planned End" size="small">
-                <Input size="small" type="date" value={plannedEnd} onChange={(_, d) => setPlannedEnd(d.value)} />
+                <DatePicker size="small" placeholder="Select date" value={plannedEnd ? new Date(plannedEnd + 'T00:00:00') : null} onSelectDate={(d) => setPlannedEnd(d ? d.toISOString().slice(0, 10) : '')} />
               </Field>
             )}
             {isProblem && (
@@ -366,12 +363,12 @@ export function FormView({ entity, prefill, mode = 'create', recordId, callTool,
             )}
           </div>
           <div className={styles.formActions}>
-            <Button size="small" appearance="primary" onClick={handleSubmit}
+            <Button size="medium" appearance="secondary" onClick={handleCancel} disabled={submitting}>Cancel</Button>
+            <Button size="medium" appearance="primary" onClick={handleSubmit}
               disabled={submitting || !shortDesc.trim()}
-              style={{ background: '#4A8C6F', borderColor: '#4A8C6F', minWidth: '90px' }}>
-              {submitting ? <Spinner size="tiny" /> : 'Save'}
+              icon={submitting ? <Spinner size="tiny" /> : <SaveRegular />}>
+              {submitting ? 'Saving…' : 'Save'}
             </Button>
-            <Button size="small" appearance="subtle" onClick={handleCancel} disabled={submitting} style={{ color: t.textWeak }}>Cancel</Button>
           </div>
           {isIncident && (
             <FkHint

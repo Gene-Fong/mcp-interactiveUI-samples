@@ -117,7 +117,7 @@ export function ContactsView({ items: initItems, callTool, toast, theme, cacheIn
       </Table>
       {viewingContact && (
         <Dialog open={true} onOpenChange={() => setViewingContact(null)}>
-          <DialogSurface style={{ maxWidth: '640px', width: '90vw' }}>
+          <DialogSurface style={{ maxWidth: '820px', width: '92vw' }}>
             <DialogBody>
               <DialogTitle action={<Button appearance="subtle" icon={<DismissRegular />} onClick={() => setViewingContact(null)} aria-label="Close" />}>
                 {[viewingContact.first_name, viewingContact.last_name].filter(Boolean).join(' ') || 'Contact'}
