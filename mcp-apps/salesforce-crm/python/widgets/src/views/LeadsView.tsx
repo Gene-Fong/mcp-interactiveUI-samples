@@ -40,7 +40,6 @@ export function LeadsView({ items: initItems, callTool, toast, theme, cacheInfo:
   };
 
   const openEdit = (l: any) => { setCreating(false); setEditingId(l.id); setForm({ first_name: l.first_name || '', last_name: l.last_name || '', company: l.company || '', email: l.email || '', phone: l.phone || '', status: l.status || '', lead_source: l.lead_source || '' }); };
-  const openCreate = () => { setEditingId(null); setCreating(true); setForm({ first_name: '', last_name: '', company: '', email: '', phone: '', status: '', lead_source: '' }); };
   const cancel = () => { setEditingId(null); setCreating(false); };
 
   const handleSave = async () => {

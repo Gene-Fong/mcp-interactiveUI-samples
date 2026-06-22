@@ -58,7 +58,7 @@ export function KnowledgeView({ items, theme, cacheInfo }: { items: KnowledgeArt
           {items.map((a, idx) => (
             <TableRow key={a.sys_id} className="snow-row"
               style={{ borderBottom: idx === items.length - 1 ? 'none' : `1px solid ${t.border}` }}>
-              <TableCell style={cellStyle}><span style={{ fontFamily: 'monospace', fontWeight: 500, color: '#293E40' }}>{a.number}</span></TableCell>
+              <TableCell style={cellStyle}><span style={{ fontFamily: 'monospace', fontWeight: 500, color: tokens.colorBrandForeground1 }}>{a.number}</span></TableCell>
               <TableCell style={{ ...cellStyle, maxWidth: '260px' }}>{a.short_description || '—'}</TableCell>
               <TableCell style={cellStyle}>{a.category || '—'}</TableCell>
               {isFullscreen && <TableCell style={cellStyle}>{a.author || '—'}</TableCell>}

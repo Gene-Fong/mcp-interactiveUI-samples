@@ -85,7 +85,7 @@ export function ApprovalsView({ items, callTool, toast, theme, cacheInfo: _cache
               style={{ borderBottom: idx === items.length - 1 ? 'none' : `1px solid ${t.border}` }}>
               {isFullscreen && <TableCell style={cellStyle}>{a.approver || '—'}</TableCell>}
               {isFullscreen && <TableCell style={cellStyle}>{(a as any).document_type || '—'}</TableCell>}
-              <TableCell style={cellStyle}><span style={{ fontFamily: 'monospace', color: '#293E40' }}>{(a as any).document_number || a.document || '—'}</span></TableCell>
+              <TableCell style={cellStyle}><span style={{ fontFamily: 'monospace', color: tokens.colorBrandForeground1 }}>{(a as any).document_number || a.document || '—'}</span></TableCell>
               <TableCell style={cellStyle}>{(a as any).short_description || '—'}</TableCell>
               <TableCell style={cellStyle}><ApprovalPill approval={a.state} theme={theme} /></TableCell>
               <TableCell style={cellStyle}>{a.due_date || '—'}</TableCell>

@@ -199,7 +199,7 @@ export function ProblemsView({ items: initItems, callTool, toast, theme, cacheIn
                   borderBottom: idx === localItems.length - 1 ? 'none' : `1px solid ${t.border}`,
                   ...(lastSavedId === p.sys_id ? { animation: 'snowRowFlash 4.5s ease-out' } : {}),
                 }}>
-                <TableCell style={cellStyle}><span style={{ fontFamily: 'monospace', fontWeight: 500, color: '#293E40' }}>{p.number}</span></TableCell>
+                <TableCell style={cellStyle}><span style={{ fontFamily: 'monospace', fontWeight: 500, color: tokens.colorBrandForeground1 }}>{p.number}</span></TableCell>
                 <TableCell style={{ ...cellStyle, maxWidth: '240px' }}>{p.short_description || '—'}</TableCell>
                 <TableCell style={cellStyle}><PriorityPill priority={p.priority} theme={theme} /></TableCell>
                 <TableCell style={cellStyle}><StatePill state={p.state} theme={theme} /></TableCell>

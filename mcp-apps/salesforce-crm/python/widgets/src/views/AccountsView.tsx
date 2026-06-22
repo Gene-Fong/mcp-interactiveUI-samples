@@ -41,7 +41,6 @@ export function AccountsView({ items: initItems, callTool, toast, theme, cacheIn
   };
 
   const openEdit = (a: any) => { setCreating(false); setEditingId(a.id); setForm({ name: a.name || '', industry: a.industry || '', phone: a.phone || '', website: a.website || '', type: a.type || '', billing_city: a.billing_city || '' }); };
-  const openCreate = () => { setEditingId(null); setCreating(true); setForm({ name: '', industry: '', phone: '', website: '', type: '', billing_city: '' }); };
   const cancel = () => { setEditingId(null); setCreating(false); };
 
   const handleSave = async () => {

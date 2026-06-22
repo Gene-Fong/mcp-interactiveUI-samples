@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Field, Textarea } from '@fluentui/react-components';
+import { Button, Field, Textarea, tokens } from '@fluentui/react-components';
 import { CheckmarkCircleRegular } from '@fluentui/react-icons';
 import { ExpandButton } from '@gtc/mcp-shared';
 import { PRIORITY_LABELS } from '../constants';
@@ -69,7 +69,7 @@ export function ResolveIncidentView({ sys_id, number, short_description, descrip
     <div className={styles.card} style={{ border: `1px solid ${t.border}`, background: t.surface }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: `1px solid ${t.border}` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <CheckmarkCircleRegular style={{ fontSize: '18px', color: '#6E50E8' }} />
+          <CheckmarkCircleRegular style={{ fontSize: '18px', color: tokens.colorBrandForeground1 }} />
           <h2 style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: t.text }}>Resolve Incident — {number}</h2>
         </div>
         <ExpandButton />

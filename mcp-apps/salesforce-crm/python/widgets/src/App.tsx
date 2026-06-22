@@ -45,7 +45,7 @@ export function SalesforceApp() {
 
   if ((data as any).type === 'form') {
     const fd = data as any;
-    return <div className={styles.shell} style={shellStyle}><FormView entity={fd.entity} mode={fd.mode || 'create'} recordId={fd.recordId} prefill={fd.prefill} fkSelections={fd.fkSelections} callTool={callTool} toast={toast} theme={theme} renderListView={renderListView} /></div>;
+    return <div className={styles.shell} style={shellStyle}><FormView entity={fd.entity} mode={fd.mode || 'create'} recordId={fd.recordId} prefill={fd.prefill} callTool={callTool} toast={toast} theme={theme} renderListView={renderListView} /></div>;
   }
 
   if ((data as any).type === 'success') {

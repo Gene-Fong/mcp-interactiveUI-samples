@@ -328,32 +328,32 @@ export function FormView({ entity, prefill, mode = 'create', recordId, callTool,
             {isEdit && entity === 'request' && <FormSelect label="Request State" value={requestState} options={REQUEST_STATES} onChange={setRequestState} theme={theme} />}
             {isEdit && entity === 'request' && (
               <Field label="Due Date" size="small">
-                <DatePicker size="small" placeholder="Select date" value={dueDate ? new Date(dueDate + 'T00:00:00') : null} onSelectDate={(d) => setDueDate(d ? d.toISOString().slice(0, 10) : '')} />
+                <DatePicker size="small" placeholder="Select date" value={dueDate ? new Date(dueDate + 'T00:00:00') : null}                 onSelectDate={(d) => setDueDate(d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` : '')} />
               </Field>
             )}
             {!isEdit && entity === 'request' && (
               <Field label="Due Date" size="small">
-                <DatePicker size="small" placeholder="Select date" value={dueDate ? new Date(dueDate + 'T00:00:00') : null} onSelectDate={(d) => setDueDate(d ? d.toISOString().slice(0, 10) : '')} />
+                                <DatePicker size="small" placeholder="Select date" value={dueDate ? new Date(dueDate + 'T00:00:00') : null} onSelectDate={(d) => setDueDate(d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` : '')} />
               </Field>
             )}
             {isEdit && isChange && (
               <Field label="Planned Start" size="small">
-                <DatePicker size="small" placeholder="Select date" value={plannedStart ? new Date(plannedStart + 'T00:00:00') : null} onSelectDate={(d) => setPlannedStart(d ? d.toISOString().slice(0, 10) : '')} />
+                <DatePicker size="small" placeholder="Select date" value={plannedStart ? new Date(plannedStart + 'T00:00:00') : null}                 onSelectDate={(d) => setPlannedStart(d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` : '')} />
               </Field>
             )}
             {!isEdit && isChange && (
               <Field label="Planned Start" size="small">
-                <DatePicker size="small" placeholder="Select date" value={plannedStart ? new Date(plannedStart + 'T00:00:00') : null} onSelectDate={(d) => setPlannedStart(d ? d.toISOString().slice(0, 10) : '')} />
+                                <DatePicker size="small" placeholder="Select date" value={plannedStart ? new Date(plannedStart + 'T00:00:00') : null} onSelectDate={(d) => setPlannedStart(d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` : '')} />
               </Field>
             )}
             {isEdit && isChange && (
               <Field label="Planned End" size="small">
-                <DatePicker size="small" placeholder="Select date" value={plannedEnd ? new Date(plannedEnd + 'T00:00:00') : null} onSelectDate={(d) => setPlannedEnd(d ? d.toISOString().slice(0, 10) : '')} />
+                <DatePicker size="small" placeholder="Select date" value={plannedEnd ? new Date(plannedEnd + 'T00:00:00') : null}                 onSelectDate={(d) => setPlannedEnd(d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` : '')} />
               </Field>
             )}
             {!isEdit && isChange && (
               <Field label="Planned End" size="small">
-                <DatePicker size="small" placeholder="Select date" value={plannedEnd ? new Date(plannedEnd + 'T00:00:00') : null} onSelectDate={(d) => setPlannedEnd(d ? d.toISOString().slice(0, 10) : '')} />
+                                <DatePicker size="small" placeholder="Select date" value={plannedEnd ? new Date(plannedEnd + 'T00:00:00') : null} onSelectDate={(d) => setPlannedEnd(d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` : '')} />
               </Field>
             )}
             {isProblem && (

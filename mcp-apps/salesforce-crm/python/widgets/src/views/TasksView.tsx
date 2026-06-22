@@ -37,7 +37,6 @@ export function TasksView({ items: initItems, callTool, toast, theme, cacheInfo:
   };
 
   const openEdit = (t2: any) => { setCreating(false); setEditingId(t2.id); setForm({ subject: t2.subject || '', status: t2.status || '', priority: t2.priority || '', activity_date: t2.activity_date || '', description: t2.description || '', who_name: t2.who_name || '', what_name: t2.what_name || '' }); };
-  const openCreate = () => { setEditingId(null); setCreating(true); setForm({ subject: '', status: 'Not Started', priority: 'Normal', activity_date: '', description: '', who_name: '', what_name: '' }); };
   const cancel = () => { setEditingId(null); setCreating(false); };
 
   const handleSave = async () => {

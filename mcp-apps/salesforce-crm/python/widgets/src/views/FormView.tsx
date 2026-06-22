@@ -51,10 +51,9 @@ export function SuccessPivot({ entity, callTool, toast, theme, isFullscreen, ren
   return <>{node}</>;
 }
 
-export function FormView({ entity, prefill, fkSelections, mode = 'create', recordId, callTool, toast, theme, renderListView }: {
+export function FormView({ entity, prefill, mode = 'create', recordId, callTool, toast, theme, renderListView }: {
   entity: string;
   prefill?: Record<string, string>;
-  fkSelections?: Record<string, { label: string; options: { id: string; name: string }[] }>;
   mode?: 'create' | 'edit';
   recordId?: string;
   callTool: (n: string, a?: any) => Promise<any>;
@@ -70,11 +69,9 @@ export function FormView({ entity, prefill, fkSelections, mode = 'create', recor
     fields.forEach(f => { init[f.key] = prefill?.[f.key] || ''; });
     return init;
   });
-  const [fkChoices, setFkChoices] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [listAfterAction, setListAfterAction] = useState<any | null>(null);
   const set = (k: string, v: string) => setValues(p => ({ ...p, [k]: v }));
-  const setFk = (k: string, v: string) => setFkChoices(p => ({ ...p, [k]: v }));
 
   const entityLabel = entity.charAt(0).toUpperCase() + entity.slice(1);
   const isEdit = mode === 'edit';
@@ -84,7 +81,6 @@ export function FormView({ entity, prefill, fkSelections, mode = 'create', recor
     try {
       const args: Record<string, any> = {};
       fields.forEach(f => { if (values[f.key]) args[f.key] = values[f.key]; });
-      Object.entries(fkChoices).forEach(([k, v]) => { if (v) args[k] = v; });
       let result: any;
       if (isEdit) {
         const idParam = FORM_ID_PARAM[entity] || `${entity}_id`;
@@ -117,7 +113,6 @@ export function FormView({ entity, prefill, fkSelections, mode = 'create', recor
     const init: Record<string, string> = {};
     fields.forEach(f => { init[f.key] = prefill?.[f.key] || ''; });
     setValues(init);
-    setFkChoices({});
   };
 
   // After successful create/update, pivot to the matching list view.
@@ -136,41 +131,13 @@ export function FormView({ entity, prefill, fkSelections, mode = 'create', recor
       </div>
       {(
         <div style={{ padding: '16px 20px 20px' }}>
-          {fkSelections && Object.keys(fkSelections).length > 0 && (
-            <div style={{ marginBottom: '18px', padding: '12px 14px', background: t.surfaceAlt || t.surface, border: `1px solid ${t.border}`, borderRadius: '6px' }}>
-              {Object.entries(fkSelections).map(([fkKey, fkDef]) => (
-                <fieldset key={fkKey} style={{ border: 'none', margin: 0, marginBottom: '10px', padding: 0 }}>
-                  <legend style={{ fontSize: 'inherit', fontWeight: 600, padding: 0 }}>
-                    <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: t.textWeak, marginBottom: '6px', display: 'inline-block' }}>
-                      {fkDef.label}
-                    </span>
-                  </legend>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    {fkDef.options.map(opt => (
-                      <label key={opt.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: t.text }}>
-                        <input
-                          type="radio"
-                          name={fkKey}
-                          value={opt.id}
-                          checked={fkChoices[fkKey] === opt.id}
-                          onChange={() => setFk(fkKey, opt.id)}
-                          style={{ accentColor: t.brand }}
-                        />
-                        {opt.name}
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
-              ))}
-            </div>
-          )}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px 20px', marginBottom: '20px' }}>
             {fields.map(f =>
               f.type === 'select' ? (
                 <FormSelect key={f.key} label={f.label} value={values[f.key]} options={f.options || []} onChange={v => set(f.key, v)} theme={theme} />
               ) : f.inputType === 'date' ? (
                 <Field key={f.key} label={f.label} size="small">
-                  <DatePicker size="small" placeholder="Select date" value={values[f.key] ? new Date(values[f.key] + 'T00:00:00') : null} onSelectDate={(d) => set(f.key, d ? d.toISOString().slice(0, 10) : '')} />
+                  <DatePicker size="small" placeholder="Select date" value={values[f.key] ? new Date(values[f.key] + 'T00:00:00') : null} onSelectDate={(d) => set(f.key, d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` : '')} />
                 </Field>
               ) : (
                 <Field key={f.key} label={f.label} size="small">

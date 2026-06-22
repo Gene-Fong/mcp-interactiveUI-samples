@@ -40,7 +40,6 @@ export function OpportunitiesView({ items: initItems, callTool, toast, theme, ca
   };
 
   const openEdit = (o: any) => { setCreating(false); setEditingId(o.id); setForm({ name: o.name || '', account_name: o.account_name || '', stage: o.stage || '', amount: o.amount != null ? String(o.amount) : '', close_date: o.close_date || '', probability: o.probability != null ? String(o.probability) : '' }); };
-  const openCreate = () => { setEditingId(null); setCreating(true); setForm({ name: '', account_name: '', stage: '', amount: '', close_date: '', probability: '' }); };
   const cancel = () => { setEditingId(null); setCreating(false); };
 
   const handleSave = async () => {

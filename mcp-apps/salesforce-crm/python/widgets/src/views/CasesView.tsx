@@ -39,7 +39,6 @@ export function CasesView({ items: initItems, callTool, toast, theme, cacheInfo:
   };
 
   const openEdit = (c: any) => { setCreating(false); setEditingId(c.id); setForm({ subject: c.subject || '', status: c.status || '', priority: c.priority || '', account_name: c.account_name || '', description: c.description || '' }); };
-  const openCreate = () => { setEditingId(null); setCreating(true); setForm({ subject: '', status: 'New', priority: 'Medium', account_name: '', description: '' }); };
   const cancel = () => { setEditingId(null); setCreating(false); };
 
   const handleSave = async () => {

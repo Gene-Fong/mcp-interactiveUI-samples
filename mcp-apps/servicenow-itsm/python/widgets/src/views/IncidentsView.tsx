@@ -222,7 +222,7 @@ export function IncidentsView({ items: initItems, callTool, toast, theme, cacheI
   return (
     <div className={styles.card} style={{ border: `1px solid ${t.border}`, background: t.surface }}>
       <ViewHeader icon={<AlertRegular style={{ fontSize: '18px' }} />} title="Incidents" count={localItems.length}
-        brand="#6E50E8"
+        brand={tokens.colorBrandForeground1}
         cacheInfo={cacheInfo} onRefresh={handleRefresh} refreshing={refreshing} />
 
       <Table aria-label="Incidents" size="small" style={{ borderCollapse: 'collapse' }}>
@@ -257,7 +257,7 @@ export function IncidentsView({ items: initItems, callTool, toast, theme, cacheI
                 }}
               >
                 <TableCell style={cellStyle}>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 500, color: '#6E50E8' }}>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 500, color: tokens.colorBrandForeground1 }}>
                     {inc.number}
                   </span>
                 </TableCell>

@@ -39,7 +39,6 @@ export function ContactsView({ items: initItems, callTool, toast, theme, cacheIn
   };
 
   const openEdit = (c: any) => { setCreating(false); setEditingId(c.id); setForm({ first_name: c.first_name || '', last_name: c.last_name || '', email: c.email || '', phone: c.phone || '', title: c.title || '', account_name: c.account_name || '' }); };
-  const openCreate = () => { setEditingId(null); setCreating(true); setForm({ first_name: '', last_name: '', email: '', phone: '', title: '', account_name: '' }); };
   const cancel = () => { setEditingId(null); setCreating(false); };
 
   const handleSave = async () => {
