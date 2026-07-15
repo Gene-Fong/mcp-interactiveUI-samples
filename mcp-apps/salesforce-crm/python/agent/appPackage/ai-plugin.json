@@ -131,7 +131,7 @@
         {
             "type": "RemoteMCPServer",
             "spec": {
-                "url": "https://z7g35ldb-8080.inc1.devtunnels.ms/mcp",
+                "url": "https://3mf18h92-8080.inc1.devtunnels.ms/mcp",
                 "mcp_tool_description": {
                     "file": "mcp-tools.json"
                 }

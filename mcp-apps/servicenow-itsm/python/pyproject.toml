@@ -13,6 +13,10 @@ dependencies = [
     "pydantic-settings>=2.0.0",
     "tenacity>=8.3.0",
     "cachetools>=5.3.0",
+    # cryptography (transitive via mcp[cli]) — pin to the range that still ships
+    # Windows ARM64 wheels (46.0.0–46.0.3); newer versions are Intel/Linux only.
+    # Keeps `pip install -e .` working on both ARM and Intel without a source build.
+    "cryptography>=46.0.0,<46.0.4",
 ]
 
 [project.scripts]
