@@ -42,7 +42,7 @@ REQUEST_FIELDS = (
 )
 REQUEST_ITEM_FIELDS = (
     "sys_id,number,short_description,description,state,stage,"
-    "quantity,price,request,sys_created_on"
+    "quantity,price,cat_item,request,sys_created_on"
 )
 CHANGE_FIELDS = (
     "sys_id,number,short_description,description,state,priority,risk,category,type,assigned_to,"
@@ -50,7 +50,7 @@ CHANGE_FIELDS = (
 )
 PROBLEM_FIELDS = (
     "sys_id,number,short_description,description,state,priority,assigned_to,"
-    "work_around,sys_created_on"
+    "workaround,sys_created_on"
 )
 HR_FIELDS = (
     "sys_id,number,short_description,description,state,priority,opened_by,"
@@ -127,5 +127,49 @@ async def servicenow_request(
             params=params,
             json=json_body,
         )
-        resp.raise_for_status()
+        try:
+            resp.raise_for_status()
+        except httpx.HTTPStatusError:
+            _log_sn_http(method, path, params, resp)
+            raise
+        _log_sn_http(method, path, params, resp)
         return resp
+
+
+def _log_sn_http(method: str, path: str, params: dict | None, resp: "httpx.Response") -> None:
+    """Record the outbound ServiceNow call — endpoint + the exact query fired —
+    and the data that came back (rows on success, error body on failure) so you
+    can verify what was returned. Never raises."""
+    try:
+        from shared_mcp.file_logger import log_event, cap_rows
+        status = resp.status_code
+        ok = status < 400
+        response: dict = {"status": status}
+        if ok:
+            try:
+                rows = resp.json().get("result", [])
+                if isinstance(rows, list):
+                    response["count"] = len(rows)
+                    response["result"] = cap_rows(rows)
+                else:
+                    response["result"] = rows
+            except Exception:
+                pass
+        else:
+            try:
+                response["error"] = resp.json().get("error") or resp.text[:1000]
+            except Exception:
+                response["error"] = resp.text[:1000]
+        log_event(
+            "sn_http",
+            severity="INFO" if ok else "ERROR",
+            request={
+                "method": method,
+                "path": path,
+                "query": (params or {}).get("sysparm_query"),
+                "params": params,
+            },
+            response=response,
+        )
+    except Exception:
+        pass

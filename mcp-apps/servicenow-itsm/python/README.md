@@ -70,16 +70,17 @@ Most interactions map to one of **ten operations**. Here's the quick-reference, 
 
 These follow the **standard three-tool pattern**:
 
-| # | Operation | What you say | What happens | Try it |
+| # | Operation | What you say | What happens | Tips |
 |---|---|---|---|---|
-| 1 | **GET** | "show me incidents" | Lists the most recent records | *"get all incidents"* |
-| 2 | **FILTER** | "open incidents assigned to Joe" | Narrows by state, priority, date, person | *"P1 problems"* · *"changes last 5 days"* |
-| 3 | **IDENTIFY** | "show INC0010001" | Fetches that specific record | *"get CHG0000079"* |
-| 4 | **EDIT** | "edit INC0010001" | Opens the record with an edit form | *"update problem PRB0040012"* |
-| 5 | **CREATE** | "create incident for Beth Anglin, P2" | Pre-filled form — complete and submit | *"new HR case for onboarding"* |
-| 8 | **SEARCH** | "search knowledge for VPN setup" | Searches articles or browses catalog | *"browse service catalog"* |
-| 9 | **RESOLVE FK** | *(type a name into 🔗 fields)* | Agent matches name → person on Save | *"Beth Anglin"* in Caller field |
-| 10 | **CLARIFY** | *(agent asks you)* | Disambiguates before acting | *"Is that an incident or problem?"* |
+| 1 | **GET** | "show me incidents" | Lists the most recent records | Just name the entity (incidents, requests, changes, problems, catalog); no filters needed |
+| 2 | **FILTER #1** *(by person — FK)* | "open incidents assigned to Joe" | Narrows by the assigned or caller person | Use the person's **exact name** as it appears in ServiceNow; if several match, pick from suggestions |
+| 2 | **FILTER #2** *(by field — non-FK)* | "show high-severity incidents" | Narrows by a record field value | Type the value directly — severity, type, state (New, In Progress, Resolved), priority (P1–P4), category, or a date range; no name lookup needed |
+| 3 | **IDENTIFY** | "show INC0010001" | Fetches that specific record | Use the full record number **with its prefix** (INC, REQ, CHG, PRB, HRC) — the prefix routes to the right entity |
+| 4 | **EDIT** | "edit INC0010001" | Opens the record with an edit form | Say "edit" + the record number, change fields in the form, then Save |
+| 5 | **CREATE** | "create incident for Beth Anglin, P2" | Pre-filled form — complete and submit | Put known values **in the utterance** (caller, priority, short description) so the form pre-fills |
+| 8 | **SEARCH** | "search knowledge for VPN setup" | Searches articles or browses catalog | Add keywords after "search knowledge for…"; for catalog say "browse service catalog" |
+| 9 | **RESOLVE FK** | *(type a name into 🔗 fields)* | Agent matches name → person on Save | In 🔗 fields type the person's **exact name**; if several match, pick from up to five suggestions |
+| 10 | **CLARIFY** | *(agent asks you)* | Disambiguates before acting | If your request is ambiguous, answer the agent with the entity type (incident, change, etc.) |
 
 #### 🔴 Anti-patterns — 2 operations
 
@@ -88,10 +89,10 @@ These require **dedicated tools outside the trio**:
 > [!IMPORTANT]
 > Anti-pattern operations are difficult to reverse. Once you approve, reject, or resolve from the chat, the state change takes effect immediately in ServiceNow.
 
-| # | Operation | What you say | What happens | Try it |
+| # | Operation | What you say | What happens | Tips |
 |---|---|---|---|---|
-| 6 | **ACTION** | "resolve INC0010001 as solved remotely" | One-shot state change — done | *"show my pending approvals"* → approve inline |
-| 7 | **DRILL** | *(click ▾ on a row)* | Expands child records below | Request → items · Change → tasks |
+| 6 | **ACTION** | "resolve INC0010001 as solved remotely" | One-shot state change — done | State the outcome plainly; approvals can be approved or rejected inline from the widget |
+| 7 | **DRILL** | *(click ▾ on a row)* | Expands child records below | Click the ▾ on a row to expand children (Request → items, Change → tasks) |
 
 ### 2.2 In action
 
@@ -205,6 +206,20 @@ You need credentials from your ServiceNow instance. Grab them now — you'll pas
 > Free PDIs hibernate after ~10 days of inactivity. If you see connection timeouts, log in to developer.servicenow.com → Manage → Wake Up Instance.
 
 **Validate:** You have your credentials written down — hostname + OAuth pair (or hostname + username/password).
+
+---
+
+### Step 2.5 — Activate HR Cases (optional)
+
+Only needed if you want the **HR Case** tools. HR isn't enabled on most instances by default.
+
+1. Log into your instance as an **admin**.
+2. In the **filter navigator**, type **`Plugins`**.
+3. Under **ServiceNow products**, search for the **HR Core Business Suite** tile.
+4. Click the tile, then click **Install** (load demo data if offered).
+5. Wait for the install to finish.
+
+**Validate:** Type **`sn_hr_core_case.list`** in the filter navigator — the list should open (no "Invalid table" error). HR Service Delivery is a licensed app; if the tile is unavailable, your instance has no HR entitlement and HR Cases can't be enabled there.
 
 ---
 
@@ -341,7 +356,7 @@ If you hit an issue, find it below — organized by symptom.
 
 - **`401 Unauthorized` on first call** → Your OAuth Application Registry entry doesn't allow `client_credentials`. Set the system property `glide.oauth.inbound.client.credential.grant_type.enabled` = `true` (System Properties → `sys_properties.list`, or tick "Allow client credential flow" on the Application Registry record), and confirm the OAuth Application User is set.
 - **Persistent `connection timeout`** → Your PDI has hibernated (~10 days idle). Wake it at developer.servicenow.com → Manage → Wake Up Instance.
-- **HR Case queries return empty** → Your instance doesn't have the HR Service Delivery plugin (`com.sn_hr_core`). Install from System Definition → Plugins.
+- **HR Case queries return empty** → Your instance doesn't have HR enabled. See [Step 2.5 — Activate HR Cases](#step-25--activate-hr-cases-optional) (install the **HR Core Business Suite** tile). HR Service Delivery is a licensed app and may not be available on every instance.
 
 ### MCP server & Azure
 

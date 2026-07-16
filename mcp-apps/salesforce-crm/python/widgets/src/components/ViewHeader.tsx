@@ -12,7 +12,7 @@ export function ViewHeader({ icon, title, count, brand, onNew, newLabel, theme, 
   onRefresh?: () => void; refreshing?: boolean;
 }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: `1px solid ${tokens.colorNeutralStroke2}` }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', backgroundColor: `color-mix(in srgb, ${brand} 10%, ${tokens.colorNeutralBackground1})`, borderBottom: `1px solid ${tokens.colorNeutralStroke2}` }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <span style={{ fontSize: '18px', color: brand }}>{icon}</span>
         <div style={{ fontSize: '14px', fontWeight: 600, color: tokens.colorNeutralForeground1 }}>

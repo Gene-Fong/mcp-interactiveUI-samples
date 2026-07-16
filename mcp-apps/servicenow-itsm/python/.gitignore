@@ -8,3 +8,6 @@ dist/
 deploy/parameters.bicepparam
 
 query_picklists.py
+
+logs/
+logs_test/

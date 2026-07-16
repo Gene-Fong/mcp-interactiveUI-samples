@@ -218,11 +218,17 @@ if (-not $SkipServer -and -not $TunnelOnly) {
     $up = $false
     do {
         Start-Sleep 2; $waited += 2
+        # A listening TCP port means the server is up. This is more reliable
+        # than an HTTP probe: the root path returns 404 (the MCP endpoint is
+        # /mcp), and some PowerShell versions surface that 404 as an exception
+        # with a null .Response, causing a false "server did not respond".
         try {
-            $null = Invoke-WebRequest -Uri "http://localhost:$ServerPort" -Method GET -TimeoutSec 2 -ErrorAction Stop
-            $up = $true
+            $tcp = New-Object System.Net.Sockets.TcpClient
+            $iar = $tcp.BeginConnect("localhost", $ServerPort, $null, $null)
+            if ($iar.AsyncWaitHandle.WaitOne(2000) -and $tcp.Connected) { $up = $true }
+            $tcp.Close()
         } catch {
-            if ($_.Exception.Response -ne $null) { $up = $true }
+            $up = $false
         }
         Write-Host "`r  [watch] Waiting for server... ${waited}s" -NoNewline -ForegroundColor Yellow
     } while (-not $up -and $waited -lt 30)

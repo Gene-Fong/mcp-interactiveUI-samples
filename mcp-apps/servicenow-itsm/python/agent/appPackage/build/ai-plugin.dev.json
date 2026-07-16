@@ -135,7 +135,7 @@
                      {
                          "type":  "RemoteMCPServer",
                          "spec":  {
-                                      "url":  "https://gtc-sn-gw.gentlepond-dd579c1b.southindia.azurecontainerapps.io/mcp",
+                                      "url":  "https://dzzcrnqn-8081.inc1.devtunnels.ms/mcp",
                                       "mcp_tool_description":  {
                                                                    "tools":  [
                                                                                  {

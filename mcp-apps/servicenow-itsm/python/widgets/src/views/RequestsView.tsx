@@ -40,11 +40,12 @@ import { now } from '../theme';
 import type { RequestItem, ServiceRequest } from '../types';
 
 // ── Request Items sub-table ─────────────────────────────────────────────────
-function RequestItemsTable({ items, callTool, toast, theme }: {
+function RequestItemsTable({ items, callTool, toast, theme, editable = false }: {
   items: RequestItem[];
   callTool: (name: string, args?: Record<string, any>) => Promise<any>;
   toast: (msg: string, type?: 'success' | 'error' | 'info') => void;
   theme: 'light' | 'dark';
+  editable?: boolean;
 }) {
   const t = now(theme);
   const [editingQty, setEditingQty] = useState<Record<string, string>>({});
@@ -85,12 +86,12 @@ function RequestItemsTable({ items, callTool, toast, theme }: {
       <Table aria-label="Request items" size="small" style={{ borderCollapse: 'collapse' }}>
         <TableHeader>
           <TableRow>
+            <TableHeaderCell style={subHeaderStyle}>Short Description</TableHeaderCell>
             <TableHeaderCell style={subHeaderStyle}>Item</TableHeaderCell>
-            <TableHeaderCell style={subHeaderStyle}>Category</TableHeaderCell>
             <TableHeaderCell style={subHeaderStyle}>Qty</TableHeaderCell>
             <TableHeaderCell style={subHeaderStyle}>Stage</TableHeaderCell>
             <TableHeaderCell style={subHeaderStyle}>Price</TableHeaderCell>
-            <TableHeaderCell style={{ ...subHeaderStyle, width: 60 }} />
+            {editable && <TableHeaderCell style={{ ...subHeaderStyle, width: 60 }} />}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -99,31 +100,37 @@ function RequestItemsTable({ items, callTool, toast, theme }: {
               <TableCell style={subCellStyle}>{item.short_description || '—'}</TableCell>
               <TableCell style={subCellStyle}>{item.cat_item || '—'}</TableCell>
               <TableCell style={subCellStyle}>
-                <input
-                  type="number"
-                  min="1"
-                  aria-label={`Quantity for ${item.short_description || item.name || 'item'}`}
-                  value={editingQty[item.sys_id] ?? String(item.quantity || 1)}
-                  onChange={(e) => setEditingQty(prev => ({ ...prev, [item.sys_id]: e.target.value }))}
-                  onClick={(e) => e.stopPropagation()}
-                  style={{
-                    width: '56px', padding: '3px 6px', borderRadius: '4px',
-                    border: `1px solid ${t.border}`, background: t.surface,
-                    color: t.text, fontSize: '12px', textAlign: 'center',
-                    fontFamily: 'inherit',
-                  }}
-                />
+                {editable ? (
+                  <input
+                    type="number"
+                    min="1"
+                    aria-label={`Quantity for ${item.short_description || item.name || 'item'}`}
+                    value={editingQty[item.sys_id] ?? String(item.quantity || 1)}
+                    onChange={(e) => setEditingQty(prev => ({ ...prev, [item.sys_id]: e.target.value }))}
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      width: '56px', padding: '3px 6px', borderRadius: '4px',
+                      border: `1px solid ${t.border}`, background: t.surface,
+                      color: t.text, fontSize: '12px', textAlign: 'center',
+                      fontFamily: 'inherit',
+                    }}
+                  />
+                ) : (
+                  String(item.quantity || 1)
+                )}
               </TableCell>
               <TableCell style={subCellStyle}>{item.stage || '—'}</TableCell>
               <TableCell style={subCellStyle}>{item.price || '—'}</TableCell>
-              <TableCell style={subCellStyle}>
-                <Button appearance="primary" size="small" icon={<SaveRegular />}
-                  onClick={(e: React.MouseEvent) => { e.stopPropagation(); saveQty(item); }}
-                  disabled={savingId === item.sys_id}
-                  style={{ minWidth: 0, padding: '0 8px', height: '26px' }}>
-                  {savingId === item.sys_id ? '…' : 'Save'}
-                </Button>
-              </TableCell>
+              {editable && (
+                <TableCell style={subCellStyle}>
+                  <Button appearance="primary" size="small" icon={<SaveRegular />}
+                    onClick={(e: React.MouseEvent) => { e.stopPropagation(); saveQty(item); }}
+                    disabled={savingId === item.sys_id}
+                    style={{ minWidth: 0, padding: '0 8px', height: '26px' }}>
+                    {savingId === item.sys_id ? '…' : 'Save'}
+                  </Button>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>
@@ -421,7 +428,7 @@ export function RequestsView({ items: initItems, callTool, toast, theme, cacheIn
               {viewingRecord && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div>
-                    <Text size={200} weight="semibold" style={{ color: tokens.colorNeutralForeground3, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Summary</Text>
+                    <Text size={200} weight="semibold" style={{ color: tokens.colorNeutralForeground3, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Short Description</Text>
                     <Text block style={{ marginTop: '4px' }}>{viewingRecord.short_description || '—'}</Text>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -461,7 +468,7 @@ export function RequestsView({ items: initItems, callTool, toast, theme, cacheIn
                     </div>
                   )}
                   {Object.prototype.hasOwnProperty.call(reqItems, viewingRecord.sys_id) && (
-                    <RequestItemsTable items={reqItems[viewingRecord.sys_id] || []} callTool={callTool} toast={toast} theme={theme} />
+                    <RequestItemsTable items={reqItems[viewingRecord.sys_id] || []} callTool={callTool} toast={toast} theme={theme} editable />
                   )}
                 </div>
               )}

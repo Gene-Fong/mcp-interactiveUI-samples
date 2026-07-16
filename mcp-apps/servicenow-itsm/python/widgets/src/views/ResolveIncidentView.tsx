@@ -82,7 +82,7 @@ export function ResolveIncidentView({ sys_id, number, short_description, descrip
           <div style={{ background: t.bg, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {short_description && (
               <div>
-                <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: t.textWeak, letterSpacing: '0.4px' }}>Summary</span>
+                <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: t.textWeak, letterSpacing: '0.4px' }}>Short Description</span>
                 <div style={{ fontSize: '13px', color: t.text, marginTop: '3px', fontWeight: 600 }}>{short_description}</div>
               </div>
             )}

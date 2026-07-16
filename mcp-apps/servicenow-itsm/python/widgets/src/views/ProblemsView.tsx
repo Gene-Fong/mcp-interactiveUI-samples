@@ -225,7 +225,7 @@ export function ProblemsView({ items: initItems, callTool, toast, theme, cacheIn
               {viewingRecord && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div>
-                    <Text size={200} weight="semibold" style={{ color: tokens.colorNeutralForeground3, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Summary</Text>
+                    <Text size={200} weight="semibold" style={{ color: tokens.colorNeutralForeground3, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Problem Statement</Text>
                     <Text block style={{ marginTop: '4px' }}>{viewingRecord.short_description || '—'}</Text>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>

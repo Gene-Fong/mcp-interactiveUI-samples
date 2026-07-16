@@ -290,7 +290,7 @@ export function IncidentsView({ items: initItems, callTool, toast, theme, cacheI
               {viewingRecord && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div>
-                    <Text size={200} weight="semibold" style={{ color: tokens.colorNeutralForeground3, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Summary</Text>
+                    <Text size={200} weight="semibold" style={{ color: tokens.colorNeutralForeground3, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Short Description</Text>
                     <Text block style={{ marginTop: '4px' }}>{viewingRecord.short_description || '—'}</Text>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
