@@ -185,19 +185,15 @@ You need credentials from your ServiceNow instance. Collect them now, because yo
 
 **OAuth (client credentials):**
 1. **Instance hostname** — the first part of your instance URL (e.g. `dev342951` for `https://dev342951.service-now.com`). No `https://` prefix.
-2. **OAuth Client ID** — In ServiceNow: System OAuth → Application Registry. Create a new endpoint if needed; the Client ID appears after Save.
-3. **OAuth Client Secret** — Same entry, revealed by the Client Secret link. Copy it now; it's masked after page reload.
-4. **Enable the client-credentials grant** — This server authenticates with the OAuth **client_credentials** grant, which ServiceNow disables by default. Turn it on via the system property `glide.oauth.inbound.client.credential.grant_type.enabled`:
-   - **Easiest:** On your Application Registry record, tick **"Allow client credential flow"** (labeled **"Client Credentials"** in some releases). Saving it sets the property to `true` automatically.
-   - **Manual fallback:** In the navigation filter type `sys_properties.list` → filter Name = `glide.oauth.inbound.client.credential.grant_type.enabled`. If the row exists, set **Value** = `true`. If it doesn't exist, click **New** and create it with **Name** = `glide.oauth.inbound.client.credential.grant_type.enabled`, **Type** = `true | false`, **Value** = `true`.
-   - **Bind a user:** Set the **OAuth Application User** on the Application Registry record — client_credentials tokens run as that service account, so give it the roles listed below.
-   - **Verify:** `curl -X POST "https://<instance>.service-now.com/oauth_token.do" -d "grant_type=client_credentials" -d "client_id=<id>" -d "client_secret=<secret>"` should return JSON with an `access_token`.
+2. **Create the OAuth integration** — In ServiceNow, go to **System OAuth → Application Registry** and click **New**. Choose **New Inbound Integration Experience**, then click **New Integration**. In the dialog that opens, select the **OAuth - Client credentials grant** option.
+3. **Give it a name** — Enter a **Name** for the integration.
+4. **Client ID and Client Secret** — The dialog shows the **Client ID** and **Client Secret**. Copy both now, because the secret is masked after you close the dialog.
+5. **Set the Auth scope user** — Set the **Auth scope** (the OAuth application user) to a user account. Tokens issued to this integration run as that user, so it must have the roles listed below.
+6. **Save** — Click **Save** to create the integration.
+7. **Verify:** `curl -X POST "https://<instance>.service-now.com/oauth_token.do" -d "grant_type=client_credentials" -d "client_id=<id>" -d "client_secret=<secret>"` should return JSON with an `access_token`.
 
 > [!IMPORTANT]
-> **OAuth:** Your Application Registry entry must have the **client_credentials** grant enabled, controlled by the system property `glide.oauth.inbound.client.credential.grant_type.enabled` (set it to `true`, see step 4 above). Without this, the first token request returns `401 Unauthorized`. PDIs allow it by default; enterprise instances may not.
-
-> [!IMPORTANT]
-> **Required ServiceNow roles:** The **OAuth Application User** needs read/write access to the tables used by the agent. At minimum: `itil` (Incidents, Requests, Changes, Problems), `sn_hr_core.case_writer` (HR Cases), and `knowledge` (KB search). Enterprise admins may need to grant these explicitly.
+> **Required ServiceNow roles:** The user you select as the Auth scope needs read/write access to the tables used by the agent. At minimum: `itil` (Incidents, Requests, Changes, Problems), `sn_hr_core.case_writer` (HR Cases), and `knowledge` (KB search). Enterprise admins may need to grant these explicitly.
 
 > [!TIP]
 > Free PDIs hibernate after ~10 days of inactivity. If you see connection timeouts, log in to developer.servicenow.com → Manage → Wake Up Instance.
@@ -349,7 +345,7 @@ If you hit an issue, find it below — organized by symptom.
 
 ### ServiceNow connection
 
-- **`401 Unauthorized` on first call** → Your OAuth Application Registry entry doesn't allow `client_credentials`. Set the system property `glide.oauth.inbound.client.credential.grant_type.enabled` = `true` (System Properties → `sys_properties.list`, or tick "Allow client credential flow" on the Application Registry record), and confirm the OAuth Application User is set.
+- **`401 Unauthorized` on first call** → The OAuth integration or its credentials are wrong. Confirm you copied the Client ID and Client Secret from the **OAuth - Client credentials grant** dialog correctly, and that the integration has a user selected as the Auth scope.
 - **Persistent `connection timeout`** → Your PDI has hibernated (~10 days idle). Wake it at developer.servicenow.com → Manage → Wake Up Instance.
 - **HR Case queries return empty** → Your instance doesn't have HR enabled. See [Step 2.5 — Activate HR Cases](#step-25--activate-hr-cases-optional) (install the **HR Core Business Suite** tile). HR Service Delivery is a licensed app and may not be available on every instance.
 
