@@ -379,7 +379,7 @@ export function RequestsView({ items: initItems, callTool, toast, theme, cacheIn
                     {isFullscreen && <span style={{ fontSize: '12px', color: t.textWeak, display: 'flex' }}>{expandedId === req.sys_id ? <ChevronDownRegular /> : <ChevronRightRegular />}</span>}{req.number}
                   </span>
                 </TableCell>
-                <TableCell style={{ ...cellStyle, maxWidth: '220px' }}>{req.short_description || '—'}</TableCell>
+                <TableCell style={{ ...cellStyle, maxWidth: '240px', whiteSpace: 'normal', wordBreak: 'break-word', overflow: 'visible', textOverflow: 'clip', lineHeight: 1.35 }}>{req.short_description || '—'}</TableCell>
                 <TableCell style={cellStyle}><StatePill state={req.request_state} theme={theme} /></TableCell>
                 <TableCell style={cellStyle}><PriorityPill priority={req.priority} theme={theme} /></TableCell>
                 {isFullscreen && <TableCell style={cellStyle}><ApprovalPill approval={req.approval} theme={theme} /></TableCell>}

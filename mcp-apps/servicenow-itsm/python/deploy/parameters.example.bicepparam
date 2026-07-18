@@ -5,7 +5,6 @@ using './main.bicep'
 param environmentName  = 'lob-mcp-apps-env'
 param acrName          = 'lobmcpapps'         // shared with SF — must be globally unique
 param location         = 'southindia'
-param imageTag         = 'latest'
 param logRetentionDays = 30
 
 // ── ServiceNow credentials ────────────────────────────────────────────────────

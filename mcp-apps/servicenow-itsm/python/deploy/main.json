@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.43.8.12551",
-      "templateHash": "15795553067438272425"
+      "version": "0.45.15.27210",
+      "templateHash": "6266404041900927329"
     }
   },
   "parameters": {
@@ -28,13 +28,6 @@
       "defaultValue": "lobmcpapps",
       "metadata": {
         "description": "Azure Container Registry name (shared with SF — must be globally unique)"
-      }
-    },
-    "imageTag": {
-      "type": "string",
-      "defaultValue": "latest",
-      "metadata": {
-        "description": "Container image tag to deploy"
       }
     },
     "logRetentionDays": {
@@ -183,76 +176,18 @@
               "allowCredentials": false
             }
           },
-          "secrets": [
-            {
-              "name": "sn-client-id",
-              "value": "[parameters('servicenowClientId')]"
-            },
-            {
-              "name": "sn-client-secret",
-              "value": "[parameters('servicenowClientSecret')]"
-            },
-            {
-              "name": "sn-username",
-              "value": "[parameters('servicenowUsername')]"
-            },
-            {
-              "name": "sn-password",
-              "value": "[parameters('servicenowPassword')]"
-            },
-            {
-              "name": "appinsights-conn-string",
-              "value": "[parameters('appInsightsConnectionString')]"
-            }
-          ]
+          "secrets": "[concat(createArray(createObject('name', 'sn-client-id', 'value', parameters('servicenowClientId')), createObject('name', 'sn-client-secret', 'value', parameters('servicenowClientSecret'))), if(empty(parameters('servicenowUsername')), createArray(), createArray(createObject('name', 'sn-username', 'value', parameters('servicenowUsername')))), if(empty(parameters('servicenowPassword')), createArray(), createArray(createObject('name', 'sn-password', 'value', parameters('servicenowPassword')))), if(empty(parameters('appInsightsConnectionString')), createArray(), createArray(createObject('name', 'appinsights-conn-string', 'value', parameters('appInsightsConnectionString')))))]"
         },
         "template": {
           "containers": [
             {
               "name": "sn",
-              "image": "[format('{0}/sn-mcp-copilot:{1}', reference(resourceId('Microsoft.ContainerRegistry/registries', parameters('acrName')), '2023-07-01').loginServer, parameters('imageTag'))]",
+              "image": "mcr.microsoft.com/k8se/quickstart:latest",
               "resources": {
-                "cpu": "0.5",
+                "cpu": "[json('0.5')]",
                 "memory": "1Gi"
               },
-              "env": [
-                {
-                  "name": "SERVICENOW_INSTANCE",
-                  "value": "[parameters('servicenowInstance')]"
-                },
-                {
-                  "name": "SERVICENOW_AUTH_MODE",
-                  "value": "[parameters('servicenowAuthMode')]"
-                },
-                {
-                  "name": "SERVICENOW_CLIENT_ID",
-                  "secretRef": "sn-client-id"
-                },
-                {
-                  "name": "SERVICENOW_CLIENT_SECRET",
-                  "secretRef": "sn-client-secret"
-                },
-                {
-                  "name": "SERVICENOW_USERNAME",
-                  "secretRef": "sn-username"
-                },
-                {
-                  "name": "SERVICENOW_PASSWORD",
-                  "secretRef": "sn-password"
-                },
-                {
-                  "name": "PORT",
-                  "value": "8081"
-                },
-                {
-                  "name": "APPINSIGHTS_CONNECTION_STRING",
-                  "secretRef": "appinsights-conn-string"
-                },
-                {
-                  "name": "APPINSIGHTS_ROLE_NAME",
-                  "value": "[parameters('appInsightsRoleName')]"
-                }
-              ]
+              "env": "[concat(createArray(createObject('name', 'SERVICENOW_INSTANCE', 'value', parameters('servicenowInstance')), createObject('name', 'SERVICENOW_AUTH_MODE', 'value', parameters('servicenowAuthMode')), createObject('name', 'SERVICENOW_CLIENT_ID', 'secretRef', 'sn-client-id'), createObject('name', 'SERVICENOW_CLIENT_SECRET', 'secretRef', 'sn-client-secret'), createObject('name', 'PORT', 'value', '8081'), createObject('name', 'APPINSIGHTS_ROLE_NAME', 'value', parameters('appInsightsRoleName'))), if(empty(parameters('servicenowUsername')), createArray(), createArray(createObject('name', 'SERVICENOW_USERNAME', 'secretRef', 'sn-username'))), if(empty(parameters('servicenowPassword')), createArray(), createArray(createObject('name', 'SERVICENOW_PASSWORD', 'secretRef', 'sn-password'))), if(empty(parameters('appInsightsConnectionString')), createArray(), createArray(createObject('name', 'APPINSIGHTS_CONNECTION_STRING', 'secretRef', 'appinsights-conn-string'))))]"
             }
           ],
           "scale": {

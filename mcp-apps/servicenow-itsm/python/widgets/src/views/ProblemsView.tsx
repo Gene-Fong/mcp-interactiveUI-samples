@@ -200,7 +200,7 @@ export function ProblemsView({ items: initItems, callTool, toast, theme, cacheIn
                   ...(lastSavedId === p.sys_id ? { animation: 'snowRowFlash 4.5s ease-out' } : {}),
                 }}>
                 <TableCell style={cellStyle}><span style={{ fontFamily: 'monospace', fontWeight: 500, color: tokens.colorBrandForeground1 }}>{p.number}</span></TableCell>
-                <TableCell style={{ ...cellStyle, maxWidth: '240px' }}>{p.short_description || '—'}</TableCell>
+                <TableCell style={{ ...cellStyle, maxWidth: '240px', whiteSpace: 'normal', wordBreak: 'break-word', overflow: 'visible', textOverflow: 'clip', lineHeight: 1.35 }}>{p.short_description || '—'}</TableCell>
                 <TableCell style={cellStyle}><PriorityPill priority={p.priority} theme={theme} /></TableCell>
                 <TableCell style={cellStyle}><StatePill state={p.state} theme={theme} /></TableCell>
                 {isFullscreen && <TableCell style={cellStyle}>{p.assigned_to || '—'}</TableCell>}

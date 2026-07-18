@@ -261,7 +261,7 @@ export function IncidentsView({ items: initItems, callTool, toast, theme, cacheI
                     {inc.number}
                   </span>
                 </TableCell>
-                <TableCell style={{ ...cellStyle, maxWidth: '220px' }}>{inc.short_description || '—'}</TableCell>
+                <TableCell style={{ ...cellStyle, maxWidth: '240px', whiteSpace: 'normal', wordBreak: 'break-word', overflow: 'visible', textOverflow: 'clip', lineHeight: 1.35 }}>{inc.short_description || '—'}</TableCell>
                 <TableCell style={cellStyle}><PriorityPill priority={inc.priority} theme={theme} /></TableCell>
                 <TableCell style={cellStyle}><StatePill state={inc.state} theme={theme} /></TableCell>
                 {isFullscreen && <TableCell style={cellStyle}>{(inc as any).category || '—'}</TableCell>}

@@ -193,7 +193,7 @@ export function HrCasesView({ items: initItems, callTool, toast, theme, cacheInf
               <React.Fragment key={c.sys_id}>
                 <TableRow className="snow-row" style={{ borderBottom: `1px solid ${t.border}` }}>
                   <TableCell style={{ ...cellS, fontFamily: 'monospace', color: '#1B7A6E', fontWeight: 600 }}>{c.number}</TableCell>
-                  <TableCell style={{ ...cellS, maxWidth: 300 }}>{c.subject || '—'}</TableCell>
+                  <TableCell style={{ ...cellS, maxWidth: 300, whiteSpace: 'normal', wordBreak: 'break-word', overflow: 'visible', textOverflow: 'clip', lineHeight: 1.35 }}>{c.subject || '—'}</TableCell>
                   {isFullscreen && <TableCell style={cellS}>{c.opened_for || '—'}</TableCell>}
                   <TableCell style={cellS}><PriorityPill priority={pk} theme={theme} /></TableCell>
                   <TableCell style={cellS}><StatePill state={c.state} theme={theme} /></TableCell>

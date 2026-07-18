@@ -9,9 +9,6 @@ param environmentName string = 'lob-mcp-apps-env'
 @description('Azure Container Registry name (shared with SF — must be globally unique)')
 param acrName string = 'lobmcpapps'
 
-@description('Container image tag to deploy')
-param imageTag string = 'latest'
-
 @description('Log Analytics retention in days')
 param logRetentionDays int = 30
 

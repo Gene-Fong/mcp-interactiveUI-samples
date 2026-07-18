@@ -307,7 +307,7 @@ export function ChangesView({ items: initItems, callTool, toast, theme, cacheInf
                   </TableCell>
                 )}
                 <TableCell style={cellStyle}><span style={{ fontFamily: 'monospace', fontWeight: 500, color: tokens.colorBrandForeground1 }}>{cr.number}</span></TableCell>
-                <TableCell style={{ ...cellStyle, maxWidth: '220px' }}>{cr.short_description || '—'}</TableCell>
+                <TableCell style={{ ...cellStyle, maxWidth: '240px', whiteSpace: 'normal', wordBreak: 'break-word', overflow: 'visible', textOverflow: 'clip', lineHeight: 1.35 }}>{cr.short_description || '—'}</TableCell>
                 <TableCell style={cellStyle}><StatePill state={cr.state} theme={theme} /></TableCell>
                 <TableCell style={cellStyle}><PriorityPill priority={cr.priority} theme={theme} /></TableCell>
                 <TableCell style={cellStyle}><RiskPill risk={cr.risk} theme={theme} /></TableCell>

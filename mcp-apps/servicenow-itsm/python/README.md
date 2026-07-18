@@ -1,12 +1,14 @@
 # Ask - ServiceNow
 
-> Drop your ServiceNow instance into Microsoft 365 Copilot. Ask questions in plain English, get back live interactive widgets right inside the chat.
+Ask - ServiceNow is a Model Context Protocol (MCP) server that connects a ServiceNow instance to Microsoft 365 Copilot. A user types a request in plain English, Copilot calls the server, and the server returns an interactive widget that renders inside the Copilot chat.
 
-- 🪟 Live widgets render inline in chat
-- ✏️ Read / create / update across 5 ITSM/HR entities, plus approvals, knowledge, and catalog
-- 🔗 Type names, not sys_ids — agent resolves them on save
-- 💻 Local laptop or ☁️ Azure Container Apps
-- ⚡ One-command deploy
+The server provides the following capabilities:
+
+- The widgets render inline in the Copilot chat rather than in a separate browser tab.
+- A user can read, create, and update records across five ITSM and HR entities, and can also act on approvals, search knowledge articles, and browse the service catalog.
+- Lookup fields accept plain names instead of internal sys_ids, and the agent resolves each name to the correct record when the form is saved.
+- The server runs either on a local laptop or on Azure Container Apps.
+- Deployment is scripted. One command deploys the server locally, and two idempotent scripts deploy it to Azure.
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white" alt="Python" />
@@ -25,17 +27,17 @@
 
 ## 1. What this is
 
-**Ask - ServiceNow** brings your ServiceNow instance straight into Microsoft 365 Copilot. Type something like *"show me open incidents"* or *"resolve INC0010001"* and a **live, interactive widget** renders right inside the chat — **no tab switching, no context loss**. You can read records, create new ones, update what's there, work the approval queue, and search knowledge, all from the Copilot side panel.
+Ask - ServiceNow connects your ServiceNow instance to Microsoft 365 Copilot. When you type a request such as "show me open incidents" or "resolve INC0010001", Copilot calls the MCP server, and the server returns an interactive widget that renders inside the chat, so you do not need to switch to a separate ServiceNow tab. From the Copilot side panel you can read records, create new records, update existing records, act on the approval queue, and search knowledge articles.
 
-🔗 **Name resolution:** lookup fields accept plain names instead of internal IDs. Type *"Beth Anglin"* in an incident's Caller field, and the agent resolves it to the correct person on Save. If multiple matches exist, it shows up to five suggestions so you can pick the right one. The same applies to Assigned To, Requested For, Opened For, and HR Service fields. See [§2 → RESOLVE FK](#resolve-fk--type-names-not-ids) for the full flow.
+**Name resolution:** Lookup fields accept plain names instead of internal sys_ids. When you type "Beth Anglin" into an incident's Caller field and save the record, the agent resolves that name to the correct person. If more than one person matches, the agent shows up to five suggestions so that you can select the correct one. The same behaviour applies to the Assigned To, Requested For, Opened For, and HR Service fields. See [§2 → RESOLVE FK](#resolve-fk--type-names-not-ids) for the full flow.
 
 > [!TIP]
-> Works with any ServiceNow instance that exposes the Table API — free PDI, sub-production, or enterprise. HR Case operations additionally require the **HR Service Delivery** plugin (`com.sn_hr_core`).
+> The server works with any ServiceNow instance that exposes the Table API, including a free PDI, a sub-production instance, or an enterprise instance. HR Case operations additionally require the **HR Service Delivery** plugin (`com.sn_hr_core`).
 
-Two ways to run it:
+You can run the server in one of two ways:
 
-- 💻 **Local** — your laptop is the backend, exposed via dev tunnel. **Fast iteration** while you tweak.
-- ☁️ **Azure** — same code in Azure Container Apps. **Stays online** without your laptop; anyone in your tenant can use it.
+- **Local.** Your laptop hosts the server, and a dev tunnel exposes it to Copilot over HTTPS. This option suits development, because you can change the code and test it quickly.
+- **Azure.** The same server runs in Azure Container Apps. Because Azure hosts the server rather than your laptop, the agent stays available when your laptop is off, and anyone in your Microsoft 365 tenant can use it.
 
 ```mermaid
 flowchart LR
@@ -62,13 +64,13 @@ flowchart LR
 
 ## 2. How it works
 
-Most interactions map to one of **ten operations**. Here's the quick-reference, followed by each one in action.
+Most interactions map to one of ten operations. The table below is a quick reference, and each operation is then shown in action.
 
 ### 2.1 Canonical operations
 
-#### 🟢 Design patterns — 8 operations
+#### Design patterns — 8 operations
 
-These follow the **standard three-tool pattern**:
+These eight operations follow the standard three-tool pattern of GET, CREATE, and UPDATE:
 
 | # | Operation | What you say | What happens | Tips |
 |---|---|---|---|---|
@@ -82,9 +84,9 @@ These follow the **standard three-tool pattern**:
 | 9 | **RESOLVE FK** | *(type a name into 🔗 fields)* | Agent matches name → person on Save | In 🔗 fields type the person's **exact name**; if several match, pick from up to five suggestions |
 | 10 | **CLARIFY** | *(agent asks you)* | Disambiguates before acting | If your request is ambiguous, answer the agent with the entity type (incident, change, etc.) |
 
-#### 🔴 Anti-patterns — 2 operations
+#### Anti-patterns — 2 operations
 
-These require **dedicated tools outside the trio**:
+These two operations require dedicated tools outside that trio:
 
 > [!IMPORTANT]
 > Anti-pattern operations are difficult to reverse. Once you approve, reject, or resolve from the chat, the state change takes effect immediately in ServiceNow.
@@ -163,7 +165,7 @@ If your request could apply to more than one entity type, the agent asks first.
 
 ## 3. Install
 
-Four steps: clone → configure → run locally → (optional) deploy to Azure. About 30 minutes end-to-end.
+The installation has four steps: clone the repository, configure your credentials, run the server locally, and optionally deploy it to Azure. The whole process takes about 30 minutes.
 
 ### Step 1 — Clone the repo
 
@@ -179,9 +181,9 @@ cd mcp-interactiveUI-samples/mcp-apps/servicenow-itsm/python
 
 ### Step 2 — Get your ServiceNow credentials
 
-You need credentials from your ServiceNow instance. Grab them now — you'll paste them in the appropriate step below.
+You need credentials from your ServiceNow instance. Collect them now, because you will paste them into the appropriate step below.
 
-**For OAuth (recommended):**
+**OAuth (client credentials):**
 1. **Instance hostname** — the first part of your instance URL (e.g. `dev342951` for `https://dev342951.service-now.com`). No `https://` prefix.
 2. **OAuth Client ID** — In ServiceNow: System OAuth → Application Registry. Create a new endpoint if needed; the Client ID appears after Save.
 3. **OAuth Client Secret** — Same entry, revealed by the Client Secret link. Copy it now; it's masked after page reload.
@@ -191,27 +193,22 @@ You need credentials from your ServiceNow instance. Grab them now — you'll pas
    - **Bind a user:** Set the **OAuth Application User** on the Application Registry record — client_credentials tokens run as that service account, so give it the roles listed below.
    - **Verify:** `curl -X POST "https://<instance>.service-now.com/oauth_token.do" -d "grant_type=client_credentials" -d "client_id=<id>" -d "client_secret=<secret>"` should return JSON with an `access_token`.
 
-**For basic auth (development only):**
-1. **Instance hostname** — same as above.
-2. **Username** — a ServiceNow user with the roles listed below.
-3. **Password** — that user's password.
-
 > [!IMPORTANT]
 > **OAuth:** Your Application Registry entry must have the **client_credentials** grant enabled, controlled by the system property `glide.oauth.inbound.client.credential.grant_type.enabled` (set it to `true`, see step 4 above). Without this, the first token request returns `401 Unauthorized`. PDIs allow it by default; enterprise instances may not.
 
 > [!IMPORTANT]
-> **Required ServiceNow roles:** The connecting user (or OAuth client scope) needs read/write access to the tables used by the agent. At minimum: `itil` (Incidents, Requests, Changes, Problems), `sn_hr_core.case_writer` (HR Cases), and `knowledge` (KB search). Enterprise admins may need to grant these explicitly.
+> **Required ServiceNow roles:** The **OAuth Application User** needs read/write access to the tables used by the agent. At minimum: `itil` (Incidents, Requests, Changes, Problems), `sn_hr_core.case_writer` (HR Cases), and `knowledge` (KB search). Enterprise admins may need to grant these explicitly.
 
 > [!TIP]
 > Free PDIs hibernate after ~10 days of inactivity. If you see connection timeouts, log in to developer.servicenow.com → Manage → Wake Up Instance.
 
-**Validate:** You have your credentials written down — hostname + OAuth pair (or hostname + username/password).
+**Validate:** You have your credentials written down — hostname + OAuth Client ID and Client Secret.
 
 ---
 
 ### Step 2.5 — Activate HR Cases (optional)
 
-Only needed if you want the **HR Case** tools. HR isn't enabled on most instances by default.
+This step is only needed if you want the **HR Case** tools. HR is not enabled on most instances by default.
 
 1. Log into your instance as an **admin**.
 2. In the **filter navigator**, type **`Plugins`**.
@@ -238,11 +235,9 @@ Only needed if you want the **HR Case** tools. HR isn't enabled on most instance
 | Param | Value |
 |---|---|
 | `SERVICENOW_INSTANCE` | Your instance hostname (e.g. `dev342951`) |
-| `SERVICENOW_AUTH_MODE` | `oauth` (recommended) or `basic` |
-| `SERVICENOW_CLIENT_ID` | OAuth Client ID *(oauth mode)* |
-| `SERVICENOW_CLIENT_SECRET` | OAuth Client Secret *(oauth mode)* |
-| `SERVICENOW_USERNAME` | ServiceNow username *(basic mode only)* |
-| `SERVICENOW_PASSWORD` | ServiceNow password *(basic mode only)* |
+| `SERVICENOW_AUTH_MODE` | `oauth` |
+| `SERVICENOW_CLIENT_ID` | OAuth Client ID |
+| `SERVICENOW_CLIENT_SECRET` | OAuth Client Secret |
 
 Then run:
 ```powershell
@@ -278,7 +273,7 @@ The script takes 3–4 minutes the first time:
 
 ### Step 4 — Deploy to Azure (optional)
 
-Moves the server off your laptop. The agent stays online without your machine, and anyone in your tenant can use it.
+This step hosts the MCP server in Azure Container Apps instead of on your laptop. Once the server runs in Azure, the agent stays available when your laptop is off, and anyone in your Microsoft 365 tenant can use it.
 
 **Prerequisites:**
 - ☁️ **Azure CLI ≥ 2.50** — sign in with `az login`
@@ -289,39 +284,39 @@ Moves the server off your laptop. The agent stays online without your machine, a
 | Param | Value |
 |---|---|
 | `servicenowInstance` | Instance hostname |
-| `servicenowAuthMode` | `oauth` or `basic` |
-| `servicenowClientId` | OAuth Client ID *(oauth mode)* |
-| `servicenowClientSecret` | OAuth Client Secret *(oauth mode)* |
-| `servicenowUsername` | ServiceNow username *(basic mode only)* |
-| `servicenowPassword` | ServiceNow password *(basic mode only)* |
+| `servicenowAuthMode` | `oauth` |
+| `servicenowClientId` | OAuth Client ID |
+| `servicenowClientSecret` | OAuth Client Secret |
 | `acrName` | Globally unique, lowercase alphanumeric, 5–50 chars |
 | `location` | Azure region (e.g. `eastus`, `westeurope`) |
 
-Then run:
+Then run the **two server scripts** in order. They're split by responsibility and both are idempotent — safe to re-run.
+
+**1. Set up the Azure infrastructure** (one time, or after you change an infrastructure parameter):
+```powershell
+.\deploy\AzureImageSetup.ps1
+```
+This script provisions the Resource Group, Container Registry, Container Apps Environment, Container App (with a placeholder image), Log Analytics workspace, and Managed Identity. The first run takes 5–10 minutes, and later runs only verify that the stack is already in place.
+
+**2. Deploy the server and agent** (every time you ship new code):
 ```powershell
 .\deploy\ServerDeploy.ps1
 ```
-
-First run provisions: Resource Group, Container Registry, Container Apps Environment, Container App, Log Analytics, Managed Identity. Takes 5–10 minutes.
+This script builds the container image in ACR, points the Container App at that image, and then regenerates the agent manifest against the live Azure URL and uploads it to Microsoft 365 Copilot. If the infrastructure does not exist yet, the script stops and asks you to run `AzureImageSetup.ps1` first.
 
 > [!NOTE]
 > **Response speed depends on your Azure Container Apps plan.** The default Consumption plan cold-starts containers on each request after idle timeout (~5–15 s first response). For production or demo use, consider a **Dedicated plan** or set `minReplicas: 1` in your container app config to keep the container warm.
 
 **Validate:**
-1. The script prints a public Azure FQDN. Test it:
+1. `ServerDeploy` prints a public Azure FQDN. Test it:
 ```powershell
 curl -X POST <FQDN>/mcp -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"initialize","id":1}'
 ```
 You should get a JSON-RPC response (not a connection error).
 2. Verify the container image: `az containerapp show -g <rg> -n <app> --query "properties.template.containers[0].image" -o tsv` — should return your ACR image.
 
-**Next:** Re-upload the agent package pointing to the cloud endpoint:
-```powershell
-.\deploy\ServerDeploy.ps1 -UploadAgentOnly
-```
-
 > [!TIP]
-> If your deploy script doesn't support `-UploadAgentOnly`, update the `MCP_GATEWAY_URL` in your agent manifest to the ACA FQDN and re-upload via M365 Agents Toolkit.
+> When you ship new server or agent code later, re-run `.\deploy\ServerDeploy.ps1`. It rebuilds the image and re-uploads the agent against the same infrastructure. You only need to re-run `AzureImageSetup.ps1` when you change an infrastructure parameter such as the region or the ACR name.
 
 > [!NOTE]
 > To tear down later: `.\deploy\ServerDestroy.ps1` removes the provisioned resources but leaves your resource group and M365 agent registration intact.

@@ -59,7 +59,7 @@ export function KnowledgeView({ items, theme, cacheInfo }: { items: KnowledgeArt
             <TableRow key={a.sys_id} className="snow-row"
               style={{ borderBottom: idx === items.length - 1 ? 'none' : `1px solid ${t.border}` }}>
               <TableCell style={cellStyle}><span style={{ fontFamily: 'monospace', fontWeight: 500, color: tokens.colorBrandForeground1 }}>{a.number}</span></TableCell>
-              <TableCell style={{ ...cellStyle, maxWidth: '260px' }}>{a.short_description || '—'}</TableCell>
+              <TableCell style={{ ...cellStyle, maxWidth: '260px', whiteSpace: 'normal', wordBreak: 'break-word', overflow: 'visible', textOverflow: 'clip', lineHeight: 1.35 }}>{a.short_description || '—'}</TableCell>
               <TableCell style={cellStyle}>{a.category || '—'}</TableCell>
               {isFullscreen && <TableCell style={cellStyle}>{a.author || '—'}</TableCell>}
               {isFullscreen && <TableCell style={cellStyle}>{(a as any).updated_on?.slice(0, 10) || '—'}</TableCell>}
