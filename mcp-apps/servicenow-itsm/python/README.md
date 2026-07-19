@@ -377,36 +377,19 @@ The agent works best when your ServiceNow instance has records to interact with.
 
 ## 4. Troubleshooting
 
-If you hit an issue, find it below — organized by symptom.
+| Symptom | Fix |
+|---|---|
+| Agent missing from the picker | Wait 1–2 min and refresh; ensure Custom App Upload is enabled (ATK → Accounts). |
+| "Oops! Something went wrong" | Dev tunnel blip — wait ~10s and resend. |
+| `401 Unauthorized` on first call | Wrong OAuth creds — re-copy Client ID/Secret from the **OAuth - Client credentials grant** dialog and confirm a user is set as the Auth scope. |
+| `connection timeout` | PDI hibernated — wake it at developer.servicenow.com → Manage → Wake Up Instance. |
+| HR Case queries return empty | HR not enabled — see [Step 2.5](#step-25--activate-hr-cases-optional) (install **HR Core Business Suite**). |
+| `/mcp` returns 421 "Invalid Host header" | DNS-rebinding protection — already disabled in current code; on older versions set `enable_dns_rebinding_protection=False` in `servicenow_server.py`. |
+| `/mcp` returns 502 / refused | Container failed to start — `az containerapp logs show -g <rg> -n <app> --tail 100`; usually wrong creds in `parameters.bicepparam`. |
+| `RegistryNameInUse` during deploy | ACR names are global — pick a different `acrName`. |
+| Manifest "drift detected" | Re-run the deploy script to rebuild with the correct `MCP_GATEWAY_URL`. |
+| MOS3 upload fails with `403` | Token expired — delete `.mos3_token_cache.json` and re-run. |
+| `TooLongInstructions` rejection | `instruction.txt` exceeds 8000 chars — trim it. |
+| Tools show dev-tunnel URL after Azure deploy | Re-run `.\deploy\LocalDeploy.ps1 -SkipServer -SkipTunnel`. |
 
-### Agent & Copilot
-
-- **Agent missing from the picker** → Wait 1–2 minutes after upload, then refresh. Still missing? Check that Custom App Upload is enabled in ATK → Accounts.
-- **"Oops! Something went wrong"** → Dev tunnel dropped momentarily. Wait 5–10 seconds and re-send your message.
-- **Widget doesn't render on mobile** → Widgets render best on desktop/web. Mobile layouts are tighter but functional.
-
-### ServiceNow connection
-
-- **`401 Unauthorized` on first call** → The OAuth integration or its credentials are wrong. Confirm you copied the Client ID and Client Secret from the **OAuth - Client credentials grant** dialog correctly, and that the integration has a user selected as the Auth scope.
-- **Persistent `connection timeout`** → Your PDI has hibernated (~10 days idle). Wake it at developer.servicenow.com → Manage → Wake Up Instance.
-- **HR Case queries return empty** → Your instance doesn't have HR enabled. See [Step 2.5 — Activate HR Cases](#step-25--activate-hr-cases-optional) (install the **HR Core Business Suite** tile). HR Service Delivery is a licensed app and may not be available on every instance.
-
-### MCP server & Azure
-
-- **`/mcp` returns 421 "Invalid Host header"** → DNS rebinding protection is blocking the Azure hostname. This is already disabled in the current codebase; if you're on an older version, set `transport_security=TransportSecuritySettings(enable_dns_rebinding_protection=False)` in `servicenow_server.py`.
-- **`/mcp` returns 502 or connection refused** → Container failed to start. Check logs: `az containerapp logs show -g <rg> -n <app> --tail 100`. Most common cause: wrong credentials in `parameters.bicepparam`.
-- **`RegistryNameInUse` during deploy** → ACR names are globally unique. Pick a different `acrName` (append random digits).
-- **`InvalidResourceGroupLocation`** → Resource group exists in a different region. Pass `-Location <existing-region>` or use a fresh resource group.
-
-### Manifests & upload
-
-- **`regen_manifests.py` says "drift detected"** → Manifests are out of sync with the server URL. Re-run your deploy script to rebuild them, ensuring the correct `MCP_GATEWAY_URL` is set.
-- **MOS3 upload fails with `403`** → Token expired. Delete `.mos3_token_cache.json` and re-run (device-code sign-in will prompt again).
-- **`TooLongInstructions` rejection** → `agent/appPackage/instruction.txt` exceeds 8000 chars. Trim it.
-- **Tools show dev-tunnel URL after Azure deploy** → Re-run `.\deploy\LocalDeploy.ps1 -SkipServer -SkipTunnel` so the Azure URL is preserved.
-
-### Common questions
-
-- **Can I run without Azure?** → Yes. Fill `.env`, run `LocalDeploy.ps1`. Dev tunnel handles the rest. Step 4 is optional.
-- **How do I add a new entity?** → Add to `_ENTITY_TABLES`, create three handler functions (`get`/`create`/`update`), register in `TOOL_SPECS`, re-run deploy. Manifests auto-sync.
-- **Is this production-ready?** → It's a reference implementation for demos and pilots. For production: move secrets to Key Vault, switch to per-user OAuth, add audit logging and rate limiting, pin image tags.
+**FAQ** — *Run without Azure?* Yes: fill `.env`, run `LocalDeploy.ps1`; the dev tunnel handles the rest (Step 4 is optional). *Add a new entity?* Add it to `_ENTITY_TABLES`, write `get`/`create`/`update` handlers, register in `TOOL_SPECS`, re-run deploy. *Production-ready?* It's a reference implementation — for production move secrets to Key Vault, switch to per-user OAuth, and add audit logging, rate limiting, and pinned image tags.
