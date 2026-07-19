@@ -1,6 +1,10 @@
 # Ask - ServiceNow
 
-Ask - ServiceNow is a Model Context Protocol (MCP) server that connects a ServiceNow instance to Microsoft 365 Copilot. A user types a request in plain English, Copilot calls the server, and the server returns an interactive widget that renders inside the Copilot chat.
+**Ask - ServiceNow** is a Model Context Protocol (MCP) App that connects a ServiceNow instance to Microsoft 365 Copilot.
+
+An MCP *server* exposes tools and data to an AI client over the open Model Context Protocol. An MCP *App* goes one step further: it returns an interactive user interface (a widget) alongside each tool response, so the client renders a live, interactive screen instead of plain text. **Ask - ServiceNow** is that kind of app for ServiceNow.
+
+The flow is simple. A user types a request in plain English. Copilot calls the server. The server queries the ServiceNow instance and returns an interactive widget that renders inside the Copilot chat.
 
 The server provides the following capabilities:
 
@@ -27,7 +31,7 @@ The server provides the following capabilities:
 
 ## 1. What this is
 
-Ask - ServiceNow connects your ServiceNow instance to Microsoft 365 Copilot. When you type a request such as "show me open incidents" or "resolve INC0010001", Copilot calls the MCP server, and the server returns an interactive widget that renders inside the chat, so you do not need to switch to a separate ServiceNow tab. From the Copilot side panel you can read records, create new records, update existing records, act on the approval queue, and search knowledge articles.
+**Ask - ServiceNow** connects your ServiceNow instance to Microsoft 365 Copilot. When you type a request such as "show me open incidents" or "resolve INC0010001", Copilot calls the MCP server, and the server returns an interactive widget that renders inside the chat, so you do not need to switch to a separate ServiceNow tab. From the Copilot side panel you can read records, create new records, update existing records, act on the approval queue, and search knowledge articles.
 
 **Name resolution:** Lookup fields accept plain names instead of internal sys_ids. When you type "Beth Anglin" into an incident's Caller field and save the record, the agent resolves that name to the correct person. If more than one person matches, the agent shows up to five suggestions so that you can select the correct one. The same behaviour applies to the Assigned To, Requested For, Opened For, and HR Service fields. See [§2 → RESOLVE FK](#resolve-fk--type-names-not-ids) for the full flow.
 
@@ -70,14 +74,14 @@ Most interactions map to one of ten operations. The table below is a quick refer
 
 #### Design patterns — 8 operations
 
-These eight operations follow the standard three-tool pattern of GET, CREATE, and UPDATE:
+These are the canonical operations. They follow the standard three-tool pattern of GET, CREATE, and UPDATE:
 
 | # | Operation | What you say | What happens | Tips |
 |---|---|---|---|---|
-| 1 | **GET** | "show me incidents" | Lists the most recent records | Just name the entity (incidents, requests, changes, problems, catalog); no filters needed |
-| 2 | **FILTER #1** *(by person — FK)* | "open incidents assigned to Joe" | Narrows by the assigned or caller person | Use the person's **exact name** as it appears in ServiceNow; if several match, pick from suggestions |
-| 2 | **FILTER #2** *(by field — non-FK)* | "show high-severity incidents" | Narrows by a record field value | Type the value directly — severity, type, state (New, In Progress, Resolved), priority (P1–P4), category, or a date range; no name lookup needed |
-| 3 | **IDENTIFY** | "show INC0010001" | Fetches that specific record | Use the full record number **with its prefix** (INC, REQ, CHG, PRB, HRC) — the prefix routes to the right entity |
+| 1 | **GET** | "show / get / find incidents" | Lists the most recent records | Just name the entity (incidents, requests, changes, problems, catalog); no filters needed |
+| 2 | **FILTER** *(by person — FK)* | "show / get / find open incidents assigned to Joe" | Narrows by the assigned or caller person | Use the person's **exact name** as it appears in ServiceNow; if several match, pick from suggestions |
+| 2 | **FILTER** *(by field — non-FK)* | "show / get / find high-severity incidents" | Narrows by a record field value | Type the value directly — severity, type, state (New, In Progress, Resolved), priority (P1–P4), category, or a date range; no name lookup needed |
+| 3 | **IDENTIFY** | "show / get / find INC0010001" | Fetches that specific record | Use the full record number **with its prefix** (INC, REQ, CHG, PRB, HRC) — the prefix routes to the right entity |
 | 4 | **EDIT** | "edit INC0010001" | Opens the record with an edit form | Say "edit" + the record number, change fields in the form, then Save |
 | 5 | **CREATE** | "create incident for Beth Anglin, P2" | Pre-filled form — complete and submit | Put known values **in the utterance** (caller, priority, short description) so the form pre-fills |
 | 8 | **SEARCH** | "search knowledge for VPN setup" | Searches articles or browses catalog | Add keywords after "search knowledge for…"; for catalog say "browse service catalog" |
@@ -96,7 +100,45 @@ These two operations require dedicated tools outside that trio:
 | 6 | **ACTION** | "resolve INC0010001 as solved remotely" | One-shot state change — done | State the outcome plainly; approvals can be approved or rejected inline from the widget |
 | 7 | **DRILL** | *(click ▾ on a row)* | Expands child records below | Click the ▾ on a row to expand children (Request → items, Change → tasks) |
 
-### 2.2 In action
+### 2.2 What you can do with each record type
+
+Not every record type supports every operation. The table below shows, in plain terms, what you can do with each one. There are no delete operations anywhere — records can be viewed, created, and updated, but never removed from the chat.
+
+| Record type | View / find | Create | Edit / update | Other actions |
+|---|---|---|---|---|
+| **Incident** | ✓ | ✓ | ✓ | Resolve |
+| **Service Request** | ✓ | ✓ | ✓ | — |
+| **Change Request** | ✓ | ✓ | ✓ | — |
+| **Problem** | ✓ | ✓ | ✓ | — |
+| **HR Case** | ✓ | ✓ | ✓ | — |
+
+Approve and reject work on any record that is waiting for your decision, whether it is an incident, a request, or a change.
+
+Most requests follow one simple pattern:
+
+```
+<verb> <entity> [where / with <condition>]
+```
+
+Where:
+
+- **verb** is one of get, list, show, create, edit, or resolve.
+- **entity** is the record type: incident, problem, request, change request, or HR case.
+- **condition** is an optional filter, such as state Closed, assigned to Don Goodliffe, priority High, or caller Beth Anglin.
+
+Examples:
+
+```
+get incidents where state = Closed
+list problems where priority = Planning
+edit incident INC0010003
+show incidents assigned to Don Goodliffe
+create incident for Beth Anglin priority P2
+```
+
+You do not have to phrase things this precisely — plain English works — but keeping the verb first, the entity second, and any filter last is the most reliable way to be understood.
+
+### 2.3 In action
 
 #### GET — list recent records
 

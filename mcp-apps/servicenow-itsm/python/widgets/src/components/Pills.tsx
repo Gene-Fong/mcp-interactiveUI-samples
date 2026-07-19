@@ -64,18 +64,3 @@ export function RiskPill({ risk, theme }: { risk: string; theme: 'light' | 'dark
     </span>
   );
 }
-
-export function SlaPill({ slaDue, madeSla, theme: _theme }: { slaDue?: string; madeSla?: boolean; theme: 'light' | 'dark' }) {
-  if (!slaDue) return <span style={{ color: tokens.colorNeutralForeground3, fontSize: '11px' }}>—</span>;
-  const breached = madeSla === false;
-  const met = madeSla === true;
-  const bg = breached ? tokens.colorPaletteRedBackground1 : met ? tokens.colorPaletteGreenBackground1 : tokens.colorNeutralBackground2;
-  const color = breached ? tokens.colorPaletteRedForeground2 : met ? tokens.colorPaletteGreenForeground2 : tokens.colorNeutralForeground2;
-  const border = breached ? tokens.colorPaletteRedBorder1 : met ? tokens.colorPaletteGreenBorder1 : tokens.colorNeutralStroke2;
-  const label = breached ? 'Breached' : met ? 'Met' : slaDue;
-  return (
-    <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '15px', fontSize: '11px', fontWeight: 500, background: bg, color, border: `1px solid ${border}` }}>
-      {label}
-    </span>
-  );
-}

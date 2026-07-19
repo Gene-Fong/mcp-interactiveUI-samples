@@ -37,7 +37,7 @@ import {
 } from '../constants';
 import { FormSelect } from '../components/FormSelect';
 import { NowFooter } from '../components/NowFooter';
-import { PriorityPill, SlaPill, StatePill } from '../components/Pills';
+import { PriorityPill, StatePill } from '../components/Pills';
 import { ViewHeader } from '../components/ViewHeader';
 import { useStyles } from '../styles';
 import { now } from '../theme';
@@ -138,7 +138,7 @@ export function IncidentsView({ items: initItems, callTool, toast, theme, cacheI
     }
   }, [lastSavedId]);
 
-  const colSpan = isFullscreen ? 9 : 5;
+  const colSpan = isFullscreen ? 8 : 5;
 
   const cellStyle: React.CSSProperties = {
     padding: '8px 12px', fontSize: '13px', whiteSpace: 'nowrap',
@@ -235,7 +235,6 @@ export function IncidentsView({ items: initItems, callTool, toast, theme, cacheI
             {isFullscreen && <TableHeaderCell style={headerCellStyle}>Category</TableHeaderCell>}
             <TableHeaderCell style={headerCellStyle}>Assigned To</TableHeaderCell>
             {isFullscreen && <TableHeaderCell style={headerCellStyle}>Caller</TableHeaderCell>}
-            {isFullscreen && <TableHeaderCell style={headerCellStyle}>SLA</TableHeaderCell>}
             {isFullscreen && <TableHeaderCell style={{ ...headerCellStyle, width: 50 }} />}
           </TableRow>
         </TableHeader>
@@ -267,7 +266,6 @@ export function IncidentsView({ items: initItems, callTool, toast, theme, cacheI
                 {isFullscreen && <TableCell style={cellStyle}>{(inc as any).category || '—'}</TableCell>}
                 <TableCell style={cellStyle}>{inc.assigned_to || '—'}</TableCell>
                 {isFullscreen && <TableCell style={cellStyle}>{(inc as any).caller_id || '—'}</TableCell>}
-                {isFullscreen && <TableCell style={cellStyle}><SlaPill slaDue={inc.sla_due} madeSla={inc.made_sla} theme={theme} /></TableCell>}
                 {isFullscreen && (
                   <TableCell style={cellStyle}>
                     <Button appearance="subtle" size="small" icon={<EyeRegular />} title="View" aria-label={`View ${inc.number || 'details'}`} onClick={(e: React.MouseEvent) => { e.stopPropagation(); setViewingRecord(inc); }} />
@@ -313,10 +311,6 @@ export function IncidentsView({ items: initItems, callTool, toast, theme, cacheI
                     <div>
                       <Text size={200} weight="semibold" style={{ color: tokens.colorNeutralForeground3, textTransform: 'uppercase' }}>Caller</Text>
                       <Text block style={{ marginTop: '4px' }}>{(viewingRecord as any).caller_id || '—'}</Text>
-                    </div>
-                    <div>
-                      <Text size={200} weight="semibold" style={{ color: tokens.colorNeutralForeground3, textTransform: 'uppercase' }}>SLA</Text>
-                      <div style={{ marginTop: '4px' }}><SlaPill slaDue={viewingRecord.sla_due} madeSla={viewingRecord.made_sla} theme={theme} /></div>
                     </div>
                   </div>
                   {viewingRecord.description && (

@@ -33,7 +33,7 @@ import { FkHint, useMcpBridge } from '@gtc/mcp-shared';
 import { APPROVAL_OPTIONS, PRIORITIES, PRIORITY_LABELS } from '../constants';
 import { FormSelect } from '../components/FormSelect';
 import { NowFooter } from '../components/NowFooter';
-import { ApprovalPill, PriorityPill, SlaPill, StatePill } from '../components/Pills';
+import { ApprovalPill, PriorityPill, StatePill } from '../components/Pills';
 import { ViewHeader } from '../components/ViewHeader';
 import { useStyles } from '../styles';
 import { now } from '../theme';
@@ -249,7 +249,7 @@ export function RequestsView({ items: initItems, callTool, toast, theme, cacheIn
     }
   }, [lastSavedId]);
 
-  const colSpan = isFullscreen ? 9 : 5;
+  const colSpan = isFullscreen ? 8 : 5;
 
   const cellStyle: React.CSSProperties = {
     padding: '8px 12px', fontSize: '13px', whiteSpace: 'nowrap',
@@ -341,7 +341,6 @@ export function RequestsView({ items: initItems, callTool, toast, theme, cacheIn
             {isFullscreen && <TableHeaderCell style={headerCellStyle}>Approval</TableHeaderCell>}
             {isFullscreen && <TableHeaderCell style={headerCellStyle}>Requested For</TableHeaderCell>}
             <TableHeaderCell style={headerCellStyle}>Due Date</TableHeaderCell>
-            {isFullscreen && <TableHeaderCell style={headerCellStyle}>SLA</TableHeaderCell>}
             {isFullscreen && <TableHeaderCell style={{ ...headerCellStyle, width: 50 }} />}
           </TableRow>
         </TableHeader>
@@ -385,7 +384,6 @@ export function RequestsView({ items: initItems, callTool, toast, theme, cacheIn
                 {isFullscreen && <TableCell style={cellStyle}><ApprovalPill approval={req.approval} theme={theme} /></TableCell>}
                 {isFullscreen && <TableCell style={cellStyle}>{(req as any).requested_for || '—'}</TableCell>}
                 <TableCell style={cellStyle}>{(req as any).due_date || '—'}</TableCell>
-                {isFullscreen && <TableCell style={cellStyle}><SlaPill slaDue={req.sla_due} madeSla={req.made_sla} theme={theme} /></TableCell>}
                 {isFullscreen && (
                   <TableCell style={cellStyle}>
                     <Button appearance="subtle" size="small" icon={<EyeRegular />} title="View" aria-label={`View ${req.number || 'details'}`} onClick={(e: React.MouseEvent) => { e.stopPropagation(); setViewingRecord(req); }} />
@@ -455,10 +453,6 @@ export function RequestsView({ items: initItems, callTool, toast, theme, cacheIn
                     <div>
                       <Text size={200} weight="semibold" style={{ color: tokens.colorNeutralForeground3, textTransform: 'uppercase' }}>Due Date</Text>
                       <Text block style={{ marginTop: '4px' }}>{viewingRecord.due_date || '—'}</Text>
-                    </div>
-                    <div>
-                      <Text size={200} weight="semibold" style={{ color: tokens.colorNeutralForeground3, textTransform: 'uppercase' }}>SLA</Text>
-                      <div style={{ marginTop: '4px' }}><SlaPill slaDue={viewingRecord.sla_due} madeSla={viewingRecord.made_sla} theme={theme} /></div>
                     </div>
                   </div>
                   {viewingRecord.description && (

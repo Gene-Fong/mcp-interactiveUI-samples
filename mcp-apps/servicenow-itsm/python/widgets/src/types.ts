@@ -10,8 +10,6 @@ export interface Incident {
   caller_id?: string;
   assigned_to: string;
   sys_created_on: string;
-  sla_due?: string;
-  made_sla?: boolean;
 }
 
 export interface ServiceRequest {
@@ -22,8 +20,6 @@ export interface ServiceRequest {
   priority: string;
   approval: string;
   sys_created_on: string;
-  sla_due?: string;
-  made_sla?: boolean;
 }
 
 export interface RequestItem {
