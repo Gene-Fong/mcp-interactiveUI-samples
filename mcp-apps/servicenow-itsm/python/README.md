@@ -392,4 +392,3 @@ The agent works best when your ServiceNow instance has records to interact with.
 | `TooLongInstructions` rejection | `instruction.txt` exceeds 8000 chars — trim it. |
 | Tools show dev-tunnel URL after Azure deploy | Re-run `.\deploy\ServerDeploy.ps1` — it re-registers the agent against the live Azure URL. |
 
-**FAQ** — *Run without Azure?* Yes: fill `.env`, run `LocalDeploy.ps1`; the dev tunnel handles the rest (Step 4 is optional). *Add a new entity?* Add it to `_ENTITY_TABLES`, write `get`/`create`/`update` handlers, register in `TOOL_SPECS`, re-run deploy. *Production-ready?* It's a reference implementation — for production move secrets to Key Vault, switch to per-user OAuth, and add audit logging, rate limiting, and pinned image tags.
