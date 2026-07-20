@@ -89,7 +89,7 @@ export function CasesView({ items: initItems, callTool, toast, theme, cacheInfo:
 
   return (
     <div className={styles.card} style={{ border: `1px solid ${t.border}` }}>
-      <ViewHeader icon={<DocumentRegular style={{ fontSize: '18px' }} />} title="Cases" count={localItems.length} brand={tokens.colorPaletteDarkOrangeForeground2} theme={theme} cacheInfo={cacheInfo} onRefresh={isFullscreen ? handleRefresh : undefined} refreshing={refreshing} />
+      <ViewHeader icon={<DocumentRegular style={{ fontSize: '18px' }} />} title="Cases" count={localItems.length} brand={tokens.colorPaletteDarkOrangeForeground1} theme={theme} cacheInfo={cacheInfo} onRefresh={isFullscreen ? handleRefresh : undefined} refreshing={refreshing} />
       <Table size="small" aria-label="Cases" style={{ borderCollapse: 'collapse' }}>
         <TableHeader>
           <TableRow style={{ background: t.headerBg }}>
@@ -102,7 +102,7 @@ export function CasesView({ items: initItems, callTool, toast, theme, cacheInfo:
           {localItems.map((c: any) => (
             <TableRow key={c.id} style={{ borderBottom: `1px solid ${t.border}`, ...(lastSavedId === c.id ? { animation: 'sfRowFlash 4.5s ease-out' } : {}) }} className="slds-row">
               <TableCell style={D_CELL}>{c.case_number || '—'}</TableCell>
-              <TableCell style={{ ...D_CELL, whiteSpace: 'normal' }}>{c.subject}</TableCell>
+              <TableCell style={{ ...D_CELL, whiteSpace: 'normal', overflow: 'visible', textOverflow: 'clip', maxWidth: 'none' }}><span style={{ display: 'inline-block', maxWidth: 260, wordBreak: 'break-word' }}>{c.subject}</span></TableCell>
               <TableCell style={D_CELL}><StatusPill status={c.status} theme={theme} /></TableCell>
               <TableCell style={D_CELL}><StatusPill status={c.priority} theme={theme} /></TableCell>
               <TableCell style={D_CELL}>{c.account_name || '—'}</TableCell>
@@ -201,7 +201,7 @@ export function CaseActivityView({ caseId, comments, tasks, theme }: { caseId: s
   const t = slds(theme);
   return (
     <div className={styles.card} style={{ border: `1px solid ${t.border}` }}>
-      <ViewHeader icon={<DocumentRegular style={{ fontSize: '18px' }} />} title={`Activity on case ${caseId}`} count={comments.length + tasks.length} brand={tokens.colorPaletteDarkOrangeForeground2} theme={theme} />
+      <ViewHeader icon={<DocumentRegular style={{ fontSize: '18px' }} />} title={`Activity on case ${caseId}`} count={comments.length + tasks.length} brand={tokens.colorPaletteDarkOrangeForeground1} theme={theme} />
 
       {/* Section 1 — Comments */}
       <div style={{ padding: '8px 12px', fontSize: 13, fontWeight: 600, color: t.textWeak, borderBottom: `1px solid ${t.border}` }}>

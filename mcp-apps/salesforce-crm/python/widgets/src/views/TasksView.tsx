@@ -66,7 +66,7 @@ export function TasksView({ items: initItems, callTool, toast, theme, cacheInfo:
 
   return (
     <div className={styles.card} style={{ border: `1px solid ${t.border}` }}>
-      <ViewHeader icon={<CheckmarkRegular style={{ fontSize: '18px' }} />} title="Tasks" count={localItems.length} brand={tokens.colorPaletteTealForeground2} theme={theme} cacheInfo={cacheInfo} onRefresh={isFullscreen ? handleRefresh : undefined} refreshing={refreshing} />
+      <ViewHeader icon={<CheckmarkRegular style={{ fontSize: '18px' }} />} title="Tasks" count={localItems.length} brand={tokens.colorPaletteDarkGreenForeground2} theme={theme} cacheInfo={cacheInfo} onRefresh={isFullscreen ? handleRefresh : undefined} refreshing={refreshing} />
       <Table size="small" aria-label="Tasks" style={{ borderCollapse: 'collapse' }}>
         <TableHeader>
           <TableRow style={{ background: t.headerBg }}>
@@ -78,7 +78,7 @@ export function TasksView({ items: initItems, callTool, toast, theme, cacheInfo:
           {localItems.length === 0 && !creating && <TableRow><TableCell colSpan={isFullscreen ? 6 : 5} className={styles.empty}><Text>No tasks found.</Text></TableCell></TableRow>}
           {localItems.map((t2: any) => (
             <TableRow key={t2.id} style={{ borderBottom: `1px solid ${t.border}`, ...(lastSavedId === t2.id ? { animation: 'sfRowFlash 4.5s ease-out' } : {}) }} className="slds-row">
-              <TableCell style={{ ...D_CELL, whiteSpace: 'normal' }}>{t2.subject}</TableCell>
+              <TableCell style={{ ...D_CELL, whiteSpace: 'normal', overflow: 'visible', textOverflow: 'clip', maxWidth: 'none' }}><span style={{ display: 'inline-block', maxWidth: 260, wordBreak: 'break-word' }}>{t2.subject}</span></TableCell>
               <TableCell style={D_CELL}><StatusPill status={t2.status} theme={theme} /></TableCell>
               <TableCell style={D_CELL}><StatusPill status={t2.priority} theme={theme} /></TableCell>
               <TableCell style={D_CELL}>{fmtDate(t2.activity_date)}</TableCell>

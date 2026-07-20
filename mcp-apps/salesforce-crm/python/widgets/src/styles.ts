@@ -19,5 +19,5 @@ export const useStyles = makeStyles({
   kpiCard:    { borderRadius: '6px', padding: '16px', textAlign: 'center' as const, border: `1px solid ${tokens.colorNeutralStroke2}` },
 });
 
-export const H_CELL: React.CSSProperties = { fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', padding: '8px 12px', color: tokens.colorNeutralForeground3 };
+export const H_CELL: React.CSSProperties = { fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', padding: '8px 12px', whiteSpace: 'nowrap', color: tokens.colorNeutralForeground3 };
 export const D_CELL: React.CSSProperties = { padding: '8px 12px', fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '180px', verticalAlign: 'middle', color: tokens.colorNeutralForeground1 };

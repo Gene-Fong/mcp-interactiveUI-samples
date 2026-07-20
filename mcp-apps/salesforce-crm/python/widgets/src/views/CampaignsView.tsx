@@ -59,7 +59,7 @@ export function CampaignsView({ items: initItems, callTool, toast, theme, cacheI
           {items.length === 0 && <TableRow><TableCell colSpan={isFullscreen ? 7 : 6} className={styles.empty}><Text>No campaigns found.</Text></TableCell></TableRow>}
           {items.map((c: any) => (
             <TableRow key={c.id} style={{ borderBottom: `1px solid ${t.border}` }} className="slds-row">
-              <TableCell style={D_CELL}><span style={{ fontWeight: 500 }}>{c.name}</span></TableCell>
+              <TableCell style={{ ...D_CELL, whiteSpace: 'normal', overflow: 'visible', textOverflow: 'clip', maxWidth: 'none' }}><span style={{ fontWeight: 500, display: 'inline-block', maxWidth: 260, wordBreak: 'break-word' }}>{c.name}</span></TableCell>
               <TableCell style={D_CELL}><StatusPill status={c.status} theme={theme} /></TableCell>
               <TableCell style={D_CELL}>{c.type || '—'}</TableCell>
               <TableCell style={D_CELL}>{fmtDate(c.start_date)}</TableCell>
