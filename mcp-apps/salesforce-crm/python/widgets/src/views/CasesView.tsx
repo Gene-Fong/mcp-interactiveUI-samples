@@ -102,7 +102,7 @@ export function CasesView({ items: initItems, callTool, toast, theme, cacheInfo:
           {localItems.map((c: any) => (
             <TableRow key={c.id} style={{ borderBottom: `1px solid ${t.border}`, ...(lastSavedId === c.id ? { animation: 'sfRowFlash 4.5s ease-out' } : {}) }} className="slds-row">
               <TableCell style={D_CELL}>{c.case_number || '—'}</TableCell>
-              <TableCell style={D_CELL}>{c.subject}</TableCell>
+              <TableCell style={{ ...D_CELL, whiteSpace: 'normal' }}>{c.subject}</TableCell>
               <TableCell style={D_CELL}><StatusPill status={c.status} theme={theme} /></TableCell>
               <TableCell style={D_CELL}><StatusPill status={c.priority} theme={theme} /></TableCell>
               <TableCell style={D_CELL}>{c.account_name || '—'}</TableCell>

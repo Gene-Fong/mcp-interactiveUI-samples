@@ -423,7 +423,7 @@ async def sf__get_leads(
     })
     if name:
         where_clauses.append(
-            f"(FirstName LIKE '%{_sq(name)}%' OR LastName LIKE '%{_sq(name)}%')"
+            f"(Name LIKE '%{_sq(name)}%' OR FirstName LIKE '%{_sq(name)}%' OR LastName LIKE '%{_sq(name)}%')"
         )
     if campaign_id:
         where_clauses.append(
@@ -1305,7 +1305,7 @@ async def sf__get_contacts(
     })
     if name:
         where_clauses.append(
-            f"(FirstName LIKE '%{_sq(name)}%' OR LastName LIKE '%{_sq(name)}%')"
+            f"(Name LIKE '%{_sq(name)}%' OR FirstName LIKE '%{_sq(name)}%' OR LastName LIKE '%{_sq(name)}%')"
         )
     has_filters = bool(where_clauses)
 

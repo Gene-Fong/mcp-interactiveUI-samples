@@ -78,7 +78,7 @@ export function TasksView({ items: initItems, callTool, toast, theme, cacheInfo:
           {localItems.length === 0 && !creating && <TableRow><TableCell colSpan={isFullscreen ? 6 : 5} className={styles.empty}><Text>No tasks found.</Text></TableCell></TableRow>}
           {localItems.map((t2: any) => (
             <TableRow key={t2.id} style={{ borderBottom: `1px solid ${t.border}`, ...(lastSavedId === t2.id ? { animation: 'sfRowFlash 4.5s ease-out' } : {}) }} className="slds-row">
-              <TableCell style={D_CELL}>{t2.subject}</TableCell>
+              <TableCell style={{ ...D_CELL, whiteSpace: 'normal' }}>{t2.subject}</TableCell>
               <TableCell style={D_CELL}><StatusPill status={t2.status} theme={theme} /></TableCell>
               <TableCell style={D_CELL}><StatusPill status={t2.priority} theme={theme} /></TableCell>
               <TableCell style={D_CELL}>{fmtDate(t2.activity_date)}</TableCell>
