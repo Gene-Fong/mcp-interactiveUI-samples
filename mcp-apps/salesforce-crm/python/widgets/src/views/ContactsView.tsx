@@ -88,7 +88,7 @@ export function ContactsView({ items: initItems, callTool, toast, theme, cacheIn
 
   return (
     <div className={styles.card} style={{ border: `1px solid ${t.border}` }}>
-      <ViewHeader icon={<PersonRegular style={{ fontSize: '18px', color: '#fff' }} />} title="Contacts" count={localItems.length} brand={tokens.colorPaletteMagentaForeground2} theme={theme} cacheInfo={cacheInfo} onRefresh={isFullscreen ? handleRefresh : undefined} refreshing={refreshing} />
+      <ViewHeader icon={<PersonRegular style={{ fontSize: '18px' }} />} title="Contacts" count={localItems.length} brand={tokens.colorPaletteMagentaForeground2} theme={theme} cacheInfo={cacheInfo} onRefresh={isFullscreen ? handleRefresh : undefined} refreshing={refreshing} />
       <Table size="small" aria-label="Contacts" style={{ borderCollapse: 'collapse' }}>
         <TableHeader>
           <TableRow style={{ background: t.headerBg }}>
@@ -97,7 +97,7 @@ export function ContactsView({ items: initItems, callTool, toast, theme, cacheIn
           </TableRow>
         </TableHeader>
         <TableBody>
-          {localItems.length === 0 && !creating && <TableRow><TableCell colSpan={99} className={styles.empty}><Text>No contacts found.</Text></TableCell></TableRow>}
+          {localItems.length === 0 && !creating && <TableRow><TableCell colSpan={isFullscreen ? 6 : 5} className={styles.empty}><Text>No contacts found.</Text></TableCell></TableRow>}
           {localItems.map((c: any) => (
             <TableRow key={c.id} style={{ borderBottom: `1px solid ${t.border}`, ...(lastSavedId === c.id ? { animation: 'sfRowFlash 4.5s ease-out' } : {}) }} className="slds-row">
               <TableCell style={D_CELL}>{c.first_name} {c.last_name}</TableCell>

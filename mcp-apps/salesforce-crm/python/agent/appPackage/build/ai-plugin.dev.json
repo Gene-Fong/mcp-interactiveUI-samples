@@ -131,7 +131,7 @@
                      {
                          "type":  "RemoteMCPServer",
                          "spec":  {
-                                      "url":  "https://3mf18h92-8080.inc1.devtunnels.ms/mcp",
+                                      "url":  "https://lob-mcp-apps-sf.gentlepond-dd579c1b.southindia.azurecontainerapps.io/mcp",
                                       "mcp_tool_description":  {
                                                                    "tools":  [
                                                                                  {
@@ -198,9 +198,11 @@
                                                                                      "inputSchema":  {
                                                                                                          "properties":  {
                                                                                                                             "last_name":  {
+                                                                                                                                              "default":  "",
                                                                                                                                               "type":  "string"
                                                                                                                                           },
                                                                                                                             "company":  {
+                                                                                                                                            "default":  "",
                                                                                                                                             "type":  "string"
                                                                                                                                         },
                                                                                                                             "first_name":  {
@@ -232,11 +234,10 @@
                                                                                                                                                    "type":  "string"
                                                                                                                                                }
                                                                                                                         },
+                                                                                                         "type":  "object",
                                                                                                          "required":  [
-                                                                                                                          "last_name",
-                                                                                                                          "company"
-                                                                                                                      ],
-                                                                                                         "type":  "object"
+
+                                                                                                                      ]
                                                                                                      },
                                                                                      "title":  "Create lead",
                                                                                      "_meta":  {
@@ -386,12 +387,15 @@
                                                                                      "inputSchema":  {
                                                                                                          "properties":  {
                                                                                                                             "name":  {
+                                                                                                                                         "default":  "",
                                                                                                                                          "type":  "string"
                                                                                                                                      },
                                                                                                                             "stage":  {
+                                                                                                                                          "default":  "",
                                                                                                                                           "type":  "string"
                                                                                                                                       },
                                                                                                                             "close_date":  {
+                                                                                                                                               "default":  "",
                                                                                                                                                "type":  "string"
                                                                                                                                            },
                                                                                                                             "amount":  {
@@ -415,12 +419,10 @@
                                                                                                                                                 "type":  "string"
                                                                                                                                             }
                                                                                                                         },
+                                                                                                         "type":  "object",
                                                                                                          "required":  [
-                                                                                                                          "name",
-                                                                                                                          "stage",
-                                                                                                                          "close_date"
-                                                                                                                      ],
-                                                                                                         "type":  "object"
+
+                                                                                                                      ]
                                                                                                      },
                                                                                      "title":  "Create opportunity",
                                                                                      "_meta":  {
@@ -596,6 +598,7 @@
                                                                                      "inputSchema":  {
                                                                                                          "properties":  {
                                                                                                                             "name":  {
+                                                                                                                                         "default":  "",
                                                                                                                                          "type":  "string"
                                                                                                                                      },
                                                                                                                             "industry":  {
@@ -635,10 +638,10 @@
                                                                                                                                                   "type":  "string"
                                                                                                                                               }
                                                                                                                         },
+                                                                                                         "type":  "object",
                                                                                                          "required":  [
-                                                                                                                          "name"
-                                                                                                                      ],
-                                                                                                         "type":  "object"
+
+                                                                                                                      ]
                                                                                                      },
                                                                                      "title":  "Create account",
                                                                                      "_meta":  {
@@ -768,6 +771,7 @@
                                                                                      "inputSchema":  {
                                                                                                          "properties":  {
                                                                                                                             "last_name":  {
+                                                                                                                                              "default":  "",
                                                                                                                                               "type":  "string"
                                                                                                                                           },
                                                                                                                             "first_name":  {
@@ -803,10 +807,10 @@
                                                                                                                                                 "type":  "string"
                                                                                                                                             }
                                                                                                                         },
+                                                                                                         "type":  "object",
                                                                                                          "required":  [
-                                                                                                                          "last_name"
-                                                                                                                      ],
-                                                                                                         "type":  "object"
+
+                                                                                                                      ]
                                                                                                      },
                                                                                      "title":  "Create contact",
                                                                                      "_meta":  {
@@ -932,6 +936,7 @@
                                                                                      "inputSchema":  {
                                                                                                          "properties":  {
                                                                                                                             "subject":  {
+                                                                                                                                            "default":  "",
                                                                                                                                             "type":  "string"
                                                                                                                                         },
                                                                                                                             "priority":  {
@@ -967,10 +972,10 @@
                                                                                                                                          "type":  "string"
                                                                                                                                      }
                                                                                                                         },
+                                                                                                         "type":  "object",
                                                                                                          "required":  [
-                                                                                                                          "subject"
-                                                                                                                      ],
-                                                                                                         "type":  "object"
+
+                                                                                                                      ]
                                                                                                      },
                                                                                      "title":  "Create case",
                                                                                      "_meta":  {
@@ -1105,6 +1110,7 @@
                                                                                      "inputSchema":  {
                                                                                                          "properties":  {
                                                                                                                             "subject":  {
+                                                                                                                                            "default":  "",
                                                                                                                                             "type":  "string"
                                                                                                                                         },
                                                                                                                             "priority":  {
@@ -1132,10 +1138,10 @@
                                                                                                                                               "type":  "string"
                                                                                                                                           }
                                                                                                                         },
+                                                                                                         "type":  "object",
                                                                                                          "required":  [
-                                                                                                                          "subject"
-                                                                                                                      ],
-                                                                                                         "type":  "object"
+
+                                                                                                                      ]
                                                                                                      },
                                                                                      "title":  "Create task",
                                                                                      "_meta":  {
@@ -1293,6 +1299,7 @@
                                                                                      "inputSchema":  {
                                                                                                          "properties":  {
                                                                                                                             "name":  {
+                                                                                                                                         "default":  "",
                                                                                                                                          "type":  "string"
                                                                                                                                      },
                                                                                                                             "status":  {
@@ -1320,10 +1327,10 @@
                                                                                                                                                 "type":  "string"
                                                                                                                                             }
                                                                                                                         },
+                                                                                                         "type":  "object",
                                                                                                          "required":  [
-                                                                                                                          "name"
-                                                                                                                      ],
-                                                                                                         "type":  "object"
+
+                                                                                                                      ]
                                                                                                      },
                                                                                      "title":  "Create campaign",
                                                                                      "_meta":  {

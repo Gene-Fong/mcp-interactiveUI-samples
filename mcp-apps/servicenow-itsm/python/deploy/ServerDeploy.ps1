@@ -28,24 +28,8 @@
       3. Regen manifests against the ACA URL
       4. Build appPackage zip + upload to MOS3
 
-.PARAMETER ResourceGroup
-    Azure resource group. Default: gtc-sn-rg.
-
-.PARAMETER Location
-    Azure region. Default: eastus.
-
-.PARAMETER AcrName
-    Azure Container Registry name (globally unique, lowercase, no hyphens).
-    Default: gtcsnregistry.
-
-.PARAMETER SkipMOS3
-    Stop after the container app is updated. Don't touch manifests,
-    don't upload to MOS3. Useful when iterating on the server only.
-
 .EXAMPLE
     .\deploy\ServerDeploy.ps1
-    .\deploy\ServerDeploy.ps1 -SkipMOS3
-    .\deploy\ServerDeploy.ps1 -AcrName gtcsnregistry042
 
 .NOTES
     Requires: Azure CLI 2.50+, signed in to a subscription with Contributor
@@ -53,12 +37,10 @@
     AzureImageSetup.ps1. Run from servicenow-itsm/python/.
 #>
 
-param(
-    [string]$ResourceGroup = "GenericResourceGroup",
-    [string]$Location      = "southindia",
-    [string]$AcrName       = "lobmcpapps",
-    [switch]$SkipMOS3
-)
+# Fixed deploy targets -- run this script with no parameters.
+$ResourceGroup = "GenericResourceGroup"
+$Location      = "southindia"
+$AcrName       = "lobmcpapps"
 
 $ErrorActionPreference = "Stop"
 
@@ -313,16 +295,6 @@ If the app is there but FQDN is empty, ingress likely isn't configured -- inspec
 }
 $acaUrl = "https://$acaFqdn"
 Write-Host "   FQDN: $acaUrl" -ForegroundColor Gray
-
-if ($SkipMOS3) {
-    Write-Host ""
-    Write-Host "  ===================================" -ForegroundColor DarkCyan
-    Write-Host "   READY (no MOS3 upload)" -ForegroundColor Green
-    Write-Host "  ===================================" -ForegroundColor DarkCyan
-    Write-Host "  Server: $acaUrl" -ForegroundColor White
-    Write-Host ""
-    exit 0
-}
 
 # ---------------------------------------------------------------------------
 # Phase 3: Regen manifests against the ACA URL

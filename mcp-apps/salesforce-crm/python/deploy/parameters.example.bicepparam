@@ -11,7 +11,6 @@ using './main.bicep'
 param environmentName  = 'lob-mcp-apps-env'
 param acrName          = 'lobmcpapps'         // must be globally unique, lowercase, no hyphens
 param location         = 'southindia'
-param imageTag         = 'latest'
 param logRetentionDays = 30
 
 // ── Salesforce credentials ────────────────────────────────────────────────────

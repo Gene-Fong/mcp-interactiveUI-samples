@@ -6,6 +6,7 @@ __pycache__/
 node_modules/
 dist/
 deploy/parameters.bicepparam
+deploy/last_server_deploy.log
 
 logs/
 logs_test/

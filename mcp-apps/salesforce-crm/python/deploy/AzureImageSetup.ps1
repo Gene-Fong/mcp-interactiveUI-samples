@@ -1,7 +1,7 @@
 <#
 .SYNOPSIS
     AzureImageSetup -- provision (or update) the Azure infrastructure that
-    hosts the SN MCP server. Idempotent: safe to run any number of times.
+    hosts the SF MCP server. Idempotent: safe to run any number of times.
 
 .DESCRIPTION
     This is the FIRST of the two server scripts. It creates only Azure
@@ -29,7 +29,7 @@
 
 .NOTES
     Requires: Azure CLI 2.50+, signed in (az login) to a subscription with
-    Contributor rights. Run from servicenow-itsm/python/.
+    Contributor rights. Run from salesforce-crm/python/.
 #>
 
 # Fixed deploy targets -- run this script with no parameters.
@@ -48,14 +48,14 @@ $env:PYTHONIOENCODING = "utf-8"
 try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch { }
 
 $deployRoot       = $PSScriptRoot                            # deploy\
-$App              = Split-Path -Parent $deployRoot           # servicenow-itsm\python\
+$App              = Split-Path -Parent $deployRoot           # salesforce-crm\python\
 $paramsFile       = Join-Path $deployRoot 'parameters.bicepparam'
-$containerAppName = 'gtc-sn-gw'
-$deploymentName   = 'lob-mcp-apps-sn-setup'
+$containerAppName = 'lob-mcp-apps-sf'
+$deploymentName   = 'lob-mcp-apps-sf-setup'
 
 Write-Host ""
 Write-Host "  =====================================" -ForegroundColor DarkCyan
-Write-Host "   SERVER SETUP -- Azure infra for SN" -ForegroundColor Cyan
+Write-Host "   SERVER SETUP -- Azure infra for SF" -ForegroundColor Cyan
 Write-Host "  =====================================" -ForegroundColor DarkCyan
 Write-Host ""
 
@@ -66,7 +66,7 @@ Write-Host ">> Phase 0/2: pre-flight checks" -ForegroundColor Cyan
 
 Assert-File -Path "$App\pyproject.toml" `
     -Why "AzureImageSetup.ps1 must be run from the app root (script is in deploy/)." `
-    -Hint "cd to the servicenow-itsm/python/ folder then re-run."
+    -Hint "cd to the salesforce-crm/python/ folder then re-run."
 
 Assert-File -Path "$PSScriptRoot\_deploy_common.ps1" `
     -Why "Shared helper functions live here; dot-sourced at the top of this script." `
@@ -78,7 +78,7 @@ Assert-Tool -Name "az" `
 
 Assert-File -Path $paramsFile `
     -Why "Bicep parameters file required to provision the stack." `
-    -Hint "Copy deploy\parameters.example.bicepparam to deploy\parameters.bicepparam and fill in your ServiceNow credentials."
+    -Hint "Copy deploy\parameters.example.bicepparam to deploy\parameters.bicepparam and fill in your Salesforce credentials."
 
 # Azure CLI signed in
 $accountJson = az account show --output json 2>$null

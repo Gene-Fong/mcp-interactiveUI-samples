@@ -66,7 +66,7 @@ export function TasksView({ items: initItems, callTool, toast, theme, cacheInfo:
 
   return (
     <div className={styles.card} style={{ border: `1px solid ${t.border}` }}>
-      <ViewHeader icon={<CheckmarkRegular style={{ fontSize: '18px', color: '#fff' }} />} title="Tasks" count={localItems.length} brand={tokens.colorPaletteTealForeground2} theme={theme} cacheInfo={cacheInfo} onRefresh={isFullscreen ? handleRefresh : undefined} refreshing={refreshing} />
+      <ViewHeader icon={<CheckmarkRegular style={{ fontSize: '18px' }} />} title="Tasks" count={localItems.length} brand={tokens.colorPaletteTealForeground2} theme={theme} cacheInfo={cacheInfo} onRefresh={isFullscreen ? handleRefresh : undefined} refreshing={refreshing} />
       <Table size="small" aria-label="Tasks" style={{ borderCollapse: 'collapse' }}>
         <TableHeader>
           <TableRow style={{ background: t.headerBg }}>
@@ -75,7 +75,7 @@ export function TasksView({ items: initItems, callTool, toast, theme, cacheInfo:
           </TableRow>
         </TableHeader>
         <TableBody>
-          {localItems.length === 0 && !creating && <TableRow><TableCell colSpan={99} className={styles.empty}><Text>No tasks found.</Text></TableCell></TableRow>}
+          {localItems.length === 0 && !creating && <TableRow><TableCell colSpan={isFullscreen ? 6 : 5} className={styles.empty}><Text>No tasks found.</Text></TableCell></TableRow>}
           {localItems.map((t2: any) => (
             <TableRow key={t2.id} style={{ borderBottom: `1px solid ${t.border}`, ...(lastSavedId === t2.id ? { animation: 'sfRowFlash 4.5s ease-out' } : {}) }} className="slds-row">
               <TableCell style={D_CELL}>{t2.subject}</TableCell>

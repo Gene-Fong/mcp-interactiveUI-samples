@@ -47,7 +47,7 @@ export function CampaignsView({ items: initItems, callTool, toast, theme, cacheI
 
   return (
     <div className={styles.card} style={{ border: `1px solid ${t.border}` }}>
-      <ViewHeader icon={<DocumentRegular style={{ fontSize: '18px', color: '#fff' }} />} title="Campaigns" count={items.length} brand={tokens.colorPaletteMarigoldForeground2} theme={theme} cacheInfo={cacheInfo} onRefresh={isFullscreen ? handleRefresh : undefined} refreshing={refreshing} />
+      <ViewHeader icon={<DocumentRegular style={{ fontSize: '18px' }} />} title="Campaigns" count={items.length} brand={tokens.colorPaletteMarigoldForeground2} theme={theme} cacheInfo={cacheInfo} onRefresh={isFullscreen ? handleRefresh : undefined} refreshing={refreshing} />
       <Table size="small" aria-label="Campaigns" style={{ borderCollapse: 'collapse' }}>
         <TableHeader>
           <TableRow style={{ background: t.headerBg }}>
@@ -56,7 +56,7 @@ export function CampaignsView({ items: initItems, callTool, toast, theme, cacheI
           </TableRow>
         </TableHeader>
         <TableBody>
-          {items.length === 0 && <TableRow><TableCell colSpan={99} className={styles.empty}><Text>No campaigns found.</Text></TableCell></TableRow>}
+          {items.length === 0 && <TableRow><TableCell colSpan={isFullscreen ? 7 : 6} className={styles.empty}><Text>No campaigns found.</Text></TableCell></TableRow>}
           {items.map((c: any) => (
             <TableRow key={c.id} style={{ borderBottom: `1px solid ${t.border}` }} className="slds-row">
               <TableCell style={D_CELL}><span style={{ fontWeight: 500 }}>{c.name}</span></TableCell>

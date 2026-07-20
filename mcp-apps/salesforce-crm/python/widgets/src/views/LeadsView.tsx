@@ -106,7 +106,7 @@ export function LeadsView({ items: initItems, callTool, toast, theme, cacheInfo:
 
   return (
     <div className={styles.card} style={{ border: `1px solid ${t.border}` }}>
-      <ViewHeader icon={<PeopleRegular style={{ fontSize: '18px', color: '#fff' }} />} title="Leads" count={localItems.length} brand={tokens.colorPaletteLavenderForeground2} theme={theme} cacheInfo={cacheInfo} onRefresh={isFullscreen ? handleRefresh : undefined} refreshing={refreshing} />
+      <ViewHeader icon={<PeopleRegular style={{ fontSize: '18px' }} />} title="Leads" count={localItems.length} brand={tokens.colorPaletteLavenderForeground2} theme={theme} cacheInfo={cacheInfo} onRefresh={isFullscreen ? handleRefresh : undefined} refreshing={refreshing} />
       <Table size="small" aria-label="Leads" style={{ borderCollapse: 'collapse' }}>
         <TableHeader>
           <TableRow style={{ background: t.headerBg }}>
@@ -115,7 +115,7 @@ export function LeadsView({ items: initItems, callTool, toast, theme, cacheInfo:
           </TableRow>
         </TableHeader>
         <TableBody>
-          {localItems.length === 0 && !creating && <TableRow><TableCell colSpan={99} className={styles.empty}><Text>No leads found.</Text></TableCell></TableRow>}
+          {localItems.length === 0 && !creating && <TableRow><TableCell colSpan={isFullscreen ? 6 : 5} className={styles.empty}><Text>No leads found.</Text></TableCell></TableRow>}
           {localItems.map((l: any) => (
             <TableRow key={l.id} style={{ borderBottom: `1px solid ${t.border}`, ...(lastSavedId === l.id ? { animation: 'sfRowFlash 4.5s ease-out' } : {}) }} className="slds-row">
               <TableCell style={D_CELL}>{l.first_name} {l.last_name}</TableCell>

@@ -470,10 +470,13 @@ async def sf__get_leads(
 
 
 async def sf__create_lead(
-    last_name: str, company: str, first_name: str = "", email: str = "",
+    last_name: str = "", company: str = "", first_name: str = "", email: str = "",
     phone: str = "", status: str = "Open - Not Contacted", lead_source: str = "",
     title: str = "", annual_revenue: str = "",
 ) -> types.CallToolResult:
+    missing = [lbl for val, lbl in ((last_name, "last name"), (company, "company")) if not val]
+    if missing:
+        return _error_result(f"To create a lead I need: {', '.join(missing)}. Or say 'create lead' to open the form.")
     try:
         sf = get_client()
         data: dict = {"LastName": last_name, "Company": company}
@@ -652,10 +655,13 @@ async def sf__get_opportunities(
 
 
 async def sf__create_opportunity(
-    name: str, stage: str, close_date: str, amount: float = 0.0,
+    name: str = "", stage: str = "", close_date: str = "", amount: float = 0.0,
     probability: int = 0, account_name: str = "",
     type: str = "", lead_source: str = "",
 ) -> types.CallToolResult:
+    missing = [lbl for val, lbl in ((name, "name"), (stage, "stage"), (close_date, "close date")) if not val]
+    if missing:
+        return _error_result(f"To create an opportunity I need: {', '.join(missing)}. Or say 'create opportunity' to open the form.")
     try:
         sf = get_client()
         data: dict = {"Name": name, "StageName": stage, "CloseDate": close_date}
@@ -1155,11 +1161,13 @@ def _what_not_found_alert(name: str, suggestions: list[str]) -> types.CallToolRe
 
 
 async def sf__create_account(
-    name: str, industry: str = "", phone: str = "",
+    name: str = "", industry: str = "", phone: str = "",
     website: str = "", billing_city: str = "", type: str = "",
     account_number: str = "", annual_revenue: str = "",
     sic: str = "", ticker_symbol: str = "",
 ) -> types.CallToolResult:
+    if not name:
+        return _error_result("To create an account I need: name. Or say 'create account' to open the form.")
     try:
         sf = get_client()
         data: dict = {"Name": name}
@@ -1336,11 +1344,13 @@ async def sf__get_contacts(
 
 
 async def sf__create_contact(
-    last_name: str, first_name: str = "", email: str = "",
+    last_name: str = "", first_name: str = "", email: str = "",
     phone: str = "", title: str = "", account_id: str = "",
     account_name: str = "",
     department: str = "", lead_source: str = "",
 ) -> types.CallToolResult:
+    if not last_name:
+        return _error_result("To create a contact I need: last name. Or say 'create contact' to open the form.")
     try:
         sf = get_client()
         data: dict = {"LastName": last_name}
@@ -1511,11 +1521,13 @@ async def sf__get_cases(
 
 
 async def sf__create_case(
-    subject: str, priority: str = "Medium", status: str = "",
+    subject: str = "", priority: str = "Medium", status: str = "",
     account_id: str = "", account_name: str = "",
     contact_id: str = "", contact_name: str = "",
     description: str = "", type: str = "",
 ) -> types.CallToolResult:
+    if not subject:
+        return _error_result("To create a case I need: subject. Or say 'create case' to open the form.")
     log.info("sf__create_case", subject=subject, account_name=account_name, contact_name=contact_name)
     try:
         sf = get_client()
@@ -1749,10 +1761,12 @@ async def sf__get_tasks(
 
 
 async def sf__create_task(
-    subject: str, priority: str = "Normal", status: str = "Not Started",
+    subject: str = "", priority: str = "Normal", status: str = "Not Started",
     activity_date: str = "", description: str = "",
     who_name: str = "", what_name: str = "",
 ) -> types.CallToolResult:
+    if not subject:
+        return _error_result("To create a task I need: subject. Or say 'create task' to open the form.")
     log.info("sf__create_task", subject=subject, who_name=who_name, what_name=what_name)
     try:
         sf = get_client()
@@ -2053,10 +2067,12 @@ async def sf__get_campaigns(
 
 
 async def sf__create_campaign(
-    name: str, status: str = "Planned", type: str = "",
+    name: str = "", status: str = "Planned", type: str = "",
     start_date: str = "", end_date: str = "",
     budgeted_cost: str = "", actual_cost: str = "",
 ) -> types.CallToolResult:
+    if not name:
+        return _error_result("To create a campaign I need: name. Or say 'create campaign' to open the form.")
     try:
         sf = get_client()
         data: dict = {"Name": name}

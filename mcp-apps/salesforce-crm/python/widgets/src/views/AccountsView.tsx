@@ -86,7 +86,7 @@ export function AccountsView({ items: initItems, callTool, toast, theme, cacheIn
 
   return (
     <div className={styles.card} style={{ border: `1px solid ${t.border}` }}>
-      <ViewHeader icon={<BuildingRegular style={{ fontSize: '18px', color: '#fff' }} />} title="Accounts" count={localItems.length} brand={tokens.colorPalettePinkForeground2} theme={theme} cacheInfo={cacheInfo} onRefresh={isFullscreen ? handleRefresh : undefined} refreshing={refreshing} />
+      <ViewHeader icon={<BuildingRegular style={{ fontSize: '18px' }} />} title="Accounts" count={localItems.length} brand={tokens.colorPalettePinkForeground2} theme={theme} cacheInfo={cacheInfo} onRefresh={isFullscreen ? handleRefresh : undefined} refreshing={refreshing} />
       <Table size="small" aria-label="Accounts" style={{ borderCollapse: 'collapse' }}>
         <TableHeader>
           <TableRow style={{ background: t.headerBg }}>
@@ -99,7 +99,7 @@ export function AccountsView({ items: initItems, callTool, toast, theme, cacheIn
           </TableRow>
         </TableHeader>
         <TableBody>
-          {localItems.length === 0 && !creating && <TableRow><TableCell colSpan={99} className={styles.empty}><Text>No accounts found.</Text></TableCell></TableRow>}
+          {localItems.length === 0 && !creating && <TableRow><TableCell colSpan={isFullscreen ? 6 : 5} className={styles.empty}><Text>No accounts found.</Text></TableCell></TableRow>}
           {localItems.map((a, idx) => (
             <TableRow key={a.id} style={{ borderBottom: `1px solid ${t.border}`, ...(lastSavedId === a.id ? { animation: 'sfRowFlash 4.5s ease-out' } : {}) }} className="slds-row">
               <TableCell style={D_CELL}><span style={{ fontWeight: 500, color: t.brand }}>{a.name}</span></TableCell>

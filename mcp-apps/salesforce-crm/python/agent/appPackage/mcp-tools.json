@@ -62,9 +62,11 @@
             "inputSchema": {
                 "properties": {
                     "last_name": {
+                        "default": "",
                         "type": "string"
                     },
                     "company": {
+                        "default": "",
                         "type": "string"
                     },
                     "first_name": {
@@ -96,11 +98,8 @@
                         "type": "string"
                     }
                 },
-                "required": [
-                    "last_name",
-                    "company"
-                ],
-                "type": "object"
+                "type": "object",
+                "required": []
             },
             "title": "Create lead",
             "_meta": {
@@ -248,12 +247,15 @@
             "inputSchema": {
                 "properties": {
                     "name": {
+                        "default": "",
                         "type": "string"
                     },
                     "stage": {
+                        "default": "",
                         "type": "string"
                     },
                     "close_date": {
+                        "default": "",
                         "type": "string"
                     },
                     "amount": {
@@ -277,12 +279,8 @@
                         "type": "string"
                     }
                 },
-                "required": [
-                    "name",
-                    "stage",
-                    "close_date"
-                ],
-                "type": "object"
+                "type": "object",
+                "required": []
             },
             "title": "Create opportunity",
             "_meta": {
@@ -456,6 +454,7 @@
             "inputSchema": {
                 "properties": {
                     "name": {
+                        "default": "",
                         "type": "string"
                     },
                     "industry": {
@@ -495,10 +494,8 @@
                         "type": "string"
                     }
                 },
-                "required": [
-                    "name"
-                ],
-                "type": "object"
+                "type": "object",
+                "required": []
             },
             "title": "Create account",
             "_meta": {
@@ -626,6 +623,7 @@
             "inputSchema": {
                 "properties": {
                     "last_name": {
+                        "default": "",
                         "type": "string"
                     },
                     "first_name": {
@@ -661,10 +659,8 @@
                         "type": "string"
                     }
                 },
-                "required": [
-                    "last_name"
-                ],
-                "type": "object"
+                "type": "object",
+                "required": []
             },
             "title": "Create contact",
             "_meta": {
@@ -788,6 +784,7 @@
             "inputSchema": {
                 "properties": {
                     "subject": {
+                        "default": "",
                         "type": "string"
                     },
                     "priority": {
@@ -823,10 +820,8 @@
                         "type": "string"
                     }
                 },
-                "required": [
-                    "subject"
-                ],
-                "type": "object"
+                "type": "object",
+                "required": []
             },
             "title": "Create case",
             "_meta": {
@@ -959,6 +954,7 @@
             "inputSchema": {
                 "properties": {
                     "subject": {
+                        "default": "",
                         "type": "string"
                     },
                     "priority": {
@@ -986,10 +982,8 @@
                         "type": "string"
                     }
                 },
-                "required": [
-                    "subject"
-                ],
-                "type": "object"
+                "type": "object",
+                "required": []
             },
             "title": "Create task",
             "_meta": {
@@ -1141,6 +1135,7 @@
             "inputSchema": {
                 "properties": {
                     "name": {
+                        "default": "",
                         "type": "string"
                     },
                     "status": {
@@ -1168,10 +1163,8 @@
                         "type": "string"
                     }
                 },
-                "required": [
-                    "name"
-                ],
-                "type": "object"
+                "type": "object",
+                "required": []
             },
             "title": "Create campaign",
             "_meta": {
