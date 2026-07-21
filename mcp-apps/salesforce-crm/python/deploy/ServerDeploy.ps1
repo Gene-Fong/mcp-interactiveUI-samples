@@ -1,58 +1,59 @@
 <#
 .SYNOPSIS
-    ServerDeploy -- end-to-end deploy of the SF MCP server to Azure
-    Container Apps, plus agent upload to MOS3.
+    ServerDeploy -- build the SF MCP server image, deploy it to the Azure
+    Container App, and upload the Copilot agent to MOS3.
 
 .DESCRIPTION
-    Use this script when you want the SF MCP server hosted in Azure
-    (no laptop dependency, shareable HTTPS URL). Use LocalDeploy.ps1
-    when you want it running on this laptop via a dev tunnel.
+    This is the SECOND of the two server scripts. It assumes the Azure infra
+    already exists -- run AzureImageSetup.ps1 first to create it.
 
-    This script is OPERATIONALLY INDEPENDENT of LocalDeploy.ps1 -- it
-    never calls into LocalDeploy and is never called by it. Shared
-    implementation lives in _deploy_common.ps1 (dot-sourced below).
+        1. AzureImageSetup.ps1   (create/verify Azure infra)
+        2. ServerDeploy.ps1  <-- you are here (build + deploy + upload agent)
+
+    ServerDeploy provisions NO infrastructure. It builds a fresh image in
+    ACR, points the existing Container App at it, and re-registers the agent
+    against the live Azure URL. Idempotent: re-run it any time you ship new
+    server or agent code. If the infra isn't there yet, it stops and tells
+    you to run AzureImageSetup.ps1.
+
+    Use LocalDeploy.ps1 instead when you want the server running on this
+    laptop via a dev tunnel. This script is OPERATIONALLY INDEPENDENT of
+    LocalDeploy.ps1. Shared implementation lives in _deploy_common.ps1
+    (dot-sourced below).
 
     Phases:
-      0. Pre-flight checks (az signed in, files in place)
-      1. Provision Azure infra + build image + deploy container app
+      0. Pre-flight checks (az signed in, files in place, infra exists)
+      1. Build image in ACR + point the Container App at it
       2. Read the live ACA FQDN back from the container app
       3. Regen manifests against the ACA URL
       4. Build appPackage zip + upload to MOS3
 
-.PARAMETER ResourceGroup
-    Azure resource group. Default: GenericResourceGroup.
-
-.PARAMETER Location
-    Azure region. Default: southindia.
-
-.PARAMETER AcrName
-    Azure Container Registry name (globally unique, lowercase, no hyphens).
-    Default: lobmcpapps.
-
-.PARAMETER SkipMOS3
-    Stop after the container app is updated. Don't touch manifests,
-    don't upload to MOS3. Useful when iterating on the server only.
-
 .EXAMPLE
     .\deploy\ServerDeploy.ps1
-    .\deploy\ServerDeploy.ps1 -SkipMOS3
-    .\deploy\ServerDeploy.ps1 -AcrName lobmcpapps042
 
 .NOTES
     Requires: Azure CLI 2.50+, signed in to a subscription with Contributor
-    rights on the resource group. Run from salesforce-crm/python/.
+    rights on the resource group, and the infra already provisioned by
+    AzureImageSetup.ps1. Run from salesforce-crm/python/.
 #>
 
-param(
-    [string]$ResourceGroup = "GenericResourceGroup",
-    [string]$Location      = "southindia",
-    [string]$AcrName       = "lobmcpapps",
-    [switch]$SkipMOS3
-)
+# Fixed deploy targets -- run this script with no parameters.
+$ResourceGroup = "GenericResourceGroup"
+$Location      = "southindia"
+$AcrName       = "lobmcpapps"
 
 $ErrorActionPreference = "Stop"
 
 . "$PSScriptRoot\_deploy_common.ps1"
+
+# Force a UTF-8 console. `az acr build` streams the in-registry Docker build
+# log straight to the console; without this, the CLI's colorama writer crashes
+# with "'charmap' codec can't encode character '\u2713'" the moment the build
+# prints a non-cp1252 character (e.g. npm's success checkmark), aborting an
+# otherwise-successful build.
+$env:PYTHONUTF8       = "1"
+$env:PYTHONIOENCODING = "utf-8"
+try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch { }
 
 # ---------------------------------------------------------------------------
 # Paths & MOS3 config
@@ -129,76 +130,32 @@ $account = $accountJson | ConvertFrom-Json
 Write-Host "   Subscription: $($account.name) ($($account.id))" -ForegroundColor Gray
 Write-Host "   Tenant:       $($account.tenantId)" -ForegroundColor Gray
 Write-Host "   User:         $($account.user.name)" -ForegroundColor Gray
+
+# Infra must already exist -- ServerDeploy provisions nothing. If the Container
+# App isn't there, the user skipped AzureImageSetup.ps1.
+$existingFqdn = az containerapp show `
+    --resource-group $ResourceGroup `
+    --name $containerAppName `
+    --query "properties.configuration.ingress.fqdn" `
+    --output tsv 2>$null
+if ($LASTEXITCODE -ne 0 -or -not $existingFqdn) {
+    Write-FailBlock -What "Azure infra not found (container app '$containerAppName' in resource group '$ResourceGroup')" `
+        -Detail "ServerDeploy builds and ships code onto existing infra -- it does not create any." `
+        -Hint "Run .\deploy\AzureImageSetup.ps1 first (same -ResourceGroup / -Location / -AcrName), then re-run ServerDeploy."
+    exit 1
+}
 Write-Host "   All pre-flight checks passed." -ForegroundColor Green
 Write-Host ""
 
 # ---------------------------------------------------------------------------
-# Phase 1: Provision Azure infra + build image + deploy container app
+# Phase 1: Build image in ACR + point the Container App at it
 # ---------------------------------------------------------------------------
-Write-Host ">> Phase 1/4: provision Azure infra + build image + deploy container app" -ForegroundColor Cyan
+Write-Host ">> Phase 1/4: build image + deploy to container app" -ForegroundColor Cyan
 Write-Host "   Resource group: $ResourceGroup" -ForegroundColor Gray
 Write-Host "   Location:       $Location" -ForegroundColor Gray
 Write-Host "   ACR:            $AcrName" -ForegroundColor Gray
 
-# 1a. Resource group (idempotent)
-Write-Host "   >> Creating / verifying resource group..." -ForegroundColor Cyan
-az group create --name $ResourceGroup --location $Location | Out-Null
-if ($LASTEXITCODE -ne 0) {
-    Write-FailBlock -What "az group create failed (exit $LASTEXITCODE)" `
-        -Detail "Could not create or verify resource group '$ResourceGroup' in '$Location'." `
-        -Hint "Likely AuthorizationFailed -- your account needs Contributor on the subscription."
-    exit 1
-}
-
-# 1a.1 Register required resource providers (idempotent; first-time subs need
-# this, established subs no-op fast). Without registration, bicep deploys can
-# fail with vague "provider not registered" errors masked by az CLI 2.73+'s
-# response-consumed bug.
-Write-Host "   >> Registering required resource providers..." -ForegroundColor Cyan
-foreach ($provider in @('Microsoft.App', 'Microsoft.OperationalInsights', 'Microsoft.ContainerRegistry', 'Microsoft.ManagedIdentity')) {
-    az provider register --namespace $provider --wait 2>&1 | Out-Null
-}
-
-# 1b. Bicep deployment.
-# Note on syntax: with a .bicepparam file, do NOT pass --template-file (the
-# bicepparam's `using './main.bicep'` directive specifies the template) and
-# do NOT prefix the path with `@` (that prefix means "read as JSON params"
-# which fails on bicepparam syntax). Just pass the bicepparam path directly.
-# `--name` is set explicitly so audit history shows distinct deployment records
-# per LOB instead of both showing as "main".
-Write-Host "   >> Deploying Bicep stack..." -ForegroundColor Cyan
-az deployment group create `
-    --name "lob-mcp-apps-sf-deploy" `
-    --resource-group $ResourceGroup `
-    --parameters deploy/parameters.bicepparam `
-    --parameters acrName=$AcrName location=$Location
-if ($LASTEXITCODE -ne 0) {
-    # az CLI 2.73+ has a bug where the response stream is consumed before the
-    # error message is shown, leaving only "content for this response was
-    # already consumed" in stderr. Query the deployment record directly to
-    # surface the real Azure error.
-    Write-Host ""
-    Write-Host "  >> Fetching actual Azure error from deployment record..." -ForegroundColor Yellow
-    $deploymentError = az deployment operation group list `
-        --resource-group $ResourceGroup `
-        --name "lob-mcp-apps-sf-deploy" `
-        --query "[?properties.provisioningState=='Failed'].{resource:properties.targetResource.resourceName, status:properties.statusMessage}" `
-        -o json 2>&1
-    Write-FailBlock -What "az deployment group create failed (exit $LASTEXITCODE)" `
-        -Detail "Actual Azure error:`n$deploymentError" `
-        -Hint @"
-Common causes:
-  - MANIFEST_UNKNOWN: image not in ACR yet. main.bicep should reference a
-    placeholder image (mcr.microsoft.com/k8se/quickstart:latest), with the
-    real image swapped in via `az containerapp update` after `az acr build`.
-  - RegistryNameInUse: ACR name taken globally. Re-run with -AcrName <unique>.
-  - InvalidParameter on a secret: parameters.bicepparam has an empty value
-    for a required field, or an empty `value:` on a secret entry in bicep.
-"@
-    exit 1
-}
-
-# 1c. Build container image inside Azure.
+# 1a. Build container image inside Azure.
 #
 # Stage the app into a temp folder under %TEMP% using robocopy with /XD to
 # exclude bulky folders (node_modules, .venv). `az acr build` then runs
@@ -231,11 +188,35 @@ Write-Host "      Staged $stagedFiles files, $stagedMB MB" -ForegroundColor Gray
 Write-Host "   >> Building container image (az acr build)..." -ForegroundColor Cyan
 Push-Location $staging
 try {
-    az acr build `
-        --registry $AcrName `
-        --image sf-mcp-copilot:latest `
-        --file Dockerfile `
-        .
+    # `az.cmd` launches its bundled Python as `python.exe -IBm azure.cli`. The
+    # -I (isolated) flag makes Python ignore ALL PYTHON* env vars, so we cannot
+    # fix the stdout encoding via PYTHONUTF8/PYTHONIOENCODING. On a redirected
+    # (non-console) stdout the interpreter then defaults to cp1252, and the acr
+    # build log streamer crashes with "'charmap' codec can't encode '\u2713'"
+    # the instant the in-registry Docker build prints npm's success checkmark --
+    # aborting a build that actually succeeded.
+    #
+    # Fix: re-invoke the SAME bundled Python WITHOUT -I and in UTF-8 mode, so
+    # the log stream encodes cleanly. Fall back to plain `az` if the bundled
+    # interpreter can't be located (e.g. a non-MSI install).
+    $azCmd = (Get-Command az -ErrorAction SilentlyContinue).Source
+    $azPy  = if ($azCmd) { Join-Path (Split-Path (Split-Path $azCmd -Parent) -Parent) 'python.exe' } else { $null }
+
+    if ($azPy -and (Test-Path $azPy)) {
+        $env:PYTHONUTF8       = "1"
+        $env:PYTHONIOENCODING = "utf-8"
+        & $azPy -Bm azure.cli acr build `
+            --registry $AcrName `
+            --image sf-mcp-copilot:latest `
+            --file Dockerfile `
+            .
+    } else {
+        az acr build `
+            --registry $AcrName `
+            --image sf-mcp-copilot:latest `
+            --file Dockerfile `
+            .
+    }
     if ($LASTEXITCODE -ne 0) {
         Write-FailBlock -What "az acr build failed (exit $LASTEXITCODE)" `
             -Detail "Image build inside ACR failed. Inspect the build log above." `
@@ -315,16 +296,6 @@ If the app is there but FQDN is empty, ingress likely isn't configured -- inspec
 }
 $acaUrl = "https://$acaFqdn"
 Write-Host "   FQDN: $acaUrl" -ForegroundColor Gray
-
-if ($SkipMOS3) {
-    Write-Host ""
-    Write-Host "  ===================================" -ForegroundColor DarkCyan
-    Write-Host "   READY (no MOS3 upload)" -ForegroundColor Green
-    Write-Host "  ===================================" -ForegroundColor DarkCyan
-    Write-Host "  Server: $acaUrl" -ForegroundColor White
-    Write-Host ""
-    exit 0
-}
 
 # ---------------------------------------------------------------------------
 # Phase 3: Regen manifests against the ACA URL

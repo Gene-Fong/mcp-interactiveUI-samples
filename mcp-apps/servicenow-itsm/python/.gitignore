@@ -6,5 +6,9 @@ __pycache__/
 node_modules/
 dist/
 deploy/parameters.bicepparam
+deploy/parameters.json
 
 query_picklists.py
+
+logs/
+logs_test/

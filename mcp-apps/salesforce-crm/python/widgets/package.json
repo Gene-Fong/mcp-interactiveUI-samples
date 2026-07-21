@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@fluentui/react-components": "^9.56.0",
+    "@fluentui/react-datepicker-compat": "^0.6.32",
     "@fluentui/react-icons": "^2.0.328",
     "@gtc/mcp-shared": "file:./mcp-shared",
     "@modelcontextprotocol/ext-apps": "^1.6.0",

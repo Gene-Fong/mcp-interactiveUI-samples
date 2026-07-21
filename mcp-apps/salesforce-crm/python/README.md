@@ -1,12 +1,18 @@
 # Ask - Salesforce
 
-> Drop your Salesforce org into Microsoft 365 Copilot. Ask questions in plain English, get back live interactive widgets right inside the chat.
+**Ask - Salesforce** is a Model Context Protocol (MCP) App that connects a Salesforce org to Microsoft 365 Copilot.
 
-- 🪟 Live widgets render inline in chat
-- ✏️ Read / create / update across 7 CRM entities, plus pipeline dashboard and approvals
-- 🔗 Type names, not Ids — agent resolves them on save
-- 💻 Local laptop or ☁️ Azure Container Apps
-- ⚡ One-command deploy
+An MCP *server* exposes tools and data to an AI client over the open Model Context Protocol. An MCP *App* goes one step further: it returns an interactive user interface (a widget) alongside each tool response, so the client renders a live, interactive screen instead of plain text. **Ask - Salesforce** is that kind of app for Salesforce.
+
+The flow is simple. A user types a request in plain English. Copilot calls the server. The server queries the Salesforce org and returns an interactive widget that renders inside the Copilot chat.
+
+The server provides the following capabilities:
+
+- The widgets render inline in the Copilot chat rather than in a separate browser tab.
+- A user can read, create, and update records across seven CRM entities, and can also view a pipeline dashboard and act on approvals.
+- Lookup fields accept plain names instead of 15-character Salesforce Ids, and the agent resolves each name to the correct record when the form is saved.
+- The server runs either on a local laptop or on Azure Container Apps.
+- Deployment is scripted. One command deploys the server locally, and two idempotent scripts deploy it to Azure.
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white" alt="Python" />
@@ -25,17 +31,17 @@
 
 ## 1. What this is
 
-**Ask - Salesforce** brings your Salesforce org straight into Microsoft 365 Copilot. Type something like *"show me the latest leads"* or *"what's in the pipeline?"* and a **live, interactive widget** renders right inside the chat — **no tab switching, no context loss**. You can read records, create new ones, update what's there, run pipeline dashboards, and clear approvals, all from the Copilot side panel.
+**Ask - Salesforce** connects your Salesforce org to Microsoft 365 Copilot. When you type a request such as "show me the latest leads" or "what's in the pipeline?", Copilot calls the MCP server, and the server returns an interactive widget that renders inside the chat, so you do not need to switch to a separate Salesforce tab. From the Copilot side panel you can read records, create new records, update existing records, view the pipeline dashboard, and act on approvals.
 
-🔗 **Name resolution:** lookup fields accept plain names instead of 15-character Salesforce Ids. Type *"Acme Corp"* in an Opportunity's Account field, and the agent resolves it to the correct record on Save. If multiple matches exist, it shows up to five suggestions so you can pick the right one. See [§2 → RESOLVE FK](#resolve-fk--type-names-not-ids) for the full flow.
+**Name resolution:** Lookup fields accept plain names instead of 15-character Salesforce Ids. When you type "Acme Corp" into an Opportunity's Account field and save the record, the agent resolves that name to the correct account. If more than one record matches, the agent shows up to five suggestions so that you can select the correct one. The same behaviour applies to the Account field on Contacts and Cases, the Contact field on Cases, and the Name and Related To fields on Tasks. See [§2 → RESOLVE FK](#resolve-fk--type-names-not-ids) for the full flow.
 
 > [!TIP]
-> Works with any Salesforce org that exposes the REST API — Developer Edition, sandbox, or production.
+> The server works with any Salesforce org that exposes the REST API, including a Developer Edition org, a sandbox, or a production org.
 
-Two ways to run it:
+You can run the server in one of two ways:
 
-- 💻 **Local** — your laptop is the backend, exposed via dev tunnel. **Fast iteration** while you tweak.
-- ☁️ **Azure** — same code in Azure Container Apps. **Stays online** without your laptop; anyone in your tenant can use it.
+- **Local.** Your laptop hosts the server, and a dev tunnel exposes it to Copilot over HTTPS. This option suits development, because you can change the code and test it quickly.
+- **Azure.** The same server runs in Azure Container Apps. Because Azure hosts the server rather than your laptop, the agent stays available when your laptop is off, and anyone in your Microsoft 365 tenant can use it.
 
 ```mermaid
 flowchart LR
@@ -62,50 +68,90 @@ flowchart LR
 
 ## 2. How it works
 
-Most interactions map to one of **ten operations**. Here's the quick-reference, followed by each one in action.
+Most interactions map to one of ten operations. The table below is a quick reference, and each operation is then shown in action.
 
 ### 2.1 Canonical operations
 
-#### 🟢 Design patterns — 8 operations
+#### Design patterns — 8 operations
 
-These follow the **standard three-tool pattern**:
+These are the canonical operations. They follow the standard three-tool pattern of GET, CREATE, and UPDATE:
 
-| # | Operation | What you say | What happens | Try it |
+| # | Operation | What you say | What happens | Tips |
 |---|---|---|---|---|
-| 1 | **GET** | "show me leads" | Lists the most recent records | *"get all leads"* · *"list my cases"* |
-| 2 | **FILTER** | "contacted leads" | Narrows by status, stage, account, date, person | *"qualification opportunities"* · *"tasks due this week"* |
-| 3 | **IDENTIFY** | "show Global Fizz opportunity" | Fetches that specific record (or all matches if ambiguous) | *"get lead John Smith"* |
-| 4 | **EDIT** | "edit Global Fizz - Copilot Studio" | Opens the record with an edit form | *"update lead John Smith"* |
-| 5 | **CREATE** | "create opportunity 500K Army, amount 89000" | Pre-filled form — complete and submit | *"new lead Jane from Contoso"* |
-| 8 | **DASHBOARD** | "show me the pipeline" | Pipeline broken down by stage with deal counts and totals | *"pipeline this quarter"* |
-| 9 | **RESOLVE FK** | *(type a name into 🔗 fields)* | Agent matches name → record on Save | *"Acme Corp"* in Account field |
-| 10 | **CLARIFY** | *(agent asks you)* | Disambiguates before acting | *"Is that a Lead, Account, or Opportunity?"* |
+| 1 | **GET** | "show / get / find leads" | Lists the most recent records | Just name the entity (leads, opportunities, accounts, contacts, cases, tasks, campaigns); no filters needed |
+| 2 | **FILTER** *(by account — FK)* | "show / get / find cases for Acme Corp" | Narrows by the parent account | Use the account's **exact name**; if several match, pick from suggestions. Available on opportunities, contacts, and cases |
+| 2 | **FILTER** *(by field — non-FK)* | "show / get / find high-priority cases" | Narrows by a record field value | Type the value directly — stage, status, priority, type, industry, an amount range, or a date range; no name lookup needed |
+| 3 | **IDENTIFY** | "show / get / find Global Fizz opportunity" | Fetches that specific record (or all matches if ambiguous) | Name the record and include the entity word (lead, opportunity, account) so the agent routes to the right one |
+| 4 | **EDIT** | "edit Global Fizz - Copilot Studio" | Opens the record with an edit form | Say "edit" + the record name, change fields in the form, then Save |
+| 5 | **CREATE** | "create opportunity 500K Army, amount 89000" | Pre-filled form — complete and submit | Put known values **in the utterance** (account, amount, close date, stage) so the form pre-fills |
+| 8 | **DASHBOARD** | "show me the pipeline" | Pipeline broken down by stage with deal counts and totals | Say "show the pipeline"; add a period such as "this quarter" to scope it |
+| 9 | **RESOLVE FK** | *(type a name into 🔗 fields)* | Agent matches name → record on Save | In 🔗 fields type the **exact name**; if several match, pick from up to five suggestions |
+| 10 | **CLARIFY** | *(agent asks you)* | Disambiguates before acting | If your request is ambiguous, answer the agent with the entity type (lead, account, opportunity, etc.) |
 
-#### 🔴 Anti-patterns — 2 operations
+#### Anti-patterns — 2 operations
 
-These require **dedicated tools outside the trio**:
+These two operations require dedicated tools outside that trio:
 
 > [!IMPORTANT]
-> Anti-pattern operations are difficult to reverse. Once you approve, reject, or convert — the state change takes effect immediately in Salesforce.
+> Anti-pattern operations are difficult to reverse. Once you approve, reject, or convert from the chat, the state change takes effect immediately in Salesforce.
 
-| # | Operation | What you say | What happens | Try it |
+| # | Operation | What you say | What happens | Tips |
 |---|---|---|---|---|
-| 6 | **ACTION** | "convert lead John Smith" | One-shot state change — done | *"show my pending approvals"* → approve inline |
-| 7 | **DRILL** | *(click ▾ on a row)* | Expands child records below | Opportunity → products + contact roles · Case → comments + tasks |
+| 6 | **ACTION** | "convert lead John Smith" | One-shot state change — done | State the action plainly; approvals can be approved or rejected inline from the widget |
+| 7 | **DRILL** | *(click ▾ on a row)* | Expands child records below | Click the ▾ on a row to expand children (Opportunity → products and contact roles, Case → comments and tasks) |
 
-### 2.2 In action
+### 2.2 What you can do with each record type
+
+Not every record type supports every operation. The table below shows, in plain terms, what you can do with each one. There are no delete operations anywhere — records can be viewed, created, and updated, but never removed from the chat.
+
+| Record type | View / find | Create | Edit / update | Other actions |
+|---|---|---|---|---|
+| **Lead** | ✓ | ✓ | ✓ | Convert to Account + Contact + Opportunity |
+| **Opportunity** | ✓ | ✓ | ✓ | Drill to products and contact roles |
+| **Account** | ✓ | ✓ | ✓ | — |
+| **Contact** | ✓ | ✓ | ✓ | — |
+| **Case** | ✓ | ✓ | ✓ | Drill to comments and tasks |
+| **Task** | ✓ | ✓ | ✓ | — |
+| **Campaign** | ✓ | ✓ | ✓ | — |
+
+Approve and reject work on any record that is waiting for your decision. The pipeline dashboard aggregates open opportunities by stage; it is a read-only view.
+
+Most requests follow one simple pattern:
+
+```
+<verb> <entity> [where / with <condition>]
+```
+
+Where:
+
+- **verb** is one of get, list, show, create, edit, or convert.
+- **entity** is the record type: lead, opportunity, account, contact, case, task, or campaign.
+- **condition** is an optional filter, such as status Qualified, stage Prospecting, account Acme Corp, or priority High.
+
+Examples:
+
+```
+get leads where status = Qualified
+list opportunities where stage = Prospecting
+edit account Acme Corp
+show cases for Acme Corp
+create opportunity 500K Army amount 89000
+convert lead John Smith
+```
+
+You do not have to phrase things this precisely — plain English works — but keeping the verb first, the entity second, and any filter last is the most reliable way to be understood.
+
+### 2.3 In action
 
 #### GET — list recent records
 
 Ask for any entity by name. The agent returns the most recent records as a sortable table with ✏️ Edit / ➕ New controls per row.
 
-![get contacts widget](img/get%20contacts.png)
+![get leads widget](../media/ShowmeLeads.gif)
 
 #### FILTER — narrow the list
 
 Add conditions to your request — status, stage, account, date range. The agent figures out which filter to apply from your wording. Lookup fields (like Account) accept names — the agent resolves them to IDs when querying.
-
-![filtered leads list — Status = Contacted](img/get%20all%20contacted%20leads.png)
 
 #### IDENTIFY — show a specific record
 
@@ -117,22 +163,16 @@ Mention a name or ID. If it matches multiple records, the agent surfaces all mat
 
 Say *"edit"* followed by a name. If multiple match, pick from a list. If one matches, the form opens directly.
 
-![disambiguation list for "edit globalfizz opportunities"](img/edit%20globalfizz%20opportunities.png)
-
-![direct edit form when single match](img/edit%20Global%20Fizz%20-%20Copilot%20Studio.png)
-
 #### CREATE — open a pre-filled form
 
 The agent picks out values from your sentence — name, amount, probability — and pre-fills the form. You review, complete any remaining fields, and submit.
 
-![new opportunity form with pre-filled values](img/prefilled%20new.png)
+![create lead form](../media/CreateLead.gif)
 
 #### ACTION — one-shot state change
 
 - *"show my pending approvals"* → lists approvals; approve or reject inline from the widget
 - *"convert lead John Smith"* → creates linked Account + Contact + Opportunity
-
-![pending approvals with inline approve/reject](img/get%20approval.png)
 
 #### DRILL — expand child records
 
@@ -141,13 +181,11 @@ Opportunities and Cases have a ▾ expand icon on each row. Click it to see chil
 - **Opportunity** → products + contact roles
 - **Case** → comments + related tasks
 
-![inline edit form with Products and Contact Roles child sections](img/inline%20edit.png)
-
 #### DASHBOARD — pipeline analytics
 
 *"show me the sales pipeline dashboard"* aggregates open opportunities by stage and presents a horizontal bar chart with a top-accounts panel.
 
-![sales pipeline dashboard](img/show%20me%20sales%20pipeline%20dashboard.png)
+![sales pipeline dashboard](../media/SF-Sales-Dashboard.gif)
 
 #### RESOLVE FK — type names, not IDs
 
@@ -156,21 +194,17 @@ Fields marked with 🔗 accept plain names. Type a name, hit Save — the agent 
 > [!TIP]
 > Look for the 🔗 icon on form fields — those are the ones that accept names instead of IDs.
 
-![lookup field — fuzzy suggestions](img/relationship%20-%20suggestions%20if%20name%20not%20found.png)
-
 #### CLARIFY — agent asks when ambiguous
 
 If your request could apply to more than one entity type, the agent asks first.
 
 *"edit dumdum"* → Agent: *"Is that a Lead, Account, Contact, Opportunity, Case, Task, or Campaign?"*
 
-![agent asks for clarification](img/LLM%20asks%20for%20clarification.png)
-
 ---
 
 ## 3. Install
 
-Four steps: clone → configure → run locally → (optional) deploy to Azure. About 30 minutes end-to-end.
+The installation has four steps: clone the repository, configure your credentials, run the server locally, and optionally deploy it to Azure. The whole process takes about 30 minutes.
 
 ### Step 1 — Clone the repo
 
@@ -186,7 +220,7 @@ cd mcp-interactiveUI-samples/mcp-apps/salesforce-crm/python
 
 ### Step 2 — Get your Salesforce credentials
 
-You need credentials from your Salesforce org. Grab them now — you'll paste them in the appropriate step below.
+You need credentials from your Salesforce org. Collect them now, because you will paste them into the appropriate step below.
 
 1. **Org URL** — Setup → Company Information → My Domain. Looks like `https://acme.salesforce.com` or `https://orgfarm-xxx.develop.my.salesforce.com`.
 2. **Connected App Consumer Key** — Setup → App Manager → find your Connected App → View → copy the Consumer Key.
@@ -258,7 +292,7 @@ The script takes 3–4 minutes the first time:
 
 ### Step 4 — Deploy to Azure (optional)
 
-Moves the server off your laptop. The agent stays online without your machine, and anyone in your tenant can use it.
+This step hosts the MCP server in Azure Container Apps instead of on your laptop. Once the server runs in Azure, the agent stays available when your laptop is off, and anyone in your Microsoft 365 tenant can use it.
 
 **Prerequisites:**
 - ☁️ **Azure CLI ≥ 2.50** — sign in with `az login`
@@ -275,12 +309,17 @@ Moves the server off your laptop. The agent stays online without your machine, a
 | `location` | Azure region (e.g. `eastus`, `westeurope`) |
 | `appInsightsConnectionString` | *(optional)* App Insights connection string |
 
-Then run:
+Then provision the Azure infrastructure once:
+```powershell
+.\deploy\AzureImageSetup.ps1
+```
+
+This first run provisions: Resource Group, Container Registry, Container Apps Environment, Container App, Log Analytics, and Managed Identity. It takes 5–10 minutes and is idempotent — re-running it verifies the stack rather than recreating it. Then build the image, deploy it, and upload the agent:
 ```powershell
 .\deploy\ServerDeploy.ps1
 ```
 
-First run provisions: Resource Group, Container Registry, Container Apps Environment, Container App, Log Analytics, Managed Identity. Takes 5–10 minutes.
+`ServerDeploy.ps1` provisions no infrastructure; it builds a fresh image in ACR, points the existing Container App at it, and re-registers the agent. Re-run it any time you ship new server or agent code. If the infrastructure is not there yet, it stops and tells you to run `AzureImageSetup.ps1` first.
 
 > [!NOTE]
 > **Response speed depends on your Azure Container Apps plan.** The default Consumption plan cold-starts containers on each request after idle timeout (~5–15 s first response). For production or demo use, consider a **Dedicated plan** or set `minReplicas: 1` in your container app config to keep the container warm.
@@ -292,14 +331,6 @@ curl -X POST <FQDN>/mcp -H "Content-Type: application/json" -d '{"jsonrpc":"2.0"
 ```
 You should get a JSON-RPC response (not a connection error).
 2. Verify the container image: `az containerapp show -g <rg> -n <app> --query "properties.template.containers[0].image" -o tsv` — should return your ACR image.
-
-**Next:** Re-upload the agent package pointing to the cloud endpoint:
-```powershell
-.\deploy\ServerDeploy.ps1 -UploadAgentOnly
-```
-
-> [!TIP]
-> If your deploy script doesn't support `-UploadAgentOnly`, update the `MCP_GATEWAY_URL` in your agent manifest to the ACA FQDN and re-upload via M365 Agents Toolkit.
 
 > [!NOTE]
 > To tear down later: `.\deploy\ServerDestroy.ps1` removes the provisioned resources but leaves your resource group and M365 agent registration intact.
@@ -322,36 +353,18 @@ The agent works best when your Salesforce org has records to interact with. If y
 
 ## 4. Troubleshooting
 
-If you hit an issue, find it below — organized by symptom.
+| Symptom | Fix |
+|---|---|
+| Agent missing from the picker | Wait 1–2 min and refresh; ensure Custom App Upload is enabled (ATK → Accounts). |
+| "Oops! Something went wrong" | Dev tunnel blip — wait ~10s and resend. |
+| `403 Forbidden` on first call | Connected App not authorized for `client_credentials` — App Manager → your Connected App → Manage → OAuth Policies → set "Run as" to an integration user. |
+| Empty results for an entity | The integration user's profile lacks Read permission on that object — Setup → Profiles → your profile → Object Permissions. |
+| `/mcp` returns 421 "Invalid Host header" | DNS-rebinding protection — already disabled in current code; on older versions set `enable_dns_rebinding_protection=False` in `salesforce_server.py`. |
+| `/mcp` returns 502 / refused | Container failed to start — `az containerapp logs show -g <rg> -n <app> --tail 100`; usually wrong creds in `parameters.bicepparam`. |
+| `RegistryNameInUse` during deploy | ACR names are global — pick a different `acrName`. |
+| Azure infra not found | Run `.\deploy\AzureImageSetup.ps1` first, then `.\deploy\ServerDeploy.ps1`. |
+| Manifest "drift detected" | Re-run the deploy script to rebuild with the correct `MCP_GATEWAY_URL`. |
+| MOS3 upload fails with `403` | Token expired — delete `.mos3_token_cache.json` and re-run. |
+| `TooLongInstructions` rejection | `instruction.txt` exceeds 8000 chars — trim it. |
+| Tools show dev-tunnel URL after Azure deploy | Re-run `.\deploy\ServerDeploy.ps1` — it re-registers the agent against the live Azure URL. |
 
-### Agent & Copilot
-
-- **Agent missing from the picker** → Wait 1–2 minutes after upload, then refresh. Still missing? Check that Custom App Upload is enabled in M365 Agents Toolkit → Accounts.
-- **"Oops! Something went wrong"** → Dev tunnel dropped momentarily. Wait 5–10 seconds and re-send your message.
-- **Widget doesn't render on mobile** → Widgets render best on desktop/web. Mobile layouts are tighter but functional.
-
-### Salesforce connection
-
-- **`403 Forbidden` on first call** → Your Connected App has not been authorized for `client_credentials`. In Salesforce Setup: App Manager → your Connected App → Manage → OAuth Policies → authorize as integration user.
-- **Empty results for an entity** → The integration user's profile lacks Read permission on that object. Check Setup → Profiles → your integration user's profile → Object Permissions.
-
-### MCP server & Azure
-
-- **`/mcp` returns 421 "Invalid Host header"** → DNS rebinding protection is blocking the Azure hostname. This is already disabled in the current codebase; if you're on an older version, set `transport_security=TransportSecuritySettings(enable_dns_rebinding_protection=False)` in `salesforce_server.py`.
-- **`/mcp` returns 502 or connection refused** → Container failed to start. Check logs: `az containerapp logs show -g <rg> -n <app> --tail 100`. Most common cause: wrong credentials in `parameters.bicepparam`.
-- **`RegistryNameInUse` during deploy** → ACR names are globally unique. Pick a different `acrName` (append random digits).
-- **`InvalidResourceGroupLocation`** → Resource group exists in a different region. Pass `-Location <existing-region>` or use a fresh resource group.
-- **`ContainerAppSecretInvalid` for `appinsights-conn-string`** → Your `deploy/main.bicep` is an older revision that doesn't handle an empty App Insights connection string. Pull the latest `main.bicep`.
-
-### Manifests & upload
-
-- **`regen_manifests.py` says "drift detected"** → Manifests are out of sync with the server URL. Re-run your deploy script to rebuild them, ensuring the correct `MCP_GATEWAY_URL` is set.
-- **MOS3 upload fails with `403`** → Token expired. Delete `.mos3_token_cache.json` and re-run (device-code sign-in will prompt again).
-- **`TooLongInstructions` rejection** → `agent/appPackage/instruction.txt` exceeds 8000 chars. Trim it.
-- **Tools show dev-tunnel URL after Azure deploy** → Re-run the deploy with `-UploadAgentOnly` so the Azure URL is preserved in manifests.
-
-### Common questions
-
-- **Can I run without Azure?** → Yes. Fill `.env`, run `LocalDeploy.ps1`. Dev tunnel handles the rest. Step 4 is optional.
-- **How do I add a new entity?** → Add three functions to `sf_crm_mcp/salesforce_tools.py` (`get`/`create`/`update`), register with the server, re-run deploy. Manifests auto-sync.
-- **Is this production-ready?** → It's a reference implementation for demos and pilots. For production: move secrets to Key Vault, switch to per-user OAuth, add audit logging and rate limiting, pin image tags.

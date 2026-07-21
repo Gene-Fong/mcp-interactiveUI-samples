@@ -35,6 +35,41 @@ def _xml_escape(s: str) -> str:
     )
 
 
+def _log_sf_http(method: str, path: str, params: dict | None, resp: "httpx.Response") -> None:
+    """Record the outbound Salesforce call — endpoint + the SOQL query fired —
+    and the data that came back (records on success, error body on failure) so
+    you can verify what was returned. Never raises."""
+    try:
+        from shared_mcp.file_logger import log_event, cap_rows
+        status = resp.status_code
+        ok = 200 <= status < 400
+        response: dict = {"status": status}
+        try:
+            body = resp.json()
+        except Exception:
+            body = None
+        if ok and isinstance(body, dict) and isinstance(body.get("records"), list):
+            response["totalSize"] = body.get("totalSize", len(body["records"]))
+            response["records"] = cap_rows(body["records"])
+        elif ok:
+            response["result"] = body
+        else:
+            response["error"] = body if body is not None else resp.text[:1000]
+        log_event(
+            "sf_http",
+            severity="INFO" if ok else "ERROR",
+            request={
+                "method": method,
+                "path": path,
+                "query": (params or {}).get("q"),
+                "params": params,
+            },
+            response=response,
+        )
+    except Exception:
+        pass
+
+
 class SalesforceAuthError(Exception):
     """Raised when Salesforce authentication fails."""
 
@@ -165,6 +200,7 @@ class SalesforceClient:
                     f"Network error on retry ({method} {path}): {exc}"
                 ) from exc
 
+        _log_sf_http(method, path, params, resp)
         return resp
 
     def _raise_for_error(self, resp: httpx.Response, context: str) -> None:

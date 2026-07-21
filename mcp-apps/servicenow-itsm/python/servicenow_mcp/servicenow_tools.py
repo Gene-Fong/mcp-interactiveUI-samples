@@ -323,7 +323,7 @@ _ENTITY_TABLES: dict[str, dict] = {
             ("priority",          "priority",          False),
             ("assigned_to",       "assigned_to",       True),
             ("sys_created_on",    "sys_created_on",    False),
-            ("work_around",       "workaround",        True),
+            ("workaround",       "workaround",        True),
         ],
         "filters": {
             "short_description": ("short_description", "like"),
@@ -1266,7 +1266,8 @@ async def sn__get_request_items(request_sys_id: str) -> types.CallToolResult:
     items = [
         {"sys_id": r.get("sys_id"), "number": r.get("number"),
          "short_description": r.get("short_description"), "state": r.get("state"),
-         "stage": r.get("stage"), "quantity": r.get("quantity"), "price": r.get("price")}
+         "stage": r.get("stage"), "quantity": r.get("quantity"), "price": r.get("price"),
+         "cat_item": _val(r.get("cat_item"))}
         for r in records
     ]
     structured = {"type": "request_items", "request_sys_id": request_sys_id,
@@ -1424,7 +1425,7 @@ async def sn__get_problems(limit: int = 5, number: str = "", query: str = "", ac
                                                "description": _val(r.get("description", "")),
                                                "priority": _val(r.get("priority", "3")),
                                                "state": _val(r.get("state", "")),
-                                               "workaround": _val(r.get("work_around", "")),
+                                               "workaround": _val(r.get("workaround", "")),
                                                "assigned_to": _val(r.get("assigned_to", ""))}},
             )
         item = {"sys_id": _val(r.get("sys_id")), "number": _val(r.get("number")),
@@ -1433,7 +1434,7 @@ async def sn__get_problems(limit: int = 5, number: str = "", query: str = "", ac
                 "state": _val(r.get("state")),
                 "priority": _val(r.get("priority")),
                 "assigned_to": _val(r.get("assigned_to")) or None,
-                "workaround": _val(r.get("work_around", "")) or None,
+                "workaround": _val(r.get("workaround", "")) or None,
                 "sys_created_on": _val(r.get("sys_created_on"))}
         return types.CallToolResult(
             content=[types.TextContent(type="text", text=f"Problem {label} retrieved. Widget below ↓")],
@@ -1484,7 +1485,7 @@ async def sn__get_problems(limit: int = 5, number: str = "", query: str = "", ac
          "description": _val(r.get("description", "")),
          "state": _val(r.get("state")),
          "priority": _val(r.get("priority")), "assigned_to": _val(r.get("assigned_to")) or None,
-         "workaround": _val(r.get("work_around", "")) or None,
+         "workaround": _val(r.get("workaround", "")) or None,
          "sys_created_on": _val(r.get("sys_created_on"))}
         for r in records
     ]
@@ -2123,7 +2124,7 @@ async def sn__update_problem(
     if work_note:                     body["work_notes"] = work_note
     if description is not None:       body["description"] = description
     if assigned_to is not None:       body["assigned_to"] = assigned_to
-    if workaround:                    body["work_around"] = workaround
+    if workaround:                    body["workaround"] = workaround
     if not body:
         return _error_result("No fields to update. Provide short_description, description, priority, state, assigned_to, workaround, or work_note.")
     try:
@@ -2167,7 +2168,7 @@ async def sn__create_problem(
     if state:
         body["state"] = _PROBLEM_STATE_DISPLAY.get(state.lower(), state)
     if assigned_to: body["assigned_to"] = assigned_to
-    if workaround:  body["work_around"] = workaround
+    if workaround:  body["workaround"] = workaround
     if work_note:   body["work_notes"] = work_note
     try:
         resp = await servicenow_request("POST", "/api/now/table/problem", json_body=body)

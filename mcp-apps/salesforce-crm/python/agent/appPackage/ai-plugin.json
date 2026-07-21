@@ -131,7 +131,7 @@
         {
             "type": "RemoteMCPServer",
             "spec": {
-                "url": "https://z7g35ldb-8080.inc1.devtunnels.ms/mcp",
+                "url": "https://lob-mcp-apps-sf.gentlepond-dd579c1b.southindia.azurecontainerapps.io/mcp",
                 "mcp_tool_description": {
                     "file": "mcp-tools.json"
                 }
