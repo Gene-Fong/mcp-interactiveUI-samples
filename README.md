@@ -145,7 +145,7 @@ MCP server that recommends learning and training courses with embedded video pre
   <img src="https://img.shields.io/badge/Azure-Container_Apps-0078D4?logo=microsoftazure&logoColor=white" alt="Azure" />
 </p>
 
-Every major LOB platform exposes a different API paradigm — Salesforce uses SOQL, ServiceNow provides GlideRecord. Integrating even a single system into M365 Copilot requires dedicated engineering effort spanning OAuth, data model mapping, pagination, rate limits, and building a UI that makes results **actually useful** rather than dumping raw JSON into chat. These apps solve that.
+Every major LOB platform exposes a different API paradigm — Salesforce uses SOQL, ServiceNow exposes a REST Table API. Integrating even a single system into M365 Copilot requires dedicated engineering effort spanning OAuth, data model mapping, pagination, rate limits, and building a UI that makes results **actually useful** rather than dumping raw JSON into chat. These apps solve that.
 
 Each app ships with:
 - A **Python MCP server** with production patterns — caching, structured logging, telemetry, and error handling
