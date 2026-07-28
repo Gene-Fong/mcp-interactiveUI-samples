@@ -5,6 +5,8 @@ __pycache__/
 .mos3_token_cache.json
 node_modules/
 dist/
+agent/appPackage/build/
+servicenow_mcp/web/widget.html
 deploy/parameters.bicepparam
 deploy/parameters.json
 
