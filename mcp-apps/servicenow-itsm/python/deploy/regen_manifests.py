@@ -1,12 +1,13 @@
 """Regenerate mcp-tools.json + ai-plugin.json from the live SN server.
 
 Writes the manifests, then validates what was written. Exits 1 on drift —
-SetSail.ps1 honors that and aborts before MOS3 upload.
+the deploy scripts (LocalDeploy.ps1 / ServerDeploy.ps1) honor that and abort
+before MOS3 upload.
 
 Run from kit/sn-mcp-copilot/:
     python deploy/regen_manifests.py
 
-Honors MCP_GATEWAY_URL (set by SetSail.ps1 to the tunnel URL).
+Honors MCP_GATEWAY_URL (set by the deploy scripts to the tunnel URL).
 """
 import json
 import os
