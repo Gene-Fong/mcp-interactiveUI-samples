@@ -313,17 +313,19 @@ This step hosts the MCP server in Azure Container Apps instead of on your laptop
 | `location` | Azure region (e.g. `eastus`, `westeurope`) |
 | `appInsightsConnectionString` | *(optional)* App Insights connection string |
 
-Then provision the Azure infrastructure once:
+Then run the **two server scripts** in order. They're split by responsibility and both are idempotent — safe to re-run.
+
+**1. Set up the Azure infrastructure** (one time, or after you change an infrastructure parameter):
 ```powershell
 .\deploy\AzureImageSetup.ps1
 ```
+This script provisions the Resource Group, Container Registry, Container Apps Environment, Container App (with a placeholder image), Log Analytics workspace, and Managed Identity. The first run takes 5–10 minutes, and later runs only verify that the stack is already in place.
 
-This first run provisions: Resource Group, Container Registry, Container Apps Environment, Container App, Log Analytics, and Managed Identity. It takes 5–10 minutes and is idempotent — re-running it verifies the stack rather than recreating it. Then build the image, deploy it, and upload the agent:
+**2. Deploy the server and agent** (every time you ship new code):
 ```powershell
 .\deploy\ServerDeploy.ps1
 ```
-
-`ServerDeploy.ps1` provisions no infrastructure; it builds a fresh image in ACR, points the existing Container App at it, and re-registers the agent. Re-run it any time you ship new server or agent code. If the infrastructure is not there yet, it stops and tells you to run `AzureImageSetup.ps1` first.
+This script builds the container image in ACR, points the Container App at that image, and then regenerates the agent manifest against the live Azure URL and uploads it to Microsoft 365 Copilot. If the infrastructure does not exist yet, the script stops and asks you to run `AzureImageSetup.ps1` first.
 
 > [!NOTE]
 > **Response speed depends on your Azure Container Apps plan.** The default Consumption plan cold-starts containers on each request after idle timeout (~5–15 s first response). For production or demo use, consider a **Dedicated plan** or set `minReplicas: 1` in your container app config to keep the container warm.
@@ -335,6 +337,9 @@ curl -X POST <FQDN>/mcp -H "Content-Type: application/json" -d '{"jsonrpc":"2.0"
 ```
 You should get a JSON-RPC response (not a connection error).
 2. Verify the container image: `az containerapp show -g <rg> -n <app> --query "properties.template.containers[0].image" -o tsv` — should return your ACR image.
+
+> [!TIP]
+> When you ship new server or agent code later, re-run `.\deploy\ServerDeploy.ps1`. It rebuilds the image and re-uploads the agent against the same infrastructure. You only need to re-run `AzureImageSetup.ps1` when you change an infrastructure parameter such as the region or the ACR name.
 
 > [!NOTE]
 > To tear down later: `.\deploy\ServerDestroy.ps1` removes the provisioned resources but leaves your resource group and M365 agent registration intact.
