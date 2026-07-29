@@ -306,7 +306,8 @@ The script takes 3–4 minutes the first time:
 ```
 2. Run `curl -X POST http://localhost:8081/mcp -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"initialize","id":1}'` — you should get a JSON-RPC response.
 3. Open M365 Copilot → pick **Ask - ServiceNow** from the agent picker.
-4. Try *"show me open incidents"* — a widget should render with an incident list.
+4. Give the agent a moment to register on first pick — wait ~30–60 s. If it doesn't appear yet, wait 1–2 minutes and refresh the agent list.
+5. Try *"show me open incidents"* — a widget should render with an incident list.
 
 > [!TIP]
 > If the agent doesn't appear in the picker, wait 1–2 minutes and refresh. Still missing? Jump to [§4 Troubleshooting](#4-troubleshooting).
@@ -356,6 +357,9 @@ curl -X POST <FQDN>/mcp -H "Content-Type: application/json" -d '{"jsonrpc":"2.0"
 ```
 You should get a JSON-RPC response (not a connection error).
 2. Verify the container image: `az containerapp show -g <rg> -n <app> --query "properties.template.containers[0].image" -o tsv` — should return your ACR image.
+3. Open M365 Copilot → pick **Ask - ServiceNow** from the agent picker.
+4. On the Consumption plan the first request may cold-start (~5–15 s) — allow a moment before it responds.
+5. Try *"show me open incidents"* — a widget should render with an incident list.
 
 > [!TIP]
 > When you ship new server or agent code later, re-run `.\deploy\ServerDeploy.ps1`. It rebuilds the image and re-uploads the agent against the same infrastructure. You only need to re-run `AzureImageSetup.ps1` when you change an infrastructure parameter such as the region or the ACR name.
