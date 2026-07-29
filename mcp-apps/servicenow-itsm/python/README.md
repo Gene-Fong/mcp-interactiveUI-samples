@@ -207,15 +207,19 @@ If your request could apply to more than one entity type, the agent asks first.
 
 ## 3. Install
 
-The installation has four steps: clone the repository, configure your credentials, run the server locally, and optionally deploy it to Azure. The whole process takes about 30 minutes.
+The installation has four steps: get the app folder, configure your credentials, run the server locally, and optionally deploy it to Azure. The whole process takes about 30 minutes.
 
-### Step 1 — Clone the repo
+### Step 1 — Get the app folder
 
-**Action:**
+Use **either** option, then `cd` into the app folder.
+
+**Option A — Clone the repo:**
 ```powershell
 git clone https://github.com/microsoft/mcp-interactiveUI-samples.git
 cd mcp-interactiveUI-samples/mcp-apps/servicenow-itsm/python
 ```
+
+**Option B — Extract the distributed zip:** unzip the app package, then open a terminal in the extracted folder (it already contains everything below — no clone needed).
 
 **Validate:** You should see `servicenow_mcp/`, `shared_mcp/`, `widgets/`, `deploy/`, and `agent/` directories.
 
