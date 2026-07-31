@@ -179,8 +179,8 @@ _ENTITY_SCHEMAS: dict[str, dict] = {
                {"name": "hs_order_name", "label": "Order Name", "required": True},
                {"name": "hs_total_price", "label": "Total Price"},
                {"name": "hs_currency_code", "label": "Currency", "picklist": ["USD", "EUR", "GBP", "CAD", "AUD", "INR"]},
-               {"name": "hs_fulfillment_status", "label": "Fulfillment Status"},
-               {"name": "hs_payment_status", "label": "Payment Status"},
+               {"name": "hs_fulfillment_status", "label": "Fulfillment Status", "picklist": ["pending", "fulfilled", "shipped", "canceled"]},
+               {"name": "hs_payment_status", "label": "Payment Status", "picklist": ["pending", "paid", "refunded", "failed"]},
                {"name": "hs_closed_date", "label": "Closed Date"},
                {"name": "hs_source_store", "label": "Source Store"},
                {"name": "company_name", "label": "Company (type full name)", "fk": True},
@@ -641,6 +641,20 @@ async def hs__update_company(
 
 # ── Generic associations tool ─────────────────────────────────────────────────
 
+# HubSpot default support-pipeline ticket stage IDs → friendly labels.
+_TICKET_STAGE_LABELS: dict[str, str] = {
+    "1": "New",
+    "2": "Waiting on contact",
+    "3": "Waiting on us",
+    "4": "Closed",
+}
+
+
+def _ticket_stage_label(stage_id: str) -> str:
+    """Convert a ticket pipeline stage ID to a human-readable label."""
+    return _TICKET_STAGE_LABELS.get(stage_id, stage_id)
+
+
 _ASSOC_CONFIG: dict[str, dict] = {
     "contacts": {
         "props": ["firstname", "lastname", "email", "phone", "lifecyclestage"],
@@ -660,7 +674,7 @@ _ASSOC_CONFIG: dict[str, dict] = {
             "id": r.get("id", ""),
             "dealname": r.get("dealname", "") or "",
             "amount": r.get("amount", "") or "",
-            "dealstage": r.get("dealstage", "") or "",
+            "dealstage": _deal_stage_label(r.get("dealstage", "") or ""),
             "closedate": r.get("closedate", "") or "",
             "pipeline": r.get("pipeline", "") or "",
         },
@@ -671,7 +685,7 @@ _ASSOC_CONFIG: dict[str, dict] = {
         "map": lambda r: {
             "id": r.get("id", ""),
             "subject": r.get("subject", "") or "",
-            "status": r.get("hs_pipeline_stage", "") or "",
+            "status": _ticket_stage_label(r.get("hs_pipeline_stage", "") or ""),
             "priority": r.get("hs_ticket_priority", "") or "",
             "category": r.get("hs_ticket_category", "") or "",
         },

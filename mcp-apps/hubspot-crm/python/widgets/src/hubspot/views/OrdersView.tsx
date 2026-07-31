@@ -44,8 +44,8 @@ export function OrdersView({ items: initItems, callTool, toast, theme, cacheInfo
     { key: 'hs_order_name', label: 'Order Name' },
     { key: 'hs_total_price', label: 'Total Price' },
     { key: 'hs_currency_code', label: 'Currency', type: 'select' as const, options: ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'INR'] },
-    { key: 'hs_fulfillment_status', label: 'Fulfillment Status' },
-    { key: 'hs_payment_status', label: 'Payment Status' },
+    { key: 'hs_fulfillment_status', label: 'Fulfillment Status', type: 'select' as const, options: ['pending', 'fulfilled', 'shipped', 'canceled'] },
+    { key: 'hs_payment_status', label: 'Payment Status', type: 'select' as const, options: ['pending', 'paid', 'refunded', 'failed'] },
     { key: 'hs_closed_date', label: 'Closed Date' },
     { key: 'hs_source_store', label: 'Source Store' },
   ];
