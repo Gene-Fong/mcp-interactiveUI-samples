@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+import re
 from datetime import datetime, timezone
 from typing import Any
 
@@ -107,7 +109,7 @@ _ENTITY_SCHEMAS: dict[str, dict] = {
                {"name": "dealstage", "label": "Stage", "required": True, "picklist": [
                    "3442945774", "3442945775", "3442945776", "3442945777", "closedwon", "closedlost",
                ]},
-               {"name": "closedate", "label": "Close Date"},
+               {"name": "closedate", "label": "Close Date", "inputType": "date"},
                {"name": "dealtype", "label": "Deal Type", "picklist": ["newbusiness", "existingbusiness"]},
                {"name": "description", "label": "Description", "multiline": True},
                {"name": "company_name", "label": "Company (type full name)", "fk": True},
@@ -139,6 +141,7 @@ _ENTITY_SCHEMAS: dict[str, dict] = {
             "name": {"operator": "CONTAINS_TOKEN", "property": "name"},
             "hs_product_type": {"operator": "EQ", "property": "hs_product_type"},
             "hs_status": {"operator": "EQ", "property": "hs_status"},
+            "recurringbillingfrequency": {"operator": "EQ", "property": "recurringbillingfrequency"},
         },
         "formFields": [
             {"name": "name", "label": "Product Name", "required": True},
@@ -150,7 +153,7 @@ _ENTITY_SCHEMAS: dict[str, dict] = {
                 "weekly", "biweekly", "monthly", "quarterly", "per_six_months",
                 "annually", "per_two_years", "per_three_years", "per_four_years", "per_five_years",
             ]},
-            {"name": "hs_recurring_billing_period", "label": "Term"},
+            {"name": "hs_recurring_billing_period", "label": "Term (e.g. 12 months)"},
             {"name": "description", "label": "Description", "multiline": True},
         ],
     },
@@ -183,7 +186,6 @@ _ENTITY_SCHEMAS: dict[str, dict] = {
                {"name": "hs_currency_code", "label": "Currency", "picklist": ["USD", "EUR", "GBP", "CAD", "AUD", "INR"]},
                {"name": "hs_fulfillment_status", "label": "Fulfillment Status", "picklist": ["pending", "fulfilled", "shipped", "canceled"]},
                {"name": "hs_payment_status", "label": "Payment Status", "picklist": ["pending", "paid", "refunded", "failed"]},
-               {"name": "hs_closed_date", "label": "Closed Date"},
                {"name": "hs_source_store", "label": "Source Store"},
                {"name": "company_name", "label": "Company (type full name)", "fk": True},
                {"name": "contact_name", "label": "Contact (type full name)", "fk": True},
@@ -225,6 +227,90 @@ def _cache_set(key: str, entity: str, items: list) -> str:
 
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+async def _empty_list() -> list:
+    """Awaitable that resolves to an empty list (placeholder for asyncio.gather)."""
+    return []
+
+
+def _to_hs_date(value: str) -> str:
+    """Normalize a date/datetime form value to epoch milliseconds (UTC).
+
+    HubSpot accepts epoch-ms for every date and datetime property, and a "date"
+    property additionally requires the value to fall on midnight UTC. The date
+    picker sends ``YYYY-MM-DD`` and the datetime-local picker sends
+    ``YYYY-MM-DDTHH:MM``; both are converted here. Empty values and values that
+    are already epoch-ms are passed through unchanged.
+    """
+    if not value:
+        return value
+    v = value.strip()
+    if v.isdigit():
+        return v
+    try:
+        if "T" in v:
+            dt = datetime.fromisoformat(v)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+        else:
+            dt = datetime.fromisoformat(v).replace(tzinfo=timezone.utc)
+        return str(int(dt.timestamp() * 1000))
+    except ValueError:
+        return v
+
+
+_WEEKLY_FREQS = {"weekly", "biweekly"}
+
+
+def _term_unit_for_freq(freq: str) -> str:
+    """ISO-8601 duration unit HubSpot requires for a given billing frequency.
+
+    HubSpot rejects an order/product save unless ``hs_recurring_billing_period``
+    (the term) shares the unit family of ``recurringbillingfrequency``: weeks
+    (``W``) for weekly/biweekly billing, months (``M``) for everything else
+    (monthly, quarterly, per_six_months, annually, per_two_years, ...).
+    """
+    return "W" if (freq or "").strip().lower() in _WEEKLY_FREQS else "M"
+
+
+def _to_hs_duration(value: str, unit: str = "M") -> str:
+    """Normalize a contract-term value to an ISO-8601 duration in ``unit``.
+
+    HubSpot's ``hs_recurring_billing_period`` must be an ISO-8601 duration whose
+    unit matches the billing frequency (weeks or months — see
+    ``_term_unit_for_freq``); a bare number or a mismatched unit returns HTTP
+    400. This extracts the numeric count from friendly inputs (``90``,
+    ``12 months``, ``P4W``) and re-expresses it in the required ``unit``. Empty
+    values and values with no digits are passed through unchanged.
+    """
+    if not value:
+        return value
+    m = re.search(r"\d+", value)
+    if not m:
+        return value.strip()
+    return f"P{m.group(0)}{unit}"
+
+
+def _friendly_product_error(exc: Exception) -> str:
+    """Turn a raw HubSpot product API error into a single user-friendly sentence."""
+    msg = str(exc)
+    if "monthly or weekly form" in msg or (
+        "recurringbillingfrequency" in msg and "hs_recurring_billing_period" in msg
+    ):
+        return (
+            "Couldn't save the product: the Term must use the same unit as the "
+            "Billing Frequency — weeks (e.g. '4 weeks') for weekly or biweekly "
+            "billing, or months (e.g. '12 months') for monthly, quarterly, or "
+            "annual billing."
+        )
+    # Strip the technical 'HubSpot API error (context, HTTP nnn): ' prefix and
+    # any duplicated tail so the toast shows one clean sentence.
+    detail = msg.split("): ", 1)[-1] if "): " in msg else msg
+    detail = detail.split(".: ")[0].strip().rstrip(".")
+    return f"Couldn't save the product: {detail}." if detail else "Couldn't save the product."
+
+
 
 
 # ── Shared helpers ────────────────────────────────────────────────────────────
@@ -1236,22 +1322,28 @@ async def hs__get_deals(
     except Exception as exc:
         return _error_result(f"Error searching deals: {exc}")
 
-    # Resolve company names for each deal
+    # Resolve company names for all deals in a couple of batch calls instead
+    # of two sequential calls per deal.
     items = []
     for r in results:
         item = {p: r.get(p, "") or "" for p in props if p != "company"}
         item["id"] = r.get("id", "")
         item["dealstage_label"] = _deal_stage_label(item.get("dealstage", ""))
-        try:
-            co_ids = await client.get_associated_ids("deals", item["id"], "companies")
-            if co_ids:
-                cos = await client.batch_read("companies", co_ids[:1], ["name"])
-                item["company"] = cos[0].get("name", "") if cos else ""
-            else:
-                item["company"] = ""
-        except Exception:
-            item["company"] = ""
+        item["company"] = ""
         items.append(item)
+
+    deal_ids_list = [i["id"] for i in items if i["id"]]
+    if deal_ids_list:
+        try:
+            co_map = await client.batch_get_associations("deals", "companies", deal_ids_list)
+            co_ids = list({v[0] for v in co_map.values() if v})
+            cos = await client.batch_read("companies", co_ids, ["name"]) if co_ids else []
+            co_names = {c["id"]: c.get("name", "") for c in cos}
+            for item in items:
+                if co_map.get(item["id"]):
+                    item["company"] = co_names.get(co_map[item["id"]][0], "")
+        except Exception:
+            pass
 
     cached_at = _cache_set(cache_key, "Deal", items)
     return types.CallToolResult(
@@ -1310,7 +1402,7 @@ async def hs__create_deal(
     if amount:
         props["amount"] = amount
     if closedate:
-        props["closedate"] = closedate
+        props["closedate"] = _to_hs_date(closedate)
     if dealtype:
         props["dealtype"] = dealtype
     if description:
@@ -1360,7 +1452,7 @@ async def hs__update_deal(
     if dealstage:
         props["dealstage"] = dealstage
     if closedate:
-        props["closedate"] = closedate
+        props["closedate"] = _to_hs_date(closedate)
     if dealtype:
         props["dealtype"] = dealtype
     if description:
@@ -1380,7 +1472,9 @@ async def hs__update_deal(
         return _error_result(f"Error updating deal: {exc}")
 
     _get_cache("Deal").clear()
-    return await hs__get_deals(refresh=True)
+    # Return only the saved record (single-record branch) so the widget can
+    # patch that one row — avoids re-resolving associations for the whole list.
+    return await hs__get_deals(deal_id=deal_id)
 
 
 # ── Orders tools ──────────────────────────────────────────────────────────────
@@ -1391,6 +1485,8 @@ async def hs__get_orders(
     hs_fulfillment_status: str = "",
     hs_payment_status: str = "",
     hs_currency_code: str = "",
+    hs_total_price: str = "",
+    hs_source_store: str = "",
     hs_total_price_min: str = "",
     hs_total_price_max: str = "",
     company_name: str = "",
@@ -1410,12 +1506,16 @@ async def hs__get_orders(
         prefill = {field["name"]: "" for field in schema["formFields"]}
         if hs_order_name:
             prefill["hs_order_name"] = hs_order_name
+        if hs_total_price:
+            prefill["hs_total_price"] = hs_total_price
         if hs_currency_code:
             prefill["hs_currency_code"] = hs_currency_code
         if hs_fulfillment_status:
             prefill["hs_fulfillment_status"] = hs_fulfillment_status
         if hs_payment_status:
             prefill["hs_payment_status"] = hs_payment_status
+        if hs_source_store:
+            prefill["hs_source_store"] = hs_source_store
         if company_name:
             prefill["company_name"] = company_name
         if contact_name:
@@ -1626,39 +1726,46 @@ async def hs__get_orders(
     except Exception as exc:
         return _error_result(f"Error searching orders: {exc}")
 
-    # Resolve FK names for each order
+    # Resolve FK names for all orders using batch association + batch read
+    # calls (a few round-trips total) instead of ~6 sequential calls per order.
     items = []
     for r in results:
         item = {p: r.get(p, "") or "" for p in native_props}
         item["id"] = r.get("id", "")
-        try:
-            co_ids = await client.get_associated_ids("orders", item["id"], "companies")
-            if co_ids:
-                cos = await client.batch_read("companies", co_ids[:1], ["name"])
-                item["company"] = cos[0].get("name", "") if cos else ""
-            else:
-                item["company"] = ""
-        except Exception:
-            item["company"] = ""
-        try:
-            ct_ids = await client.get_associated_ids("orders", item["id"], "contacts")
-            if ct_ids:
-                cts = await client.batch_read("contacts", ct_ids[:1], ["firstname", "lastname"])
-                item["contact"] = f"{cts[0].get('firstname', '')} {cts[0].get('lastname', '')}".strip() if cts else ""
-            else:
-                item["contact"] = ""
-        except Exception:
-            item["contact"] = ""
-        try:
-            d_ids = await client.get_associated_ids("orders", item["id"], "deals")
-            if d_ids:
-                ds = await client.batch_read("deals", d_ids[:1], ["dealname"])
-                item["deal"] = ds[0].get("dealname", "") if ds else ""
-            else:
-                item["deal"] = ""
-        except Exception:
-            item["deal"] = ""
+        item["company"] = ""
+        item["contact"] = ""
+        item["deal"] = ""
         items.append(item)
+
+    order_ids = [i["id"] for i in items if i["id"]]
+    if order_ids:
+        try:
+            co_map, ct_map, dl_map = await asyncio.gather(
+                client.batch_get_associations("orders", "companies", order_ids),
+                client.batch_get_associations("orders", "contacts", order_ids),
+                client.batch_get_associations("orders", "deals", order_ids),
+            )
+            co_ids = list({v[0] for v in co_map.values() if v})
+            ct_ids = list({v[0] for v in ct_map.values() if v})
+            dl_ids = list({v[0] for v in dl_map.values() if v})
+            cos, cts, ds = await asyncio.gather(
+                client.batch_read("companies", co_ids, ["name"]) if co_ids else _empty_list(),
+                client.batch_read("contacts", ct_ids, ["firstname", "lastname"]) if ct_ids else _empty_list(),
+                client.batch_read("deals", dl_ids, ["dealname"]) if dl_ids else _empty_list(),
+            )
+            co_names = {c["id"]: c.get("name", "") for c in cos}
+            ct_names = {c["id"]: f"{c.get('firstname', '')} {c.get('lastname', '')}".strip() for c in cts}
+            dl_names = {d["id"]: d.get("dealname", "") for d in ds}
+            for item in items:
+                oid = item["id"]
+                if co_map.get(oid):
+                    item["company"] = co_names.get(co_map[oid][0], "")
+                if ct_map.get(oid):
+                    item["contact"] = ct_names.get(ct_map[oid][0], "")
+                if dl_map.get(oid):
+                    item["deal"] = dl_names.get(dl_map[oid][0], "")
+        except Exception:
+            pass
 
     cached_at = _cache_set(cache_key, "Order", items)
     return types.CallToolResult(
@@ -1673,7 +1780,6 @@ async def hs__create_order(
     hs_currency_code: str = "",
     hs_fulfillment_status: str = "",
     hs_payment_status: str = "",
-    hs_closed_date: str = "",
     hs_source_store: str = "",
     company_name: str = "",
     contact_name: str = "",
@@ -1724,8 +1830,6 @@ async def hs__create_order(
         props["hs_fulfillment_status"] = hs_fulfillment_status
     if hs_payment_status:
         props["hs_payment_status"] = hs_payment_status
-    if hs_closed_date:
-        props["hs_closed_date"] = hs_closed_date
     if hs_source_store:
         props["hs_source_store"] = hs_source_store
 
@@ -1756,7 +1860,6 @@ async def hs__update_order(
     hs_currency_code: str = "",
     hs_fulfillment_status: str = "",
     hs_payment_status: str = "",
-    hs_closed_date: str = "",
     hs_source_store: str = "",
 ) -> types.CallToolResult:
     """Update an existing Order in HubSpot CRM."""
@@ -1775,8 +1878,6 @@ async def hs__update_order(
         props["hs_fulfillment_status"] = hs_fulfillment_status
     if hs_payment_status:
         props["hs_payment_status"] = hs_payment_status
-    if hs_closed_date:
-        props["hs_closed_date"] = hs_closed_date
     if hs_source_store:
         props["hs_source_store"] = hs_source_store
 
@@ -1794,7 +1895,9 @@ async def hs__update_order(
         return _error_result(f"Error updating order: {exc}")
 
     _get_cache("Order").clear()
-    return await hs__get_orders(refresh=True)
+    # Return only the saved record (single-record branch) so the widget can
+    # patch that one row — avoids re-resolving associations for the whole list.
+    return await hs__get_orders(order_id=order_id)
 
 
 # ── Products tools ────────────────────────────────────────────────────────────
@@ -1804,12 +1907,14 @@ async def hs__get_products(
     name: str = "",
     hs_status: str = "",
     hs_product_type: str = "",
+    recurringbillingfrequency: str = "",
     action: str = "",
     refresh: bool = False,
 ) -> types.CallToolResult:
     """Get products. Branches: id+edit→form, id→list-of-one, filters→filtered, bare→top 10."""
     log.info("hs__get_products", product_id=product_id, action=action,
-             name=name, hs_status=hs_status, hs_product_type=hs_product_type, refresh=refresh)
+             name=name, hs_status=hs_status, hs_product_type=hs_product_type,
+             recurringbillingfrequency=recurringbillingfrequency, refresh=refresh)
 
     cfg = _get_schema("Product")
 
@@ -1877,6 +1982,7 @@ async def hs__get_products(
     # Branch 3 — filter-based or bare list
     filter_params = {
         "name": name, "hs_product_type": hs_product_type, "hs_status": hs_status,
+        "recurringbillingfrequency": recurringbillingfrequency,
     }
     filter_groups = _build_filter_groups("Product", filter_params)
 
@@ -1940,7 +2046,8 @@ async def hs__create_product(
     if recurringbillingfrequency:
         props["recurringbillingfrequency"] = recurringbillingfrequency
     if hs_recurring_billing_period:
-        props["hs_recurring_billing_period"] = hs_recurring_billing_period
+        props["hs_recurring_billing_period"] = _to_hs_duration(
+            hs_recurring_billing_period, _term_unit_for_freq(recurringbillingfrequency))
     if description:
         props["description"] = description
 
@@ -1950,7 +2057,7 @@ async def hs__create_product(
     except HubSpotAuthError as exc:
         return _error_result(f"HubSpot authentication failed: {exc}")
     except HubSpotAPIError as exc:
-        return _error_result(f"Failed to create product: {exc}")
+        return _error_result(_friendly_product_error(exc))
     except Exception as exc:
         return _error_result(f"Unexpected error creating product: {exc}")
 
@@ -2002,21 +2109,33 @@ async def hs__update_product(
         props["hs_product_type"] = hs_product_type
     if recurringbillingfrequency:
         props["recurringbillingfrequency"] = recurringbillingfrequency
-    if hs_recurring_billing_period:
-        props["hs_recurring_billing_period"] = hs_recurring_billing_period
     if description:
         props["description"] = description
 
-    if not props:
+    if not props and not hs_recurring_billing_period:
         return _error_result("No fields provided to update.")
 
     try:
         client = get_client()
+        # Keep the term and billing frequency in the same unit family — HubSpot
+        # rejects the save otherwise. Resolve the effective frequency (from this
+        # update or the existing record) and (re)normalize the term to match,
+        # even when only one of the two fields is being changed.
+        if hs_recurring_billing_period or recurringbillingfrequency:
+            existing = None
+            if not recurringbillingfrequency or not hs_recurring_billing_period:
+                existing = await client.get_object(
+                    "products", product_id,
+                    ["recurringbillingfrequency", "hs_recurring_billing_period"])
+            freq = recurringbillingfrequency or (existing or {}).get("recurringbillingfrequency", "")
+            term_src = hs_recurring_billing_period or (existing or {}).get("hs_recurring_billing_period", "")
+            if term_src:
+                props["hs_recurring_billing_period"] = _to_hs_duration(term_src, _term_unit_for_freq(freq))
         await client.update_object("products", product_id, props)
     except HubSpotAuthError as exc:
         return _error_result(f"HubSpot authentication failed: {exc}")
     except HubSpotAPIError as exc:
-        return _error_result(f"Failed to update product: {exc}")
+        return _error_result(_friendly_product_error(exc))
     except Exception as exc:
         return _error_result(f"Unexpected error updating product: {exc}")
 
@@ -2493,6 +2612,8 @@ async def hs__create_activity(
     for field in cfg["formFields"]:
         val = kwargs.get(field["name"], "")
         if val:
+            if field.get("inputType") in ("date", "datetime-local"):
+                val = _to_hs_date(val)
             props[field["name"]] = val
 
     # Ensure required fields
@@ -2641,9 +2762,10 @@ async def hs__update_activity(
     # Build properties from kwargs matching form fields
     props: dict[str, Any] = {}
     valid_fields = {f["name"] for f in cfg["formFields"]}
+    date_fields = {f["name"] for f in cfg["formFields"] if f.get("inputType") in ("date", "datetime-local")}
     for k, v in kwargs.items():
         if k in valid_fields and v:
-            props[k] = v
+            props[k] = _to_hs_date(v) if k in date_fields else v
 
     # Resolve owner name → owner ID
     if owner_name:
@@ -2822,7 +2944,7 @@ TOOL_SPECS: list[dict] = [
         "description": (
             "Create a new Order in HubSpot CRM. Required: hs_order_name. "
             "Optional: hs_total_price, hs_currency_code, hs_fulfillment_status, "
-            "hs_payment_status, hs_closed_date (ISO date), hs_source_store, "
+            "hs_payment_status, hs_source_store, "
             "company_name (associates to company), contact_name (associates to contact), "
             "deal_name (associates to deal)."
         ),
@@ -2834,7 +2956,7 @@ TOOL_SPECS: list[dict] = [
             "Update an existing Order in HubSpot CRM by its record Id. "
             "Only fields provided will be updated. "
             "Fields: hs_order_name, hs_total_price, hs_currency_code, "
-            "hs_fulfillment_status, hs_payment_status, hs_closed_date, hs_source_store."
+            "hs_fulfillment_status, hs_payment_status, hs_source_store."
         ),
         "handler": hs__update_order,
     },
@@ -2845,7 +2967,8 @@ TOOL_SPECS: list[dict] = [
             "Pass product_id to view one record; add action='edit' to open the edit form; "
             "action='create' to open a blank create form. "
             "Filters: name (text search), hs_product_type (inventory/non_inventory/service), "
-            "hs_status (active/inactive)."
+            "hs_status (active/inactive), recurringbillingfrequency (weekly/biweekly/monthly/"
+            "quarterly/per_six_months/annually/per_two_years/per_three_years/per_four_years/per_five_years)."
         ),
         "handler": hs__get_products,
     },
@@ -2857,7 +2980,7 @@ TOOL_SPECS: list[dict] = [
             "hs_product_type (inventory/non_inventory/service), "
             "recurringbillingfrequency (weekly/biweekly/monthly/quarterly/per_six_months/"
             "annually/per_two_years/per_three_years/per_four_years/per_five_years), "
-            "hs_recurring_billing_period (term), description."
+            "hs_recurring_billing_period (term, e.g. '12 months' or '90 days'), description."
         ),
         "handler": hs__create_product,
     },
@@ -2867,7 +2990,7 @@ TOOL_SPECS: list[dict] = [
             "Update an existing Product in HubSpot CRM by its record Id. "
             "Only fields provided will be updated. "
             "Fields: name, hs_sku, price, hs_status, hs_product_type, "
-            "recurringbillingfrequency, hs_recurring_billing_period, description."
+            "recurringbillingfrequency, hs_recurring_billing_period (term, e.g. '12 months'), description."
         ),
         "handler": hs__update_product,
     },

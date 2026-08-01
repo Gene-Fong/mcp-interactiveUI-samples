@@ -115,7 +115,10 @@ export function DealsView({ items: initItems, callTool, toast, theme, cacheInfo:
         setSaving(false);
         return;
       }
-      if (res?.items) { setLocalItems(res.items); setCacheInfo(res._cache); }
+      if (res?.items?.length) {
+        const u = res.items[0];
+        setLocalItems((prev: any[]) => prev.map((o: any) => (o.id === u.id ? { ...o, ...u } : o)));
+      }
       setLastSavedId(editingId);
       setTimeout(() => setLastSavedId(null), 2200);
       toast('Deal updated');

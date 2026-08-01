@@ -4,6 +4,7 @@ import { ArrowLeftRegular, CalendarRegular, CheckmarkRegular } from '@fluentui/r
 import { useStyles } from '../styles';
 import { hs } from '../theme';
 import { HsFooter } from '../components/HsFooter';
+import { ExpandButton } from '../../shared/ExpandButton';
 import { useMcpBridge } from '../../shared/McpBridge';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -74,6 +75,7 @@ export function ActivityFormView({ data, callTool, toast, theme }: {
         <Button appearance="subtle" icon={<ArrowLeftRegular />} size="small" onClick={handleBack} aria-label="Back" />
         <CalendarRegular style={{ fontSize: 18, color: tokens.colorBrandForeground1 }} />
         <span style={{ fontSize: 16, fontWeight: 700, color: t.text }}>{title}</span>
+        <span style={{ marginLeft: 'auto' }}><ExpandButton /></span>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>

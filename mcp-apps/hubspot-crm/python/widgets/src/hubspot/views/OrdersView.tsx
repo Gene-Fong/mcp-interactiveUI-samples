@@ -20,14 +20,6 @@ function fmtDate(d: string | undefined): string {
   try { return new Date(d).toLocaleDateString(); } catch { return d; }
 }
 
-// Normalize a HubSpot date value (ISO string or epoch-ms) to the YYYY-MM-DD
-// format required by <input type="date">.
-function toDateInput(d: string | number | undefined): string {
-  if (d == null || d === '') return '';
-  const dt = new Date(typeof d === 'string' && /^\d+$/.test(d) ? Number(d) : d);
-  return isNaN(dt.getTime()) ? '' : dt.toISOString().slice(0, 10);
-}
-
 // ── OrdersView ─────────────────────────────────────────────────────────────
 export function OrdersView({ items: initItems, callTool, toast, theme, cacheInfo: initCacheInfo, isFullscreen }: {
   items: any[]; callTool: (n: string, a?: any) => Promise<any>;
@@ -53,7 +45,6 @@ export function OrdersView({ items: initItems, callTool, toast, theme, cacheInfo
     { key: 'hs_currency_code', label: 'Currency', type: 'select' as const, options: ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'INR'] },
     { key: 'hs_fulfillment_status', label: 'Fulfillment Status', type: 'select' as const, options: ['pending', 'fulfilled', 'shipped', 'canceled'] },
     { key: 'hs_payment_status', label: 'Payment Status', type: 'select' as const, options: ['pending', 'paid', 'refunded', 'failed'] },
-    { key: 'hs_closed_date', label: 'Closed Date', inputType: 'date' as const },
     { key: 'hs_source_store', label: 'Source Store' },
   ];
 
@@ -101,7 +92,10 @@ export function OrdersView({ items: initItems, callTool, toast, theme, cacheInfo
         setSaving(false);
         return;
       }
-      if (res?.items) { setLocalItems(res.items); setCacheInfo(res._cache); }
+      if (res?.items?.length) {
+        const u = res.items[0];
+        setLocalItems((prev: any[]) => prev.map((o: any) => (o.id === u.id ? { ...o, ...u } : o)));
+      }
       setLastSavedId(editingId);
       setTimeout(() => setLastSavedId(null), 2200);
       toast('Order updated');
@@ -118,7 +112,6 @@ export function OrdersView({ items: initItems, callTool, toast, theme, cacheInfo
       hs_currency_code: order.hs_currency_code || '',
       hs_fulfillment_status: order.hs_fulfillment_status || '',
       hs_payment_status: order.hs_payment_status || '',
-      hs_closed_date: toDateInput(order.hs_closed_date),
       hs_source_store: order.hs_source_store || '',
     });
     setEditingId(order.id);

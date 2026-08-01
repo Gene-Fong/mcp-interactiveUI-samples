@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Button, Field, Input, Textarea, tokens } from '@fluentui/react-components';
-import { ArrowLeftRegular, SaveRegular, AddRegular } from '@fluentui/react-icons';
+import { SaveRegular, AddRegular } from '@fluentui/react-icons';
 import { useStyles } from '../styles';
 import { hs } from '../theme';
 import { FormSelect } from '../components/FormSelect';
 import { HsFooter } from '../components/HsFooter';
+import { ExpandButton } from '../../shared/ExpandButton';
 import { useMcpBridge } from '../../shared/McpBridge';
 
 // ── FkHint — conditional footer for FK fields ──────────────────────────────
@@ -34,7 +35,11 @@ export function FormView({ data, callTool, toast, theme }: {
   const entity = data.entity || 'company';
   const prefill = data.prefill || {};
   const schema = data._schema || {};
-  const formFields: any[] = schema.formFields || [];
+  const allFormFields: any[] = schema.formFields || [];
+  // FK association fields (company_name/contact_name/deal_name) create links at
+  // create time only — the update handlers do NOT re-associate, so showing them
+  // on an edit form would silently drop the value. Hide them when editing.
+  const formFields: any[] = isEdit ? allFormFields.filter((f: any) => !f.fk) : allFormFields;
 
   const [form, setForm] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
@@ -83,13 +88,11 @@ export function FormView({ data, callTool, toast, theme }: {
 
   return (
     <div className={styles.card}>
-      <div style={{ padding: '16px', borderBottom: `1px solid ${tokens.colorNeutralStroke2}` }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <Button appearance="subtle" size="small" icon={<ArrowLeftRegular />} onClick={handleBack} aria-label="Back to list" />
-          <h2 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: tokens.colorNeutralForeground1 }}>
-            {isEdit ? `Edit ${entityLabel}` : `New ${entityLabel}`}
-          </h2>
-        </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', padding: '16px', borderBottom: `1px solid ${tokens.colorNeutralStroke2}` }}>
+        <h2 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: tokens.colorNeutralForeground1 }}>
+          {isEdit ? `Edit ${entityLabel}` : `New ${entityLabel}`}
+        </h2>
+        <ExpandButton />
       </div>
       <div className={styles.formPanel}>
         <div className={styles.formGrid}>
@@ -102,7 +105,7 @@ export function FormView({ data, callTool, toast, theme }: {
               <FormSelect key={f.name} label={f.label} value={form[f.name]} options={f.picklist} onChange={v => setF(f.name, v)} />
             ) : (
               <Field key={f.name} label={f.label} size="small" required={f.required}>
-                <Input size="small" value={form[f.name]} onChange={(_, d) => setF(f.name, d.value)} aria-label={f.label} />
+                <Input size="small" type={f.inputType || 'text'} value={form[f.name]} onChange={(_, d) => setF(f.name, d.value)} aria-label={f.label} />
               </Field>
             )
           )}

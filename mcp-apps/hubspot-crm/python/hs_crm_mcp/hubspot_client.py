@@ -163,6 +163,35 @@ class HubSpotClient:
         results = resp.json().get("results", [])[:limit]
         return [str(r["toObjectId"]) for r in results]
 
+    async def batch_get_associations(
+        self,
+        from_type: str,
+        to_type: str,
+        from_ids: list[str],
+        limit_each: int = 1,
+    ) -> dict[str, list[str]]:
+        """Resolve associations for many source records in a single call.
+
+        Uses the v4 batch associations read endpoint so that a list of N records
+        needs one HTTP round-trip instead of N. Returns a mapping of
+        ``from_id -> [to_id, ...]`` (capped at ``limit_each`` targets each).
+        """
+        if not from_ids:
+            return {}
+        resp = await self._request(
+            "POST",
+            f"/crm/v4/associations/{from_type}/{to_type}/batch/read",
+            json_body={"inputs": [{"id": str(fid)} for fid in from_ids]},
+        )
+        self._raise_for_error(resp, f"batch associations {from_type} -> {to_type}")
+        out: dict[str, list[str]] = {}
+        for r in resp.json().get("results", []):
+            fid = str(r.get("from", {}).get("id", ""))
+            if not fid:
+                continue
+            out[fid] = [str(t["toObjectId"]) for t in r.get("to", [])][:limit_each]
+        return out
+
     async def batch_read(
         self,
         object_type: str,
