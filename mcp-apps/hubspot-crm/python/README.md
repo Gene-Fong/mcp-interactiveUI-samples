@@ -72,7 +72,9 @@ The app implements **19 tools** — a GET / CREATE / UPDATE trio for each of the
 
 ### 2.1 Canonical operations
 
-These follow the standard three-tool pattern of GET, CREATE, and UPDATE, plus the drill-down, name-resolution, and clarify behaviours:
+#### Design patterns — 7 operations
+
+These are built on the standard three-tool pattern of GET, CREATE, and UPDATE, plus the name-resolution and clarify behaviours:
 
 | # | Operation | What you say | What happens | Tips |
 |---|---|---|---|---|
@@ -82,9 +84,19 @@ These follow the standard three-tool pattern of GET, CREATE, and UPDATE, plus th
 | 3 | **IDENTIFY** | "show company Evolt Active" | Fetches that specific record (or all matches if ambiguous) | Name the record and include the entity word so the agent routes to the right one |
 | 4 | **EDIT** | "edit Evolt Active" | Opens the record with an edit form | Say "edit" + the record name, change fields in the form, then Save |
 | 5 | **CREATE** | "create company Contoso, type PROSPECT, city Seattle" | Pre-filled form — complete and submit | Put known values **in the utterance** so the form pre-fills |
-| 6 | **DRILL** | *(click the 👁 eye on a row)* | Opens a 360 modal with associated records | In full-screen view, click the eye to see contacts, deals, tickets, line items, and companies linked to the record |
 | 7 | **RESOLVE FK** | *(type a name into 🔗 fields)* | Agent matches name → record on Save | In 🔗 fields type the **exact name**; if several match, pick from up to five suggestions |
 | 8 | **CLARIFY** | *(agent asks you)* | Disambiguates before acting | If a name could be a company or a contact, answer the agent with the type |
+
+#### Anti-patterns — 1 operation
+
+Drill-down sits outside an entity's GET/CREATE/UPDATE trio. It is powered by the one shared `hs__get_associations` tool, which reads a record's associated objects on demand rather than through that record's own three tools:
+
+| # | Operation | What you say | What happens | Tips |
+|---|---|---|---|---|
+| 6 | **DRILL** | *(click the 👁 eye on a row)* | Opens a 360 modal with associated records | In full-screen view, click the eye to see contacts, deals, tickets, line items, and companies linked to the record |
+
+> [!NOTE]
+> Drill-down is **read-only** — it never changes a record. HubSpot has no one-shot state-change operation (no approve, reject, or convert), so unlike a write, nothing you do from the chat is irreversible.
 
 ### 2.2 What you can do with each record type
 
@@ -304,6 +316,23 @@ cd mcp-apps/hubspot-crm/python
 docker build -t hs-mcp-copilot .
 docker run -p 8082:8082 -e HUBSPOT_ACCESS_TOKEN=pat-na2-... hs-mcp-copilot
 ```
+
+---
+
+#### Suggested sample data
+
+The agent works best when your HubSpot account has records to interact with. If you're on a fresh account, seed this minimum so every operation has something to show:
+
+- **3–5 Companies** with mixed types (PROSPECT, PARTNER, CUSTOMER) and different cities — exercises GET, FILTER by field, and IDENTIFY.
+- **3–5 Contacts** linked to those companies, with different lifecycle stages and job titles — exercises FILTER by parent (contacts for a company) and RESOLVE FK.
+- **3–5 Deals** across pipeline stages (Lead Captured → Closed Won/Lost), each associated with a company and a contact — exercises FILTER by stage and DRILL.
+- **2–3 Orders** with different fulfillment/payment statuses and totals, linked to a deal and company, each with a line item or two — exercises numeric-range FILTER (total over 5000) and DRILL to line items.
+- **3–5 Products** with mixed status (active/inactive) and product types — exercises product filters and feeds order line items.
+- **A few Activities of each type** — a note, call, task, meeting, and email — attached to a company, contact, or deal — exercises activity list/filter/create/edit and the Related To column.
+- **1–2 Tickets** attached to a company, contact, or deal — exercises the read-only drill-down (tickets have no create/edit tool).
+
+> [!TIP]
+> A HubSpot developer test account seeds a handful of sample companies and contacts out of the box. Add a few deals, orders, products, and activities as above for the fullest demo across every widget.
 
 ---
 
