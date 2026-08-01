@@ -12,8 +12,9 @@ from starlette.middleware.cors import CORSMiddleware
 from .hubspot_settings import get_settings
 from .hubspot_tools import TOOL_SPECS, PROMPT_SPECS
 from shared_mcp.telemetry import wrap_specs
+from shared_mcp.file_logger import wrap_specs_logging
 
-TOOL_SPECS = wrap_specs(TOOL_SPECS)
+TOOL_SPECS = wrap_specs_logging(wrap_specs(TOOL_SPECS))
 
 log = structlog.get_logger("hs")
 settings = get_settings()

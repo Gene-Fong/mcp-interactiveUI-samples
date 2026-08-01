@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, Spinner, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow, Text, tokens } from '@fluentui/react-components';
 import { CartRegular, DismissRegular, EditRegular, EyeRegular } from '@fluentui/react-icons';
 import { useStyles, H_CELL, D_CELL } from '../styles';
@@ -30,6 +30,7 @@ export function OrdersView({ items: initItems, callTool, toast, theme, cacheInfo
   const t = hs(theme);
   const [localItems, setLocalItems] = useState(initItems);
   const [cacheInfo, setCacheInfo] = useState(initCacheInfo);
+  useEffect(() => { setLocalItems(initItems); setCacheInfo(initCacheInfo); }, [initItems]);
   const [refreshing, setRefreshing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);

@@ -102,7 +102,7 @@ export function FormView({ data, callTool, toast, theme }: {
                 <Textarea size="small" rows={3} resize="vertical" value={form[f.name]} onChange={(_, d) => setF(f.name, d.value)} aria-label={f.label} />
               </Field>
             ) : f.picklist ? (
-              <FormSelect key={f.name} label={f.label} value={form[f.name]} options={f.picklist} onChange={v => setF(f.name, v)} />
+              <FormSelect key={f.name} label={f.label} value={form[f.name]} options={f.picklist} onChange={v => setF(f.name, v)} labels={f.picklistLabels} />
             ) : (
               <Field key={f.name} label={f.label} size="small" required={f.required}>
                 <Input size="small" type={f.inputType || 'text'} value={form[f.name]} onChange={(_, d) => setF(f.name, d.value)} aria-label={f.label} />

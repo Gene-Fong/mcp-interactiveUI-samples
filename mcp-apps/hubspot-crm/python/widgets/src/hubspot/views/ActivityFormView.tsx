@@ -3,6 +3,7 @@ import { Button, Input, Label, Select, Textarea, tokens } from '@fluentui/react-
 import { ArrowLeftRegular, CalendarRegular, CheckmarkRegular } from '@fluentui/react-icons';
 import { useStyles } from '../styles';
 import { hs } from '../theme';
+import { prettyEnum } from '../constants';
 import { HsFooter } from '../components/HsFooter';
 import { ExpandButton } from '../../shared/ExpandButton';
 import { useMcpBridge } from '../../shared/McpBridge';
@@ -138,7 +139,7 @@ export function ActivityFormView({ data, callTool, toast, theme }: {
                       {ff.picklist ? (
                         <Select value={form[ff.name] || ''} onChange={(_, d) => setF(ff.name, d.value)} size="small">
                           <option value="">— Select —</option>
-                          {ff.picklist.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
+                          {ff.picklist.map((opt: string) => <option key={opt} value={opt}>{prettyEnum(opt)}</option>)}
                         </Select>
                       ) : (
                         <Input value={form[ff.name] || ''} onChange={(_, d) => setF(ff.name, d.value)} size="small" type={ff.inputType || 'text'} placeholder={ff.label} />

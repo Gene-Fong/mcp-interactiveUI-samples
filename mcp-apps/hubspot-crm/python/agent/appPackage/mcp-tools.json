@@ -189,7 +189,7 @@
         },
         {
             "name": "hs__get_contacts",
-            "description": "Get contacts from HubSpot CRM (10 most recent). Pass contact_id to view one record; add action='edit' to open the edit form; action='create' to open a blank create form. Filters: firstname, lastname, email, jobtitle, city, phone, company_name (FK \u2014 searches all associations), lifecyclestage (subscriber/lead/marketingqualifiedlead/salesqualifiedlead/opportunity/customer/evangelist/other).",
+            "description": "Get contacts from HubSpot CRM (10 most recent). Pass contact_id to view one record; add action='edit' to open the edit form; action='create' to open a blank create form. Filters: firstname, lastname, email, jobtitle, city, phone, company_name (FK \u2014 searches all associations), lifecyclestage (subscriber/lead/marketingqualifiedlead/salesqualifiedlead/opportunity/customer/evangelist/other). With action='create', prefills the form from any of: firstname, lastname, email, phone, jobtitle, lifecyclestage, city, company_name.",
             "inputSchema": {
                 "properties": {
                     "contact_id": {
@@ -347,7 +347,7 @@
         },
         {
             "name": "hs__get_deals",
-            "description": "Get deals from HubSpot CRM (10 most recent). Pass deal_id to view one record; add action='edit' to open the edit form; action='create' to open a blank create form. Filters: dealname (text search), dealstage (stage ID or closedwon/closedlost), pipeline (default), dealtype (newbusiness/existingbusiness), amount_min / amount_max (numeric amount range, >= / <=), closedate (exact calendar day, e.g. 2026-08-31), company_name (FK \u2014 finds deals associated to that company).",
+            "description": "Get deals from HubSpot CRM (10 most recent). Pass deal_id to view one record; add action='edit' to open the edit form; action='create' to open a blank create form. Filters: dealname (text search), dealstage (stage ID or closedwon/closedlost), pipeline (default), dealtype (newbusiness/existingbusiness), amount_min / amount_max (numeric amount range, >= / <=), closedate (exact calendar day, e.g. 2026-08-31), company_name (FK \u2014 finds deals associated to that company). With action='create', prefills the form from any of: dealname, amount, closedate (YYYY-MM-DD), dealstage, pipeline, dealtype, company_name.",
             "inputSchema": {
                 "properties": {
                     "deal_id": {
@@ -370,6 +370,10 @@
                         "default": "",
                         "type": "string"
                     },
+                    "amount": {
+                        "default": "",
+                        "type": "string"
+                    },
                     "amount_min": {
                         "default": "",
                         "type": "string"
@@ -383,6 +387,14 @@
                         "type": "string"
                     },
                     "company_name": {
+                        "default": "",
+                        "type": "string"
+                    },
+                    "contact_name": {
+                        "default": "",
+                        "type": "string"
+                    },
+                    "description": {
                         "default": "",
                         "type": "string"
                     },
@@ -841,7 +853,7 @@
         },
         {
             "name": "hs__get_activities",
-            "description": "Get activities from HubSpot CRM. REQUIRED: activity_type (note/call/task/meeting/email). Pass activity_id to view one; add action='edit' to open edit form; action='create' for new. Filter by entity: entity_type (company/contact/deal) + entity_name. Filter by fields: call(hs_call_direction, hs_call_status), task(hs_task_subject, hs_task_status, hs_task_priority), meeting(hs_meeting_outcome), email(hs_email_status, hs_email_direction).",
+            "description": "Get activities from HubSpot CRM. REQUIRED: activity_type (note/call/task/meeting/email). Pass activity_id to view one; add action='edit' to open edit form; action='create' for new. Filter by entity: entity_type (company/contact/deal) + entity_name. Filter by fields: call(hs_call_direction, hs_call_status), task(hs_task_subject, hs_task_status, hs_task_priority), meeting(hs_meeting_outcome, hs_meeting_title), email(hs_email_status, hs_email_direction, hs_email_subject). On action='create', prefill content/time from the utterance: note(hs_note_body), call(hs_call_body), task(hs_task_body, hs_timestamp), meeting(hs_meeting_body, hs_meeting_start_time, hs_meeting_end_time), email(hs_email_text).",
             "inputSchema": {
                 "properties": {
                     "activity_type": {
@@ -868,6 +880,18 @@
                         "default": false,
                         "type": "boolean"
                     },
+                    "hs_timestamp": {
+                        "default": "",
+                        "type": "string"
+                    },
+                    "hs_note_body": {
+                        "default": "",
+                        "type": "string"
+                    },
+                    "hs_call_body": {
+                        "default": "",
+                        "type": "string"
+                    },
                     "hs_call_direction": {
                         "default": "",
                         "type": "string"
@@ -877,6 +901,10 @@
                         "type": "string"
                     },
                     "hs_task_subject": {
+                        "default": "",
+                        "type": "string"
+                    },
+                    "hs_task_body": {
                         "default": "",
                         "type": "string"
                     },
@@ -892,11 +920,35 @@
                         "default": "",
                         "type": "string"
                     },
+                    "hs_meeting_title": {
+                        "default": "",
+                        "type": "string"
+                    },
+                    "hs_meeting_body": {
+                        "default": "",
+                        "type": "string"
+                    },
+                    "hs_meeting_start_time": {
+                        "default": "",
+                        "type": "string"
+                    },
+                    "hs_meeting_end_time": {
+                        "default": "",
+                        "type": "string"
+                    },
                     "hs_email_status": {
                         "default": "",
                         "type": "string"
                     },
                     "hs_email_direction": {
+                        "default": "",
+                        "type": "string"
+                    },
+                    "hs_email_subject": {
+                        "default": "",
+                        "type": "string"
+                    },
+                    "hs_email_text": {
                         "default": "",
                         "type": "string"
                     }

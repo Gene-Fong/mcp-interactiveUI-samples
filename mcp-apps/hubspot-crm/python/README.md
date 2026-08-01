@@ -149,7 +149,7 @@ Each entity exposes a set of filterable fields and picklist-constrained form fie
 - **Status:** `active`, `inactive`
 - **Product Type:** `inventory`, `non_inventory`, `service`
 
-**Activities** — filtered by type (note, call, task, meeting, email) and optionally by parent company/contact/deal (🔗). Tasks filter by status and priority; calls, meetings, and emails filter by their outcome/direction/status picklists.
+**Activities** — filtered by type (note, call, task, meeting, email) and optionally by parent company/contact/deal (🔗). Tasks filter by status, priority, and subject text; calls filter by direction/status and meetings by outcome; meetings also filter by title text and emails by direction/status plus subject text.
 
 ### 2.4 In action
 

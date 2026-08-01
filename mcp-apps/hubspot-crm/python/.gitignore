@@ -8,3 +8,5 @@ web/widget.html
 .mos3_token_cache.json
 agent/appPackage/build/
 agent/appPackage/_tmp_zip/
+logs/
+logs_test/

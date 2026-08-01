@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, Spinner, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow, Text, tokens } from '@fluentui/react-components';
 import { DismissRegular, EditRegular, EyeRegular, PersonRegular } from '@fluentui/react-icons';
 import { useStyles, H_CELL, D_CELL } from '../styles';
@@ -19,6 +19,7 @@ export function ContactsView({ items: initItems, callTool, toast, theme, cacheIn
   const t = hs(theme);
   const [localItems, setLocalItems] = useState(initItems);
   const [cacheInfo, setCacheInfo] = useState(initCacheInfo);
+  useEffect(() => { setLocalItems(initItems); setCacheInfo(initCacheInfo); }, [initItems]);
   const [refreshing, setRefreshing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);

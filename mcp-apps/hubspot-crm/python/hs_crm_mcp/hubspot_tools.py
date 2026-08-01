@@ -109,10 +109,15 @@ _ENTITY_SCHEMAS: dict[str, dict] = {
         "formFields": [
                {"name": "dealname", "label": "Deal Name", "required": True},
                {"name": "amount", "label": "Amount"},
-               {"name": "pipeline", "label": "Pipeline", "required": True, "picklist": ["default"]},
+               {"name": "pipeline", "label": "Pipeline", "required": True, "picklist": ["default"],
+                "picklistLabels": {"default": "Sales Pipeline"}},
                {"name": "dealstage", "label": "Stage", "required": True, "picklist": [
                    "3442945774", "3442945775", "3442945776", "3442945777", "closedwon", "closedlost",
-               ]},
+               ], "picklistLabels": {
+                   "3442945774": "Lead Captured", "3442945775": "Qualified",
+                   "3442945776": "Proposal Sent", "3442945777": "Negotiation",
+                   "closedwon": "Closed Won", "closedlost": "Closed Lost",
+               }},
                {"name": "closedate", "label": "Close Date", "inputType": "date"},
                {"name": "dealtype", "label": "Deal Type", "picklist": ["newbusiness", "existingbusiness"]},
                {"name": "description", "label": "Description", "multiline": True},
@@ -969,6 +974,14 @@ async def hs__get_contacts(
             prefill["lastname"] = lastname
         if email:
             prefill["email"] = email
+        if phone:
+            prefill["phone"] = phone
+        if jobtitle:
+            prefill["jobtitle"] = jobtitle
+        if lifecyclestage:
+            prefill["lifecyclestage"] = lifecyclestage
+        if city:
+            prefill["city"] = city
         if company_name:
             prefill["company_name"] = company_name
         return types.CallToolResult(
@@ -1251,16 +1264,19 @@ async def hs__get_deals(
     dealstage: str = "",
     pipeline: str = "",
     dealtype: str = "",
+    amount: str = "",
     amount_min: str = "",
     amount_max: str = "",
     closedate: str = "",
     company_name: str = "",
+    contact_name: str = "",
+    description: str = "",
     action: str = "",
     refresh: bool = False,
 ) -> types.CallToolResult:
     """Get deals from HubSpot CRM."""
     log.info("hs__get_deals", deal_id=deal_id, action=action, dealname=dealname,
-             dealstage=dealstage, pipeline=pipeline, amount_min=amount_min,
+             dealstage=dealstage, pipeline=pipeline, amount=amount, amount_min=amount_min,
              amount_max=amount_max, closedate=closedate, company_name=company_name, refresh=refresh)
 
     schema = _get_schema("Deal")
@@ -1276,8 +1292,16 @@ async def hs__get_deals(
             prefill["dealstage"] = dealstage
         if dealtype:
             prefill["dealtype"] = dealtype
+        if amount:
+            prefill["amount"] = amount
+        if closedate:
+            prefill["closedate"] = closedate
         if company_name:
             prefill["company_name"] = company_name
+        if contact_name:
+            prefill["contact_name"] = contact_name
+        if description:
+            prefill["description"] = description
         return types.CallToolResult(
             content=[TextContent(type="text", text="Opening deal create form.")],
             structuredContent={
@@ -2334,6 +2358,7 @@ _ACTIVITY_SCHEMAS: dict[str, dict] = {
         ],
         "filterFields": {
             "hs_meeting_outcome": {"operator": "EQ", "property": "hs_meeting_outcome"},
+            "hs_meeting_title": {"operator": "CONTAINS_TOKEN", "property": "hs_meeting_title"},
         },
         "formFields": [
             {"name": "hs_meeting_title", "label": "Title", "required": True},
@@ -2357,6 +2382,7 @@ _ACTIVITY_SCHEMAS: dict[str, dict] = {
         "filterFields": {
             "hs_email_status": {"operator": "EQ", "property": "hs_email_status"},
             "hs_email_direction": {"operator": "EQ", "property": "hs_email_direction"},
+            "hs_email_subject": {"operator": "CONTAINS_TOKEN", "property": "hs_email_subject"},
         },
         "formFields": [
             {"name": "hs_email_subject", "label": "Subject", "required": True},
@@ -2491,18 +2517,30 @@ async def hs__get_activities(
     entity_name: str = "",
     action: str = "",
     refresh: bool = False,
+    # Shared timestamp (task due date, activity date)
+    hs_timestamp: str = "",
+    # Note fields
+    hs_note_body: str = "",
     # Call fields
+    hs_call_body: str = "",
     hs_call_direction: str = "",
     hs_call_status: str = "",
     # Task fields
     hs_task_subject: str = "",
+    hs_task_body: str = "",
     hs_task_status: str = "",
     hs_task_priority: str = "",
     # Meeting fields
     hs_meeting_outcome: str = "",
+    hs_meeting_title: str = "",
+    hs_meeting_body: str = "",
+    hs_meeting_start_time: str = "",
+    hs_meeting_end_time: str = "",
     # Email fields
     hs_email_status: str = "",
     hs_email_direction: str = "",
+    hs_email_subject: str = "",
+    hs_email_text: str = "",
 ) -> types.CallToolResult:
     """Get activities (note/call/task/meeting/email). Requires activity_type.
     Branches: action=create→form, id+edit→form, id→single, entity_name→filtered, bare→top 10."""
@@ -2514,7 +2552,17 @@ async def hs__get_activities(
     for k, v in [("hs_call_direction", hs_call_direction), ("hs_call_status", hs_call_status),
                  ("hs_task_subject", hs_task_subject), ("hs_task_status", hs_task_status),
                  ("hs_task_priority", hs_task_priority), ("hs_meeting_outcome", hs_meeting_outcome),
-                 ("hs_email_status", hs_email_status), ("hs_email_direction", hs_email_direction)]:
+                 ("hs_meeting_title", hs_meeting_title),
+                 ("hs_email_status", hs_email_status), ("hs_email_direction", hs_email_direction),
+                 ("hs_email_subject", hs_email_subject),
+                 # Content/body + time fields — used for create prefill only (not in
+                 # filterFields, so Branch 4 ignores them for filtering).
+                 ("hs_timestamp", hs_timestamp), ("hs_note_body", hs_note_body),
+                 ("hs_call_body", hs_call_body), ("hs_task_body", hs_task_body),
+                 ("hs_meeting_body", hs_meeting_body),
+                 ("hs_meeting_start_time", hs_meeting_start_time),
+                 ("hs_meeting_end_time", hs_meeting_end_time),
+                 ("hs_email_text", hs_email_text)]:
         if v:
             kwargs[k] = v
 
@@ -2610,6 +2658,12 @@ async def hs__get_activities(
             return _error_result(f"Error fetching {activity_type}s for {entity_type}: {exc}")
 
         items = [{"id": r.get("id", ""), **r} for r in records]
+        # Enrich with Related To (same as Branch 4 — the FK-filtered path must
+        # also populate _related_to so the widget's "Related To" column renders).
+        try:
+            await _enrich_related_to(client, obj_type, items)
+        except Exception as exc:
+            log.warning("enrich_related_to failed", error=str(exc))
         return types.CallToolResult(
             content=[TextContent(type="text", text=f"{len(items)} {activity_type}(s) for {entity_name}.")],
             structuredContent={
@@ -2978,7 +3032,9 @@ TOOL_SPECS: list[dict] = [
             "Filters: firstname, lastname, email, jobtitle, city, phone, "
             "company_name (FK — searches all associations), "
             "lifecyclestage (subscriber/lead/marketingqualifiedlead/salesqualifiedlead/"
-            "opportunity/customer/evangelist/other)."
+            "opportunity/customer/evangelist/other). "
+            "With action='create', prefills the form from any of: firstname, lastname, "
+            "email, phone, jobtitle, lifecyclestage, city, company_name."
         ),
         "handler": hs__get_contacts,
     },
@@ -3009,7 +3065,9 @@ TOOL_SPECS: list[dict] = [
             "pipeline (default), dealtype (newbusiness/existingbusiness), "
             "amount_min / amount_max (numeric amount range, >= / <=), "
             "closedate (exact calendar day, e.g. 2026-08-31), "
-            "company_name (FK — finds deals associated to that company)."
+            "company_name (FK — finds deals associated to that company). "
+            "With action='create', prefills the form from any of: dealname, amount, "
+            "closedate (YYYY-MM-DD), dealstage, pipeline, dealtype, company_name."
         ),
         "handler": hs__get_deals,
     },
@@ -3111,7 +3169,10 @@ TOOL_SPECS: list[dict] = [
             "Filter by entity: entity_type (company/contact/deal) + entity_name. "
             "Filter by fields: call(hs_call_direction, hs_call_status), "
             "task(hs_task_subject, hs_task_status, hs_task_priority), "
-            "meeting(hs_meeting_outcome), email(hs_email_status, hs_email_direction)."
+            "meeting(hs_meeting_outcome, hs_meeting_title), email(hs_email_status, hs_email_direction, hs_email_subject). "
+            "On action='create', prefill content/time from the utterance: note(hs_note_body), "
+            "call(hs_call_body), task(hs_task_body, hs_timestamp), "
+            "meeting(hs_meeting_body, hs_meeting_start_time, hs_meeting_end_time), email(hs_email_text)."
         ),
         "handler": hs__get_activities,
     },

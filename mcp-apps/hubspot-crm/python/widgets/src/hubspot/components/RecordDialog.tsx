@@ -6,7 +6,7 @@ import { FormSelect } from './FormSelect';
 // ── RecordDialog — inline edit/create form ─────────────────────────────────
 export function RecordDialog({ open, title, fields, onSave, onCancel, saving, mode }: {
   open: boolean; title: string;
-  fields: { label: string; key: string; value: string; onChange: (v: string) => void; type?: 'select' | 'textarea'; options?: string[]; inputType?: InputProps['type']; readonly?: boolean }[];
+  fields: { label: string; key: string; value: string; onChange: (v: string) => void; type?: 'select' | 'textarea'; options?: string[]; labels?: Record<string, string>; inputType?: InputProps['type']; readonly?: boolean }[];
   onSave: () => void; onCancel: () => void; saving: boolean; mode?: 'edit' | 'create';
 }) {
   const isEdit = mode ? mode === 'edit' : title.includes('Edit');
@@ -21,7 +21,7 @@ export function RecordDialog({ open, title, fields, onSave, onCancel, saving, mo
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px 16px' }}>
               {narrow.map(f =>
                 f.type === 'select' && !f.readonly ? (
-                  <FormSelect key={f.key} label={f.label} value={f.value} options={f.options || []} onChange={f.onChange} />
+                  <FormSelect key={f.key} label={f.label} value={f.value} options={f.options || []} onChange={f.onChange} labels={f.labels} />
                 ) : (
                   <Field key={f.key} label={f.label} size="small">
                     <Input size="small" type={f.inputType || 'text'} value={f.value} onChange={(_, d) => f.onChange(d.value)} aria-label={f.label} readOnly={f.readonly} style={f.readonly ? { opacity: 0.7, fontStyle: 'italic' } : undefined} />

@@ -23,6 +23,16 @@ export function getStatusKey(type: string): string {
   return 'other';
 }
 
+// Prettify raw enum values for display. Guarded so it only transforms
+// ALL_CAPS / snake_case tokens (e.g. NOT_STARTED -> "Not Started",
+// INBOUND -> "Inbound"); already-friendly values (e.g. "pending",
+// "salesqualifiedlead") are returned unchanged to avoid regressions.
+export function prettyEnum(v: string): string {
+  if (!v) return v;
+  if (!v.includes('_') && v !== v.toUpperCase()) return v;
+  return v.split(/[_\s]+/).map(w => (w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : w)).join(' ');
+}
+
 // ── Form field definitions ─────────────────────────────────────────────────
 export const COMPANY_FORM_FIELDS = [
   { label: 'Company Name *', key: 'name' },

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, Spinner, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow, Text, tokens } from '@fluentui/react-components';
 import { DismissRegular, EditRegular, EyeRegular, MoneyRegular } from '@fluentui/react-icons';
 import { useStyles, H_CELL, D_CELL } from '../styles';
@@ -21,6 +21,14 @@ const STAGE_LABELS: Record<string, string> = {
 
 function stageLabel(id: string): string {
   return STAGE_LABELS[id] || id;
+}
+
+const PIPELINE_LABELS: Record<string, string> = {
+  'default': 'Sales Pipeline',
+};
+
+function pipelineLabel(id: string): string {
+  return PIPELINE_LABELS[id] || id;
 }
 
 function fmtAmount(amt: string | number | undefined): string {
@@ -52,6 +60,7 @@ export function DealsView({ items: initItems, callTool, toast, theme, cacheInfo:
   const t = hs(theme);
   const [localItems, setLocalItems] = useState(initItems);
   const [cacheInfo, setCacheInfo] = useState(initCacheInfo);
+  useEffect(() => { setLocalItems(initItems); setCacheInfo(initCacheInfo); }, [initItems]);
   const [refreshing, setRefreshing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -64,8 +73,8 @@ export function DealsView({ items: initItems, callTool, toast, theme, cacheInfo:
   const DEAL_EDIT_FIELDS = [
     { key: 'dealname', label: 'Deal Name' },
     { key: 'amount', label: 'Amount' },
-    { key: 'pipeline', label: 'Pipeline', type: 'select' as const, options: ['default'] },
-    { key: 'dealstage', label: 'Stage', type: 'select' as const, options: Object.keys(STAGE_LABELS) },
+    { key: 'pipeline', label: 'Pipeline', type: 'select' as const, options: ['default'], labels: PIPELINE_LABELS },
+    { key: 'dealstage', label: 'Stage', type: 'select' as const, options: Object.keys(STAGE_LABELS), labels: STAGE_LABELS },
     { key: 'closedate', label: 'Close Date', inputType: 'date' as const },
     { key: 'dealtype', label: 'Deal Type', type: 'select' as const, options: ['newbusiness', 'existingbusiness'] },
     { key: 'description', label: 'Description' },
@@ -146,7 +155,7 @@ export function DealsView({ items: initItems, callTool, toast, theme, cacheInfo:
     { label: 'Deal Name', value: viewingDeal.dealname },
     { label: 'Amount', value: fmtAmount(viewingDeal.amount) },
     { label: 'Stage', value: stageLabel(viewingDeal.dealstage || '') },
-    { label: 'Pipeline', value: viewingDeal.pipeline },
+    { label: 'Pipeline', value: pipelineLabel(viewingDeal.pipeline || '') },
     { label: 'Close Date', value: fmtDate(viewingDeal.closedate) },
     { label: 'Deal Type', value: viewingDeal.dealtype || '—' },
     { label: 'Company', value: viewingDeal.company },
@@ -218,7 +227,7 @@ export function DealsView({ items: initItems, callTool, toast, theme, cacheInfo:
                 <TableCell style={{ ...D_CELL, fontWeight: 600 }}>{deal.dealname || '—'}</TableCell>
                 <TableCell style={D_CELL}>{fmtAmount(deal.amount)}</TableCell>
                 <TableCell style={D_CELL}>{stageLabel(deal.dealstage || '')}</TableCell>
-                <TableCell style={D_CELL}>{deal.pipeline || '—'}</TableCell>
+                <TableCell style={D_CELL}>{deal.pipeline ? pipelineLabel(deal.pipeline) : '—'}</TableCell>
                 <TableCell style={D_CELL}>{fmtDate(deal.closedate)}</TableCell>
                 <TableCell style={{ ...D_CELL, color: tokens.colorBrandForeground1 }}>{deal.company || '—'}</TableCell>
                 {isFullscreen && (
