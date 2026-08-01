@@ -189,7 +189,7 @@
         },
         {
             "name": "hs__get_contacts",
-            "description": "Get contacts from HubSpot CRM (10 most recent). Pass contact_id to view one record; add action='edit' to open the edit form; action='create' to open a blank create form. Filters: firstname, lastname, email, jobtitle, city, company_name (FK \u2014 searches all associations), lifecyclestage (subscriber/lead/marketingqualifiedlead/salesqualifiedlead/opportunity/customer/evangelist/other).",
+            "description": "Get contacts from HubSpot CRM (10 most recent). Pass contact_id to view one record; add action='edit' to open the edit form; action='create' to open a blank create form. Filters: firstname, lastname, email, jobtitle, city, phone, company_name (FK \u2014 searches all associations), lifecyclestage (subscriber/lead/marketingqualifiedlead/salesqualifiedlead/opportunity/customer/evangelist/other).",
             "inputSchema": {
                 "properties": {
                     "contact_id": {
@@ -221,6 +221,10 @@
                         "type": "string"
                     },
                     "city": {
+                        "default": "",
+                        "type": "string"
+                    },
+                    "phone": {
                         "default": "",
                         "type": "string"
                     },
@@ -343,7 +347,7 @@
         },
         {
             "name": "hs__get_deals",
-            "description": "Get deals from HubSpot CRM (10 most recent). Pass deal_id to view one record; add action='edit' to open the edit form; action='create' to open a blank create form. Filters: dealname (text search), dealstage (stage ID or closedwon/closedlost), pipeline (default), dealtype (newbusiness/existingbusiness), company_name (FK \u2014 finds deals associated to that company).",
+            "description": "Get deals from HubSpot CRM (10 most recent). Pass deal_id to view one record; add action='edit' to open the edit form; action='create' to open a blank create form. Filters: dealname (text search), dealstage (stage ID or closedwon/closedlost), pipeline (default), dealtype (newbusiness/existingbusiness), amount_min / amount_max (numeric amount range, >= / <=), closedate (exact calendar day, e.g. 2026-08-31), company_name (FK \u2014 finds deals associated to that company).",
             "inputSchema": {
                 "properties": {
                     "deal_id": {
@@ -363,6 +367,18 @@
                         "type": "string"
                     },
                     "dealtype": {
+                        "default": "",
+                        "type": "string"
+                    },
+                    "amount_min": {
+                        "default": "",
+                        "type": "string"
+                    },
+                    "amount_max": {
+                        "default": "",
+                        "type": "string"
+                    },
+                    "closedate": {
                         "default": "",
                         "type": "string"
                     },
@@ -491,7 +507,7 @@
         },
         {
             "name": "hs__get_orders",
-            "description": "Get orders from HubSpot CRM (10 most recent). Pass order_id to view one record; add action='edit' to open the edit form; action='create' to open a blank create form. Filters: hs_order_name (text search), hs_fulfillment_status, hs_payment_status, hs_currency_code, hs_total_price_min / hs_total_price_max (numeric total range \u2014 e.g. 'orders over 5000' -> hs_total_price_min=5000), company_name (FK), contact_name (FK), deal_name (FK).",
+            "description": "Get orders from HubSpot CRM (10 most recent). Pass order_id to view one record; add action='edit' to open the edit form; action='create' to open a blank create form. Filters: hs_order_name (text search), hs_fulfillment_status, hs_payment_status, hs_currency_code, hs_total_price_min / hs_total_price_max (numeric total range \u2014 e.g. 'orders over 5000' -> hs_total_price_min=5000), hs_closed_date (exact calendar day, e.g. 2026-08-31), company_name (FK), contact_name (FK), deal_name (FK).",
             "inputSchema": {
                 "properties": {
                     "order_id": {
@@ -527,6 +543,10 @@
                         "type": "string"
                     },
                     "hs_total_price_max": {
+                        "default": "",
+                        "type": "string"
+                    },
+                    "hs_closed_date": {
                         "default": "",
                         "type": "string"
                     },
@@ -659,7 +679,7 @@
         },
         {
             "name": "hs__get_products",
-            "description": "Get products from HubSpot CRM (10 most recent). Pass product_id to view one record; add action='edit' to open the edit form; action='create' to open a blank create form. Filters: name (text search), hs_product_type (inventory/non_inventory/service), hs_status (active/inactive), recurringbillingfrequency (weekly/biweekly/monthly/quarterly/per_six_months/annually/per_two_years/per_three_years/per_four_years/per_five_years).",
+            "description": "Get products from HubSpot CRM (10 most recent). Pass product_id to view one record; add action='edit' to open the edit form; action='create' to open a blank create form. Filters: name (text search), hs_sku (text search), price_min / price_max (numeric price range, >= / <=), hs_product_type (inventory/non_inventory/service), hs_status (active/inactive), recurringbillingfrequency (weekly/biweekly/monthly/quarterly/per_six_months/annually/per_two_years/per_three_years/per_four_years/per_five_years).",
             "inputSchema": {
                 "properties": {
                     "product_id": {
@@ -667,6 +687,14 @@
                         "type": "string"
                     },
                     "name": {
+                        "default": "",
+                        "type": "string"
+                    },
+                    "hs_sku": {
+                        "default": "",
+                        "type": "string"
+                    },
+                    "price": {
                         "default": "",
                         "type": "string"
                     },
@@ -679,6 +707,14 @@
                         "type": "string"
                     },
                     "recurringbillingfrequency": {
+                        "default": "",
+                        "type": "string"
+                    },
+                    "price_min": {
+                        "default": "",
+                        "type": "string"
+                    },
+                    "price_max": {
                         "default": "",
                         "type": "string"
                     },

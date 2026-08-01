@@ -71,6 +71,7 @@ _ENTITY_SCHEMAS: dict[str, dict] = {
             "lastname": {"operator": "CONTAINS_TOKEN", "property": "lastname"},
             "jobtitle": {"operator": "CONTAINS_TOKEN", "property": "jobtitle"},
             "city": {"operator": "CONTAINS_TOKEN", "property": "city"},
+            "phone": {"operator": "CONTAINS_TOKEN", "property": "phone"},
         },
         "formFields": [
             {"name": "firstname", "label": "First Name", "required": True},
@@ -101,6 +102,9 @@ _ENTITY_SCHEMAS: dict[str, dict] = {
                "dealstage": {"operator": "EQ", "property": "dealstage"},
                "pipeline": {"operator": "EQ", "property": "pipeline"},
                "dealtype": {"operator": "EQ", "property": "dealtype"},
+               "amount_min": {"operator": "GTE", "property": "amount"},
+               "amount_max": {"operator": "LTE", "property": "amount"},
+               "closedate": {"operator": "ON_DATE", "property": "closedate"},
         },
         "formFields": [
                {"name": "dealname", "label": "Deal Name", "required": True},
@@ -139,9 +143,12 @@ _ENTITY_SCHEMAS: dict[str, dict] = {
         ],
         "filterFields": {
             "name": {"operator": "CONTAINS_TOKEN", "property": "name"},
+            "hs_sku": {"operator": "CONTAINS_TOKEN", "property": "hs_sku"},
             "hs_product_type": {"operator": "EQ", "property": "hs_product_type"},
             "hs_status": {"operator": "EQ", "property": "hs_status"},
             "recurringbillingfrequency": {"operator": "EQ", "property": "recurringbillingfrequency"},
+            "price_min": {"operator": "GTE", "property": "price"},
+            "price_max": {"operator": "LTE", "property": "price"},
         },
         "formFields": [
             {"name": "name", "label": "Product Name", "required": True},
@@ -179,6 +186,7 @@ _ENTITY_SCHEMAS: dict[str, dict] = {
                "hs_currency_code": {"operator": "EQ", "property": "hs_currency_code"},
                "hs_total_price_min": {"operator": "GTE", "property": "hs_total_price"},
                "hs_total_price_max": {"operator": "LTE", "property": "hs_total_price"},
+               "hs_closed_date": {"operator": "ON_DATE", "property": "hs_closed_date"},
         },
         "formFields": [
                {"name": "hs_order_name", "label": "Order Name", "required": True},
@@ -329,15 +337,70 @@ def _list_summary(entity_label: str, items: list, cache_hit: bool = False) -> st
 
 
 def _get_list_props(entity: str) -> list[str]:
-    """Get property names needed for list view."""
+    """Property names for list + detail view (columns + hidden).
+
+    Hidden columns (e.g. Product description/Term, Company/Deal description)
+    are not shown in the table but the detail pop-up and row-level edit dialog
+    read them from the same list payload, so they must be fetched here too.
+    """
     cfg = _get_schema(entity)
-    return [c["apiName"] for c in cfg["columns"]]
+    return [c["apiName"] for c in cfg["columns"] + cfg["hiddenColumns"]]
 
 
 def _get_all_props(entity: str) -> list[str]:
     """Get all property names (list + hidden)."""
     cfg = _get_schema(entity)
     return [c["apiName"] for c in cfg["columns"] + cfg["hiddenColumns"]]
+
+
+# ── Create consistency ────────────────────────────────────────────────────────
+# HubSpot's CRM search index is eventually consistent: a just-created record can
+# be absent from search results for a few seconds, so an immediate post-create
+# list refresh may omit it and make the save look like it failed. Fetching by id
+# hits the object store directly (immediately consistent), so we fetch the new
+# record and prepend it when the search list left it out.
+
+# Columns that are association-resolved, not real HubSpot properties — never
+# request them via get_object (would 400).
+_ASSOC_PLACEHOLDER_COLS: dict[str, set[str]] = {
+    "Deal": {"company"},
+    "Order": {"contact", "company", "deal"},
+}
+
+
+async def _fetch_created_record(client: Any, object_type: str, entity: str, new_id: Any) -> dict | None:
+    skip = _ASSOC_PLACEHOLDER_COLS.get(entity, set())
+    props = [p for p in _get_list_props(entity) if p not in skip]
+    try:
+        return await client.get_object(object_type, new_id, props)
+    except Exception:
+        return None
+
+
+async def _ensure_created(client: Any, object_type: str, entity: str, new_id: Any, items: list) -> list:
+    """Prepend the just-created record to a search-derived list if the search
+    index has not caught up yet."""
+    if not new_id or any(str(i.get("id")) == str(new_id) for i in items):
+        return items
+    rec = await _fetch_created_record(client, object_type, entity, new_id)
+    return [rec, *items] if rec else items
+
+
+async def _refresh_with_created(result, object_type: str, entity: str, cache_key: str, new_id: Any):
+    """Post-process a delegated get-handler result so the just-created record is
+    present despite search-index lag."""
+    try:
+        client = get_client()
+        sc = result.structuredContent or {}
+        items = sc.get("items", [])
+        merged = await _ensure_created(client, object_type, entity, new_id, items)
+        if len(merged) != len(items):
+            sc["items"] = merged
+            sc["total"] = len(merged)
+            _cache_set(cache_key, entity, merged)
+    except Exception:
+        pass
+    return result
 
 
 # ── FK resolution helpers ─────────────────────────────────────────────────────
@@ -449,21 +512,39 @@ def _deal_not_found_alert(name: str, suggestions: list[str]) -> types.CallToolRe
 
 
 def _build_filter_groups(entity: str, params: dict[str, str]) -> list[dict] | None:
-    """Build HubSpot Search API filterGroups from provided params."""
+    """Build HubSpot Search API filterGroups from provided params.
+
+    Operator conventions by field type:
+      - text     -> CONTAINS_TOKEN, wrapped as ``*value*`` for substring ("like")
+      - picklist -> EQ (exact)
+      - number   -> GTE / LTE via ``*_min`` / ``*_max`` param pairs (>= / <=)
+      - date     -> ON_DATE, expanded to a same-day GTE/LTE range so it matches
+                    an exact calendar day for both date and datetime properties
+    """
     cfg = _get_schema(entity)
     filter_defs = cfg.get("filterFields", {})
-    filters = []
+    filters: list[dict] = []
     for param_name, value in params.items():
         if not value:
             continue
         fdef = filter_defs.get(param_name)
         if not fdef:
             continue
-        filters.append({
-            "propertyName": fdef["property"],
-            "operator": fdef["operator"],
-            "value": value,
-        })
+        op = fdef["operator"]
+        prop = fdef["property"]
+        if op == "CONTAINS_TOKEN":
+            v = value if "*" in value else f"*{value}*"
+            filters.append({"propertyName": prop, "operator": op, "value": v})
+        elif op == "ON_DATE":
+            start = _to_hs_date(value)
+            try:
+                end = str(int(start) + 86_400_000 - 1)
+            except (TypeError, ValueError):
+                start = end = value
+            filters.append({"propertyName": prop, "operator": "GTE", "value": start})
+            filters.append({"propertyName": prop, "operator": "LTE", "value": end})
+        else:
+            filters.append({"propertyName": prop, "operator": op, "value": value})
     if not filters:
         return None
     return [{"filters": filters}]
@@ -649,6 +730,7 @@ async def hs__create_company(
     # Refresh list
     try:
         items = await client.search_objects("companies", _get_list_props("Company"), limit=10)
+        items = await _ensure_created(client, "companies", "Company", new_id, items)
     except Exception:
         items = []
 
@@ -866,6 +948,7 @@ async def hs__get_contacts(
     lifecyclestage: str = "",
     jobtitle: str = "",
     city: str = "",
+    phone: str = "",
     action: str = "",
     refresh: bool = False,
 ) -> types.CallToolResult:
@@ -873,7 +956,7 @@ async def hs__get_contacts(
     log.info("hs__get_contacts", contact_id=contact_id, action=action,
              firstname=firstname, lastname=lastname, email=email,
              company_name=company_name, lifecyclestage=lifecyclestage,
-             jobtitle=jobtitle, city=city, refresh=refresh)
+             jobtitle=jobtitle, city=city, phone=phone, refresh=refresh)
 
     cfg = _get_schema("Contact")
 
@@ -1002,7 +1085,7 @@ async def hs__get_contacts(
     filter_params = {
         "firstname": firstname, "lastname": lastname,
         "email": email, "lifecyclestage": lifecyclestage,
-        "jobtitle": jobtitle, "city": city,
+        "jobtitle": jobtitle, "city": city, "phone": phone,
     }
     filter_groups = _build_filter_groups("Contact", filter_params)
 
@@ -1168,13 +1251,17 @@ async def hs__get_deals(
     dealstage: str = "",
     pipeline: str = "",
     dealtype: str = "",
+    amount_min: str = "",
+    amount_max: str = "",
+    closedate: str = "",
     company_name: str = "",
     action: str = "",
     refresh: bool = False,
 ) -> types.CallToolResult:
     """Get deals from HubSpot CRM."""
     log.info("hs__get_deals", deal_id=deal_id, action=action, dealname=dealname,
-             dealstage=dealstage, pipeline=pipeline, company_name=company_name, refresh=refresh)
+             dealstage=dealstage, pipeline=pipeline, amount_min=amount_min,
+             amount_max=amount_max, closedate=closedate, company_name=company_name, refresh=refresh)
 
     schema = _get_schema("Deal")
 
@@ -1292,7 +1379,7 @@ async def hs__get_deals(
         )
 
     # ── Branch: list / filter ────────────────────────────────────────────────
-    filter_params = {k: v for k, v in {"dealname": dealname, "dealstage": dealstage, "pipeline": pipeline, "dealtype": dealtype}.items() if v}
+    filter_params = {k: v for k, v in {"dealname": dealname, "dealstage": dealstage, "pipeline": pipeline, "dealtype": dealtype, "amount_min": amount_min, "amount_max": amount_max, "closedate": closedate}.items() if v}
     filter_sig = _filter_signature(filter_params)
     cache_key = f"deals_{filter_sig}" if filter_sig else "deals_all"
 
@@ -1424,7 +1511,8 @@ async def hs__create_deal(
         return _error_result(f"Error creating deal: {exc}")
 
     _get_cache("Deal").clear()
-    return await hs__get_deals(refresh=True)
+    return await _refresh_with_created(
+        await hs__get_deals(refresh=True), "deals", "Deal", "deals", new_id)
 
 
 async def hs__update_deal(
@@ -1489,6 +1577,7 @@ async def hs__get_orders(
     hs_source_store: str = "",
     hs_total_price_min: str = "",
     hs_total_price_max: str = "",
+    hs_closed_date: str = "",
     company_name: str = "",
     contact_name: str = "",
     deal_name: str = "",
@@ -1702,6 +1791,7 @@ async def hs__get_orders(
         "hs_currency_code": hs_currency_code,
         "hs_total_price_min": hs_total_price_min,
         "hs_total_price_max": hs_total_price_max,
+        "hs_closed_date": hs_closed_date,
     }.items() if v}
     filter_sig = _filter_signature(filter_params)
     cache_key = f"orders_{filter_sig}" if filter_sig else "orders_all"
@@ -1850,7 +1940,8 @@ async def hs__create_order(
         return _error_result(f"Error creating order: {exc}")
 
     _get_cache("Order").clear()
-    return await hs__get_orders(refresh=True)
+    return await _refresh_with_created(
+        await hs__get_orders(refresh=True), "orders", "Order", "orders", new_id)
 
 
 async def hs__update_order(
@@ -1905,15 +1996,19 @@ async def hs__update_order(
 async def hs__get_products(
     product_id: str = "",
     name: str = "",
+    hs_sku: str = "",
+    price: str = "",
     hs_status: str = "",
     hs_product_type: str = "",
     recurringbillingfrequency: str = "",
+    price_min: str = "",
+    price_max: str = "",
     action: str = "",
     refresh: bool = False,
 ) -> types.CallToolResult:
     """Get products. Branches: id+edit→form, id→list-of-one, filters→filtered, bare→top 10."""
     log.info("hs__get_products", product_id=product_id, action=action,
-             name=name, hs_status=hs_status, hs_product_type=hs_product_type,
+             name=name, hs_sku=hs_sku, hs_status=hs_status, hs_product_type=hs_product_type,
              recurringbillingfrequency=recurringbillingfrequency, refresh=refresh)
 
     cfg = _get_schema("Product")
@@ -1923,10 +2018,16 @@ async def hs__get_products(
         prefill = {field["name"]: "" for field in cfg["formFields"]}
         if name:
             prefill["name"] = name
+        if hs_sku:
+            prefill["hs_sku"] = hs_sku
+        if price:
+            prefill["price"] = price
         if hs_status:
             prefill["hs_status"] = hs_status
         if hs_product_type:
             prefill["hs_product_type"] = hs_product_type
+        if recurringbillingfrequency:
+            prefill["recurringbillingfrequency"] = recurringbillingfrequency
         return types.CallToolResult(
             content=[TextContent(type="text", text="Opening create form for a new product.")],
             structuredContent={
@@ -1981,8 +2082,10 @@ async def hs__get_products(
 
     # Branch 3 — filter-based or bare list
     filter_params = {
-        "name": name, "hs_product_type": hs_product_type, "hs_status": hs_status,
+        "name": name, "hs_sku": hs_sku,
+        "hs_product_type": hs_product_type, "hs_status": hs_status,
         "recurringbillingfrequency": recurringbillingfrequency,
+        "price_min": price_min, "price_max": price_max,
     }
     filter_groups = _build_filter_groups("Product", filter_params)
 
@@ -2064,6 +2167,7 @@ async def hs__create_product(
     # Refresh list
     try:
         items = await client.search_objects("products", _get_list_props("Product"), limit=10)
+        items = await _ensure_created(client, "products", "Product", new_id, items)
     except Exception:
         items = []
 
@@ -2871,7 +2975,7 @@ TOOL_SPECS: list[dict] = [
             "Get contacts from HubSpot CRM (10 most recent). "
             "Pass contact_id to view one record; add action='edit' to open the edit form; "
             "action='create' to open a blank create form. "
-            "Filters: firstname, lastname, email, jobtitle, city, "
+            "Filters: firstname, lastname, email, jobtitle, city, phone, "
             "company_name (FK — searches all associations), "
             "lifecyclestage (subscriber/lead/marketingqualifiedlead/salesqualifiedlead/"
             "opportunity/customer/evangelist/other)."
@@ -2903,6 +3007,8 @@ TOOL_SPECS: list[dict] = [
             "action='create' to open a blank create form. "
             "Filters: dealname (text search), dealstage (stage ID or closedwon/closedlost), "
             "pipeline (default), dealtype (newbusiness/existingbusiness), "
+            "amount_min / amount_max (numeric amount range, >= / <=), "
+            "closedate (exact calendar day, e.g. 2026-08-31), "
             "company_name (FK — finds deals associated to that company)."
         ),
         "handler": hs__get_deals,
@@ -2935,6 +3041,7 @@ TOOL_SPECS: list[dict] = [
             "Filters: hs_order_name (text search), hs_fulfillment_status, hs_payment_status, "
             "hs_currency_code, hs_total_price_min / hs_total_price_max (numeric total range — "
             "e.g. 'orders over 5000' -> hs_total_price_min=5000), "
+            "hs_closed_date (exact calendar day, e.g. 2026-08-31), "
             "company_name (FK), contact_name (FK), deal_name (FK)."
         ),
         "handler": hs__get_orders,
@@ -2966,7 +3073,9 @@ TOOL_SPECS: list[dict] = [
             "Get products from HubSpot CRM (10 most recent). "
             "Pass product_id to view one record; add action='edit' to open the edit form; "
             "action='create' to open a blank create form. "
-            "Filters: name (text search), hs_product_type (inventory/non_inventory/service), "
+            "Filters: name (text search), hs_sku (text search), "
+            "price_min / price_max (numeric price range, >= / <=), "
+            "hs_product_type (inventory/non_inventory/service), "
             "hs_status (active/inactive), recurringbillingfrequency (weekly/biweekly/monthly/"
             "quarterly/per_six_months/annually/per_two_years/per_three_years/per_four_years/per_five_years)."
         ),
