@@ -189,11 +189,16 @@ class HubSpotClient:
         to_type: str,
         to_id: str,
     ) -> None:
-        """Create an association between two records via v4 Associations API."""
+        """Create an association between two records via v4 Associations API.
+
+        Uses the ``/associations/default/`` endpoint so HubSpot resolves the
+        correct default association type for the given object pair. Hardcoding a
+        single ``associationTypeId`` (e.g. 1) only works for contact→company and
+        fails with HTTP 400 for other pairs such as orders→companies.
+        """
         resp = await self._request(
             "PUT",
-            f"/crm/v4/objects/{from_type}/{from_id}/associations/{to_type}/{to_id}",
-            json_body=[{"associationCategory": "HUBSPOT_DEFINED", "associationTypeId": 1}],
+            f"/crm/v4/objects/{from_type}/{from_id}/associations/default/{to_type}/{to_id}",
         )
         self._raise_for_error(resp, f"associate {from_type}/{from_id} → {to_type}/{to_id}")
 

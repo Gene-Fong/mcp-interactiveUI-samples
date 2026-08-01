@@ -174,6 +174,8 @@ _ENTITY_SCHEMAS: dict[str, dict] = {
                "hs_fulfillment_status": {"operator": "EQ", "property": "hs_fulfillment_status"},
                "hs_payment_status": {"operator": "EQ", "property": "hs_payment_status"},
                "hs_currency_code": {"operator": "EQ", "property": "hs_currency_code"},
+               "hs_total_price_min": {"operator": "GTE", "property": "hs_total_price"},
+               "hs_total_price_max": {"operator": "LTE", "property": "hs_total_price"},
         },
         "formFields": [
                {"name": "hs_order_name", "label": "Order Name", "required": True},
@@ -1092,12 +1094,25 @@ async def hs__get_deals(
 
     # ── Branch: blank create form ────────────────────────────────────────────
     if action == "create":
+        prefill = {field["name"]: "" for field in schema["formFields"]}
+        if dealname:
+            prefill["dealname"] = dealname
+        if pipeline:
+            prefill["pipeline"] = pipeline
+        if dealstage:
+            prefill["dealstage"] = dealstage
+        if dealtype:
+            prefill["dealtype"] = dealtype
+        if company_name:
+            prefill["company_name"] = company_name
         return types.CallToolResult(
             content=[TextContent(type="text", text="Opening deal create form.")],
             structuredContent={
                 "type": "form",
                 "entity": "deal",
                 "mode": "create",
+                "recordId": "",
+                "prefill": prefill,
                 "_schema": schema,
             },
         )
@@ -1376,6 +1391,8 @@ async def hs__get_orders(
     hs_fulfillment_status: str = "",
     hs_payment_status: str = "",
     hs_currency_code: str = "",
+    hs_total_price_min: str = "",
+    hs_total_price_max: str = "",
     company_name: str = "",
     contact_name: str = "",
     deal_name: str = "",
@@ -1390,12 +1407,29 @@ async def hs__get_orders(
 
     # ── Branch: blank create form ────────────────────────────────────────────
     if action == "create":
+        prefill = {field["name"]: "" for field in schema["formFields"]}
+        if hs_order_name:
+            prefill["hs_order_name"] = hs_order_name
+        if hs_currency_code:
+            prefill["hs_currency_code"] = hs_currency_code
+        if hs_fulfillment_status:
+            prefill["hs_fulfillment_status"] = hs_fulfillment_status
+        if hs_payment_status:
+            prefill["hs_payment_status"] = hs_payment_status
+        if company_name:
+            prefill["company_name"] = company_name
+        if contact_name:
+            prefill["contact_name"] = contact_name
+        if deal_name:
+            prefill["deal_name"] = deal_name
         return types.CallToolResult(
             content=[TextContent(type="text", text="Opening order create form.")],
             structuredContent={
                 "type": "form",
                 "entity": "order",
                 "mode": "create",
+                "recordId": "",
+                "prefill": prefill,
                 "_schema": schema,
             },
         )
@@ -1566,6 +1600,8 @@ async def hs__get_orders(
         "hs_fulfillment_status": hs_fulfillment_status,
         "hs_payment_status": hs_payment_status,
         "hs_currency_code": hs_currency_code,
+        "hs_total_price_min": hs_total_price_min,
+        "hs_total_price_max": hs_total_price_max,
     }.items() if v}
     filter_sig = _filter_signature(filter_params)
     cache_key = f"orders_{filter_sig}" if filter_sig else "orders_all"
@@ -2775,7 +2811,9 @@ TOOL_SPECS: list[dict] = [
             "Pass order_id to view one record; add action='edit' to open the edit form; "
             "action='create' to open a blank create form. "
             "Filters: hs_order_name (text search), hs_fulfillment_status, hs_payment_status, "
-            "hs_currency_code, company_name (FK), contact_name (FK), deal_name (FK)."
+            "hs_currency_code, hs_total_price_min / hs_total_price_max (numeric total range — "
+            "e.g. 'orders over 5000' -> hs_total_price_min=5000), "
+            "company_name (FK), contact_name (FK), deal_name (FK)."
         ),
         "handler": hs__get_orders,
     },

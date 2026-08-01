@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow, Text, tokens } from '@fluentui/react-components';
 import { BoxRegular, DismissRegular, EditRegular, EyeRegular } from '@fluentui/react-icons';
 import { useStyles, H_CELL, D_CELL } from '../styles';
@@ -166,12 +166,12 @@ export function ProductsView({ items: initItems, callTool, toast, theme, cacheIn
             </DialogTitle>
             <DialogContent style={{ paddingTop: '16px' }}>
               {viewingProduct && (
-                <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: '10px 12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 28px' }}>
                   {productViewFields.map(field => (
-                    <React.Fragment key={field.label}>
-                      <div style={{ color: t.textWeak, fontSize: 12, fontWeight: 600 }}>{field.label}</div>
+                    <div key={field.label} style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0, gridColumn: field.label === 'Description' ? '1 / -1' : undefined }}>
+                      <div style={{ color: t.textWeak, fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.3px' }}>{field.label}</div>
                       <div style={{ color: t.text, fontSize: 13, whiteSpace: field.label === 'Description' ? 'normal' : 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{field.value || '—'}</div>
-                    </React.Fragment>
+                    </div>
                   ))}
                 </div>
               )}

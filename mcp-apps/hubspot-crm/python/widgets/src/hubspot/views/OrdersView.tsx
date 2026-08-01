@@ -1,6 +1,6 @@
-import React, { useCallback, useState } from 'react';
-import { Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow, Text, tokens } from '@fluentui/react-components';
-import { CartRegular, ChevronDownRegular, ChevronRightRegular, DismissRegular, EditRegular, EyeRegular } from '@fluentui/react-icons';
+import React, { useState } from 'react';
+import { Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, Spinner, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow, Text, tokens } from '@fluentui/react-components';
+import { CartRegular, DismissRegular, EditRegular, EyeRegular } from '@fluentui/react-icons';
 import { useStyles, H_CELL, D_CELL } from '../styles';
 import { hs } from '../theme';
 import { HsViewHeader } from '../components/ViewHeader';
@@ -20,6 +20,14 @@ function fmtDate(d: string | undefined): string {
   try { return new Date(d).toLocaleDateString(); } catch { return d; }
 }
 
+// Normalize a HubSpot date value (ISO string or epoch-ms) to the YYYY-MM-DD
+// format required by <input type="date">.
+function toDateInput(d: string | number | undefined): string {
+  if (d == null || d === '') return '';
+  const dt = new Date(typeof d === 'string' && /^\d+$/.test(d) ? Number(d) : d);
+  return isNaN(dt.getTime()) ? '' : dt.toISOString().slice(0, 10);
+}
+
 // ── OrdersView ─────────────────────────────────────────────────────────────
 export function OrdersView({ items: initItems, callTool, toast, theme, cacheInfo: initCacheInfo, isFullscreen }: {
   items: any[]; callTool: (n: string, a?: any) => Promise<any>;
@@ -37,8 +45,7 @@ export function OrdersView({ items: initItems, callTool, toast, theme, cacheInfo
   const [form, setForm] = useState<Record<string, string>>({});
   const [viewingOrder, setViewingOrder] = useState<any | null>(null);
   const [orderDetails, setOrderDetails] = useState<Record<string, OrderDetails>>({});
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [loadingExpand, setLoadingExpand] = useState<string | null>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
 
   const ORDER_EDIT_FIELDS = [
     { key: 'hs_order_name', label: 'Order Name' },
@@ -46,7 +53,7 @@ export function OrdersView({ items: initItems, callTool, toast, theme, cacheInfo
     { key: 'hs_currency_code', label: 'Currency', type: 'select' as const, options: ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'INR'] },
     { key: 'hs_fulfillment_status', label: 'Fulfillment Status', type: 'select' as const, options: ['pending', 'fulfilled', 'shipped', 'canceled'] },
     { key: 'hs_payment_status', label: 'Payment Status', type: 'select' as const, options: ['pending', 'paid', 'refunded', 'failed'] },
-    { key: 'hs_closed_date', label: 'Closed Date' },
+    { key: 'hs_closed_date', label: 'Closed Date', inputType: 'date' as const },
     { key: 'hs_source_store', label: 'Source Store' },
   ];
 
@@ -57,35 +64,21 @@ export function OrdersView({ items: initItems, callTool, toast, theme, cacheInfo
     onChange: (v: string) => setF(f.key, v),
   }));
 
-  // ── Load associated records ────────────────────────────────────────────────
-  const loadOrderDetails = useCallback(async (orderId: string) => {
-    if (orderDetails[orderId]) return orderDetails[orderId];
+  // Open the 360 view dialog and lazily load related records (aligned with
+  // the Salesforce Account 360 pattern — related lists live inside the modal).
+  const openView = async (order: any) => {
+    setViewingOrder(order);
+    if (orderDetails[order.id]) return;
+    setLoadingDetails(true);
     try {
       const [rd, rli, rco] = await Promise.all([
-        callTool('hs__get_associations', { entity_type: 'orders', entity_id: orderId, association_type: 'deals' }),
-        callTool('hs__get_associations', { entity_type: 'orders', entity_id: orderId, association_type: 'line_items' }),
-        callTool('hs__get_associations', { entity_type: 'orders', entity_id: orderId, association_type: 'companies' }),
+        callTool('hs__get_associations', { entity_type: 'orders', entity_id: order.id, association_type: 'deals' }).catch(() => null),
+        callTool('hs__get_associations', { entity_type: 'orders', entity_id: order.id, association_type: 'line_items' }).catch(() => null),
+        callTool('hs__get_associations', { entity_type: 'orders', entity_id: order.id, association_type: 'companies' }).catch(() => null),
       ]);
-      const details = { deals: rd?.items || [], line_items: rli?.items || [], companies: rco?.items || [] };
-      setOrderDetails(p => ({ ...p, [orderId]: details }));
-      return details;
-    } catch {
-      const empty = { deals: [], line_items: [], companies: [] };
-      setOrderDetails(p => ({ ...p, [orderId]: empty }));
-      return empty;
-    }
-  }, [orderDetails, callTool]);
-
-  const toggleExpand = useCallback(async (orderId: string) => {
-    if (expandedId === orderId) { setExpandedId(null); return; }
-    setExpandedId(orderId);
-    if (orderDetails[orderId]) return;
-    setLoadingExpand(orderId);
-    try { await loadOrderDetails(orderId); }
-    finally { setLoadingExpand(null); }
-  }, [expandedId, orderDetails, loadOrderDetails]);
-
-  const openView = (order: any) => { setViewingOrder(order); };
+      setOrderDetails(p => ({ ...p, [order.id]: { deals: rd?.items || [], line_items: rli?.items || [], companies: rco?.items || [] } }));
+    } finally { setLoadingDetails(false); }
+  };
 
   // ── Refresh ───────────────────────────────────────────────────────────────
   const handleRefresh = async () => {
@@ -125,7 +118,7 @@ export function OrdersView({ items: initItems, callTool, toast, theme, cacheInfo
       hs_currency_code: order.hs_currency_code || '',
       hs_fulfillment_status: order.hs_fulfillment_status || '',
       hs_payment_status: order.hs_payment_status || '',
-      hs_closed_date: order.hs_closed_date || '',
+      hs_closed_date: toDateInput(order.hs_closed_date),
       hs_source_store: order.hs_source_store || '',
     });
     setEditingId(order.id);
@@ -165,12 +158,23 @@ export function OrdersView({ items: initItems, callTool, toast, theme, cacheInfo
     </table>
   );
 
+  const RelatedList = ({ title, count, headers, rows }: { title: string; count: number; headers: string[]; rows: React.ReactNode[][] }) => (
+    <div>
+      <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: t.textWeak, marginBottom: 6, paddingBottom: 4, borderBottom: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span>{title}</span>
+        <span style={{ fontWeight: 400, fontSize: 10 }}>({count})</span>
+      </div>
+      <SubTable headers={headers} rows={rows} />
+    </div>
+  );
+
   return (
-    <div className={styles.root} style={loadingExpand ? { cursor: 'wait', pointerEvents: 'none' } : undefined}>
+    <div className={styles.card}>
       <HsViewHeader
         icon={<CartRegular style={{ fontSize: 18, color: tokens.colorBrandForeground1 }} />}
         title="Orders"
         count={localItems.length}
+        theme={theme}
         cacheInfo={cacheInfo}
         onRefresh={isFullscreen ? handleRefresh : undefined}
         refreshing={refreshing}
@@ -178,7 +182,6 @@ export function OrdersView({ items: initItems, callTool, toast, theme, cacheInfo
       <Table size="small" aria-label="Orders" style={{ borderCollapse: 'collapse', tableLayout: 'fixed', width: '100%' }}>
         <TableHeader>
           <TableRow style={{ background: t.headerBg }}>
-            <TableHeaderCell style={{ ...H_CELL, width: 32 }} />
             <TableHeaderCell style={{ ...H_CELL, color: t.textWeak, width: '20%' }}>Order Name</TableHeaderCell>
             <TableHeaderCell style={{ ...H_CELL, color: t.textWeak, width: '10%' }}>Total</TableHeaderCell>
             <TableHeaderCell style={{ ...H_CELL, color: t.textWeak, width: '12%' }}>Fulfillment</TableHeaderCell>
@@ -194,22 +197,10 @@ export function OrdersView({ items: initItems, callTool, toast, theme, cacheInfo
             <TableRow><TableCell colSpan={99} className={styles.empty}><Text>No orders found.</Text></TableCell></TableRow>
           )}
           {localItems.map((order: any) => (
-            <React.Fragment key={order.id}>
-              <TableRow className="hs-row"
+              <TableRow key={order.id} className="hs-row"
                 style={{ borderBottom: `1px solid ${tokens.colorNeutralStroke2}`, ...(lastSavedId === order.id ? { animation: 'hsRowFlash 2s ease-out' } : {}) }}
                 aria-label={`Order: ${order.hs_order_name}`}
               >
-                <TableCell style={{ ...D_CELL, width: 32, padding: '6px 8px' }}>
-                  <Button appearance="subtle" size="small"
-                    icon={loadingExpand === order.id ? undefined : expandedId === order.id ? <ChevronDownRegular /> : <ChevronRightRegular />}
-                    onClick={() => toggleExpand(order.id)}
-                    aria-expanded={expandedId === order.id}
-                    aria-label={`Expand ${order.hs_order_name}`}
-                    style={{ minWidth: 22, width: 22, height: 22, padding: 0 }}
-                  >
-                    {loadingExpand === order.id ? '…' : null}
-                  </Button>
-                </TableCell>
                 <TableCell style={{ ...D_CELL, fontWeight: 600 }}>{order.hs_order_name || '—'}</TableCell>
                 <TableCell style={D_CELL}>{fmtAmount(order.hs_total_price)}</TableCell>
                 <TableCell style={D_CELL}>{order.hs_fulfillment_status || '—'}</TableCell>
@@ -223,34 +214,10 @@ export function OrdersView({ items: initItems, callTool, toast, theme, cacheInfo
                   </TableCell>
                 )}
               </TableRow>
-              {expandedId === order.id && orderDetails[order.id] && (
-                <TableRow>
-                  <TableCell colSpan={99} style={{ padding: 0, background: t.expandedBg }}>
-                    <div style={{ padding: '12px 20px 16px', borderTop: `2px solid ${tokens.colorBrandBackground}`, display: 'flex', flexDirection: 'column', gap: 16 }}>
-                      <div>
-                        <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: tokens.colorNeutralForeground3, marginBottom: 6 }}>Deals</div>
-                        <SubTable headers={['Deal', 'Amount', 'Stage', 'Close Date']}
-                          rows={orderDetails[order.id].deals.map((d: any) => [d.dealname || '—', d.amount != null && d.amount !== '' ? '$' + Number(d.amount).toLocaleString() : '—', d.dealstage || '—', d.closedate ? new Date(d.closedate).toLocaleDateString() : '—'])} />
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: tokens.colorNeutralForeground3, marginBottom: 6 }}>Line Items</div>
-                        <SubTable headers={['Name', 'Qty', 'Price', 'Amount', 'SKU']}
-                          rows={orderDetails[order.id].line_items.map((li: any) => [li.name || '—', li.quantity || '—', li.price ? '$' + Number(li.price).toLocaleString() : '—', li.amount ? '$' + Number(li.amount).toLocaleString() : '—', li.sku || '—'])} />
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: tokens.colorNeutralForeground3, marginBottom: 6 }}>Companies</div>
-                        <SubTable headers={['Name', 'Domain', 'City']}
-                          rows={orderDetails[order.id].companies.map((co: any) => [co.name || '—', co.domain || '—', co.city || '—'])} />
-                      </div>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )}
-            </React.Fragment>
           ))}
         </TableBody>
       </Table>
-      <HsFooter />
+      <HsFooter theme={theme} />
 
       {editingRecord && (
         <RecordDialog
@@ -264,7 +231,7 @@ export function OrdersView({ items: initItems, callTool, toast, theme, cacheInfo
         />
       )}
       <Dialog open={!!viewingOrder} onOpenChange={(_, data) => { if (!data.open) setViewingOrder(null); }}>
-        <DialogSurface style={{ maxWidth: '720px', width: '90vw', padding: '24px' }}>
+        <DialogSurface style={{ maxWidth: '820px', width: '92vw', padding: '24px' }}>
           <DialogBody>
             <DialogTitle style={{ fontSize: '18px', fontWeight: 700, color: tokens.colorBrandForeground1 }}>
               {viewingOrder?.hs_order_name || 'Order'}
@@ -272,14 +239,29 @@ export function OrdersView({ items: initItems, callTool, toast, theme, cacheInfo
             <DialogContent style={{ paddingTop: '16px' }}>
               {viewingOrder && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '10px 12px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 28px' }}>
                     {orderViewFields.map(field => (
-                      <React.Fragment key={field.label}>
-                        <div style={{ color: t.textWeak, fontSize: 12, fontWeight: 600 }}>{field.label}</div>
-                        <div style={{ color: ['Company', 'Contact', 'Deal'].includes(field.label) ? tokens.colorBrandForeground1 : t.text, fontSize: 13 }}>{field.value || '—'}</div>
-                      </React.Fragment>
+                      <div key={field.label} style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
+                        <div style={{ color: t.textWeak, fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.3px' }}>{field.label}</div>
+                        <div style={{ color: ['Company', 'Contact', 'Deal'].includes(field.label) ? tokens.colorBrandForeground1 : t.text, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{field.value || '—'}</div>
+                      </div>
                     ))}
                   </div>
+                  {loadingDetails && !orderDetails[viewingOrder.id] ? (
+                    <div style={{ padding: 20, textAlign: 'center' }}><Spinner size="small" label="Loading related records…" /></div>
+                  ) : orderDetails[viewingOrder.id] && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                      <RelatedList title="Deals" count={orderDetails[viewingOrder.id].deals.length}
+                        headers={['Deal', 'Amount', 'Stage', 'Close Date']}
+                        rows={orderDetails[viewingOrder.id].deals.map((d: any) => [d.dealname || '—', d.amount != null && d.amount !== '' ? '$' + Number(d.amount).toLocaleString() : '—', d.dealstage || '—', d.closedate ? new Date(d.closedate).toLocaleDateString() : '—'])} />
+                      <RelatedList title="Line Items" count={orderDetails[viewingOrder.id].line_items.length}
+                        headers={['Name', 'Qty', 'Price', 'Amount', 'SKU']}
+                        rows={orderDetails[viewingOrder.id].line_items.map((li: any) => [li.name || '—', li.quantity || '—', li.price ? '$' + Number(li.price).toLocaleString() : '—', li.amount ? '$' + Number(li.amount).toLocaleString() : '—', li.sku || '—'])} />
+                      <RelatedList title="Companies" count={orderDetails[viewingOrder.id].companies.length}
+                        headers={['Name', 'Domain', 'City']}
+                        rows={orderDetails[viewingOrder.id].companies.map((co: any) => [co.name || '—', co.domain || '—', co.city || '—'])} />
+                    </div>
+                  )}
                 </div>
               )}
             </DialogContent>

@@ -1,12 +1,12 @@
 import React from 'react';
-import { Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, Field, Input, Textarea } from '@fluentui/react-components';
+import { Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, Field, Input, InputProps, Textarea } from '@fluentui/react-components';
 import { AddRegular, SaveRegular } from '@fluentui/react-icons';
 import { FormSelect } from './FormSelect';
 
 // ── RecordDialog — inline edit/create form ─────────────────────────────────
 export function RecordDialog({ open, title, fields, onSave, onCancel, saving, mode }: {
   open: boolean; title: string;
-  fields: { label: string; key: string; value: string; onChange: (v: string) => void; type?: 'select' | 'textarea'; options?: string[]; inputType?: string; readonly?: boolean }[];
+  fields: { label: string; key: string; value: string; onChange: (v: string) => void; type?: 'select' | 'textarea'; options?: string[]; inputType?: InputProps['type']; readonly?: boolean }[];
   onSave: () => void; onCancel: () => void; saving: boolean; mode?: 'edit' | 'create';
 }) {
   const isEdit = mode ? mode === 'edit' : title.includes('Edit');

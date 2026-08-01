@@ -1,6 +1,6 @@
-import React, { useCallback, useState } from 'react';
-import { Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow, Text, tokens } from '@fluentui/react-components';
-import { ChevronDownRegular, ChevronRightRegular, DismissRegular, EditRegular, EyeRegular, MoneyRegular } from '@fluentui/react-icons';
+import React, { useState } from 'react';
+import { Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, Spinner, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow, Text, tokens } from '@fluentui/react-components';
+import { DismissRegular, EditRegular, EyeRegular, MoneyRegular } from '@fluentui/react-icons';
 import { useStyles, H_CELL, D_CELL } from '../styles';
 import { hs } from '../theme';
 import { HsViewHeader } from '../components/ViewHeader';
@@ -34,6 +34,14 @@ function fmtDate(d: string | undefined): string {
   try { return new Date(d).toLocaleDateString(); } catch { return d; }
 }
 
+// Normalize a HubSpot date value (ISO string or epoch-ms) to the YYYY-MM-DD
+// format required by <input type="date">.
+function toDateInput(d: string | number | undefined): string {
+  if (d == null || d === '') return '';
+  const dt = new Date(typeof d === 'string' && /^\d+$/.test(d) ? Number(d) : d);
+  return isNaN(dt.getTime()) ? '' : dt.toISOString().slice(0, 10);
+}
+
 // ── DealsView ──────────────────────────────────────────────────────────────
 export function DealsView({ items: initItems, callTool, toast, theme, cacheInfo: initCacheInfo, isFullscreen }: {
   items: any[]; callTool: (n: string, a?: any) => Promise<any>;
@@ -51,15 +59,14 @@ export function DealsView({ items: initItems, callTool, toast, theme, cacheInfo:
   const [form, setForm] = useState<Record<string, string>>({});
   const [viewingDeal, setViewingDeal] = useState<any | null>(null);
   const [dealDetails, setDealDetails] = useState<Record<string, DealDetails>>({});
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [loadingExpand, setLoadingExpand] = useState<string | null>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
 
   const DEAL_EDIT_FIELDS = [
     { key: 'dealname', label: 'Deal Name' },
     { key: 'amount', label: 'Amount' },
     { key: 'pipeline', label: 'Pipeline', type: 'select' as const, options: ['default'] },
     { key: 'dealstage', label: 'Stage', type: 'select' as const, options: Object.keys(STAGE_LABELS) },
-    { key: 'closedate', label: 'Close Date' },
+    { key: 'closedate', label: 'Close Date', inputType: 'date' as const },
     { key: 'dealtype', label: 'Deal Type', type: 'select' as const, options: ['newbusiness', 'existingbusiness'] },
     { key: 'description', label: 'Description' },
   ];
@@ -71,35 +78,21 @@ export function DealsView({ items: initItems, callTool, toast, theme, cacheInfo:
     onChange: (v: string) => setF(f.key, v),
   }));
 
-  // ── Load associated records ────────────────────────────────────────────────
-  const loadDealDetails = useCallback(async (dealId: string) => {
-    if (dealDetails[dealId]) return dealDetails[dealId];
+  // Open the 360 view dialog and lazily load related records (aligned with
+  // the Salesforce Account 360 pattern — related lists live inside the modal).
+  const openView = async (deal: any) => {
+    setViewingDeal(deal);
+    if (dealDetails[deal.id]) return;
+    setLoadingDetails(true);
     try {
       const [rc, rco, rt] = await Promise.all([
-        callTool('hs__get_associations', { entity_type: 'deals', entity_id: dealId, association_type: 'contacts' }),
-        callTool('hs__get_associations', { entity_type: 'deals', entity_id: dealId, association_type: 'companies' }),
-        callTool('hs__get_associations', { entity_type: 'deals', entity_id: dealId, association_type: 'tickets' }),
+        callTool('hs__get_associations', { entity_type: 'deals', entity_id: deal.id, association_type: 'contacts' }).catch(() => null),
+        callTool('hs__get_associations', { entity_type: 'deals', entity_id: deal.id, association_type: 'companies' }).catch(() => null),
+        callTool('hs__get_associations', { entity_type: 'deals', entity_id: deal.id, association_type: 'tickets' }).catch(() => null),
       ]);
-      const details = { contacts: rc?.items || [], companies: rco?.items || [], tickets: rt?.items || [] };
-      setDealDetails(p => ({ ...p, [dealId]: details }));
-      return details;
-    } catch {
-      const empty = { contacts: [], companies: [], tickets: [] };
-      setDealDetails(p => ({ ...p, [dealId]: empty }));
-      return empty;
-    }
-  }, [dealDetails, callTool]);
-
-  const toggleExpand = useCallback(async (dealId: string) => {
-    if (expandedId === dealId) { setExpandedId(null); return; }
-    setExpandedId(dealId);
-    if (dealDetails[dealId]) return;
-    setLoadingExpand(dealId);
-    try { await loadDealDetails(dealId); }
-    finally { setLoadingExpand(null); }
-  }, [expandedId, dealDetails, loadDealDetails]);
-
-  const openView = (deal: any) => { setViewingDeal(deal); };
+      setDealDetails(p => ({ ...p, [deal.id]: { contacts: rc?.items || [], companies: rco?.items || [], tickets: rt?.items || [] } }));
+    } finally { setLoadingDetails(false); }
+  };
 
   // ── Refresh ───────────────────────────────────────────────────────────────
   const handleRefresh = async () => {
@@ -138,7 +131,7 @@ export function DealsView({ items: initItems, callTool, toast, theme, cacheInfo:
       amount: deal.amount || '',
       pipeline: deal.pipeline || 'default',
       dealstage: deal.dealstage || '',
-      closedate: deal.closedate || '',
+      closedate: toDateInput(deal.closedate),
       dealtype: deal.dealtype || '',
       description: deal.description || '',
     });
@@ -177,12 +170,23 @@ export function DealsView({ items: initItems, callTool, toast, theme, cacheInfo:
     </table>
   );
 
+  const RelatedList = ({ title, count, headers, rows }: { title: string; count: number; headers: string[]; rows: React.ReactNode[][] }) => (
+    <div>
+      <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: t.textWeak, marginBottom: 6, paddingBottom: 4, borderBottom: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span>{title}</span>
+        <span style={{ fontWeight: 400, fontSize: 10 }}>({count})</span>
+      </div>
+      <SubTable headers={headers} rows={rows} />
+    </div>
+  );
+
   return (
-    <div className={styles.root} style={loadingExpand ? { cursor: 'wait', pointerEvents: 'none' } : undefined}>
+    <div className={styles.card}>
       <HsViewHeader
         icon={<MoneyRegular style={{ fontSize: 18, color: tokens.colorBrandForeground1 }} />}
         title="Deals"
         count={localItems.length}
+        theme={theme}
         cacheInfo={cacheInfo}
         onRefresh={isFullscreen ? handleRefresh : undefined}
         refreshing={refreshing}
@@ -190,7 +194,6 @@ export function DealsView({ items: initItems, callTool, toast, theme, cacheInfo:
       <Table size="small" aria-label="Deals" style={{ borderCollapse: 'collapse', tableLayout: 'fixed', width: '100%' }}>
         <TableHeader>
           <TableRow style={{ background: t.headerBg }}>
-            <TableHeaderCell style={{ ...H_CELL, width: 32 }} />
             <TableHeaderCell style={{ ...H_CELL, color: t.textWeak, width: '22%' }}>Deal Name</TableHeaderCell>
             <TableHeaderCell style={{ ...H_CELL, color: t.textWeak, width: '14%' }}>Amount</TableHeaderCell>
             <TableHeaderCell style={{ ...H_CELL, color: t.textWeak, width: '16%' }}>Stage</TableHeaderCell>
@@ -205,22 +208,10 @@ export function DealsView({ items: initItems, callTool, toast, theme, cacheInfo:
             <TableRow><TableCell colSpan={99} className={styles.empty}><Text>No deals found.</Text></TableCell></TableRow>
           )}
           {localItems.map((deal: any) => (
-            <React.Fragment key={deal.id}>
-              <TableRow className="hs-row"
+              <TableRow key={deal.id} className="hs-row"
                 style={{ borderBottom: `1px solid ${tokens.colorNeutralStroke2}`, ...(lastSavedId === deal.id ? { animation: 'hsRowFlash 2s ease-out' } : {}) }}
                 aria-label={`Deal: ${deal.dealname}`}
               >
-                <TableCell style={{ ...D_CELL, width: 32, padding: '6px 8px' }}>
-                  <Button appearance="subtle" size="small"
-                    icon={loadingExpand === deal.id ? undefined : expandedId === deal.id ? <ChevronDownRegular /> : <ChevronRightRegular />}
-                    onClick={() => toggleExpand(deal.id)}
-                    aria-expanded={expandedId === deal.id}
-                    aria-label={`Expand ${deal.dealname}`}
-                    style={{ minWidth: 22, width: 22, height: 22, padding: 0 }}
-                  >
-                    {loadingExpand === deal.id ? '…' : null}
-                  </Button>
-                </TableCell>
                 <TableCell style={{ ...D_CELL, fontWeight: 600 }}>{deal.dealname || '—'}</TableCell>
                 <TableCell style={D_CELL}>{fmtAmount(deal.amount)}</TableCell>
                 <TableCell style={D_CELL}>{stageLabel(deal.dealstage || '')}</TableCell>
@@ -233,34 +224,10 @@ export function DealsView({ items: initItems, callTool, toast, theme, cacheInfo:
                   </TableCell>
                 )}
               </TableRow>
-              {expandedId === deal.id && dealDetails[deal.id] && (
-                <TableRow>
-                  <TableCell colSpan={99} style={{ padding: 0, background: t.expandedBg }}>
-                    <div style={{ padding: '12px 20px 16px', borderTop: `2px solid ${tokens.colorBrandBackground}`, display: 'flex', flexDirection: 'column', gap: 16 }}>
-                      <div>
-                        <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: tokens.colorNeutralForeground3, marginBottom: 6 }}>Contacts</div>
-                        <SubTable headers={['Name', 'Email', 'Phone']}
-                          rows={dealDetails[deal.id].contacts.map((ct: any) => [`${ct.firstname || ''} ${ct.lastname || ''}`.trim() || '—', ct.email || '—', ct.phone || '—'])} />
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: tokens.colorNeutralForeground3, marginBottom: 6 }}>Companies</div>
-                        <SubTable headers={['Name', 'Domain', 'City']}
-                          rows={dealDetails[deal.id].companies.map((co: any) => [co.name || '—', co.domain || '—', co.city || '—'])} />
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: tokens.colorNeutralForeground3, marginBottom: 6 }}>Tickets</div>
-                        <SubTable headers={['Subject', 'Status', 'Priority']}
-                          rows={dealDetails[deal.id].tickets.map((tk: any) => [tk.subject || '—', tk.status || '—', tk.priority || '—'])} />
-                      </div>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )}
-            </React.Fragment>
           ))}
         </TableBody>
       </Table>
-      <HsFooter />
+      <HsFooter theme={theme} />
 
       {editingRecord && (
         <RecordDialog
@@ -274,7 +241,7 @@ export function DealsView({ items: initItems, callTool, toast, theme, cacheInfo:
         />
       )}
       <Dialog open={!!viewingDeal} onOpenChange={(_, data) => { if (!data.open) setViewingDeal(null); }}>
-        <DialogSurface style={{ maxWidth: '720px', width: '90vw', padding: '24px' }}>
+        <DialogSurface style={{ maxWidth: '820px', width: '92vw', padding: '24px' }}>
           <DialogBody>
             <DialogTitle style={{ fontSize: '18px', fontWeight: 700, color: tokens.colorBrandForeground1 }}>
               {viewingDeal?.dealname || 'Deal'}
@@ -282,14 +249,29 @@ export function DealsView({ items: initItems, callTool, toast, theme, cacheInfo:
             <DialogContent style={{ paddingTop: '16px' }}>
               {viewingDeal && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '10px 12px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 28px' }}>
                     {dealViewFields.map(field => (
-                      <React.Fragment key={field.label}>
-                        <div style={{ color: t.textWeak, fontSize: 12, fontWeight: 600 }}>{field.label}</div>
-                        <div style={{ color: field.label === 'Company' ? tokens.colorBrandForeground1 : t.text, fontSize: 13 }}>{field.value || '—'}</div>
-                      </React.Fragment>
+                      <div key={field.label} style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0, gridColumn: field.label === 'Description' ? '1 / -1' : undefined }}>
+                        <div style={{ color: t.textWeak, fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.3px' }}>{field.label}</div>
+                        <div style={{ color: field.label === 'Company' ? tokens.colorBrandForeground1 : t.text, fontSize: 13, whiteSpace: field.label === 'Description' ? 'normal' : 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{field.value || '—'}</div>
+                      </div>
                     ))}
                   </div>
+                  {loadingDetails && !dealDetails[viewingDeal.id] ? (
+                    <div style={{ padding: 20, textAlign: 'center' }}><Spinner size="small" label="Loading related records…" /></div>
+                  ) : dealDetails[viewingDeal.id] && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                      <RelatedList title="Contacts" count={dealDetails[viewingDeal.id].contacts.length}
+                        headers={['Name', 'Email', 'Phone']}
+                        rows={dealDetails[viewingDeal.id].contacts.map((ct: any) => [`${ct.firstname || ''} ${ct.lastname || ''}`.trim() || '—', ct.email || '—', ct.phone || '—'])} />
+                      <RelatedList title="Companies" count={dealDetails[viewingDeal.id].companies.length}
+                        headers={['Name', 'Domain', 'City']}
+                        rows={dealDetails[viewingDeal.id].companies.map((co: any) => [co.name || '—', co.domain || '—', co.city || '—'])} />
+                      <RelatedList title="Tickets" count={dealDetails[viewingDeal.id].tickets.length}
+                        headers={['Subject', 'Status', 'Priority']}
+                        rows={dealDetails[viewingDeal.id].tickets.map((tk: any) => [tk.subject || '—', tk.status || '—', tk.priority || '—'])} />
+                    </div>
+                  )}
                 </div>
               )}
             </DialogContent>

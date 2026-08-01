@@ -3,6 +3,7 @@ import { MessageBar, MessageBarBody, MessageBarActions, Button } from '@fluentui
 import { DismissRegular } from '@fluentui/react-icons';
 
 type ToastType = 'success' | 'error' | 'info';
+type ToastOpts = { intent?: ToastType; duration?: number };
 
 interface ToastMsg {
   message: string;
@@ -14,8 +15,21 @@ interface ToastMsg {
 let showToastGlobal: (msg: string, type?: ToastType, durationMs?: number) => void = () => {};
 
 export function useToast() {
-  return useCallback((msg: string, type: ToastType = 'success', durationMs?: number) => {
-    showToastGlobal(msg, type, durationMs);
+  // Accepts either a positional ToastType string — toast(msg, 'error') — or a
+  // Fluent-style options object — toast(msg, { intent: 'error', duration: 0 }).
+  // Most call sites use the object form; without this normalization the object
+  // was treated as the `type`, never matched 'error', and every error toast
+  // rendered green (success) and ignored `duration: 0` persistence.
+  return useCallback((msg: string, opts?: ToastType | ToastOpts, durationMs?: number) => {
+    let type: ToastType = 'success';
+    let dur = durationMs;
+    if (typeof opts === 'string') {
+      type = opts;
+    } else if (opts) {
+      if (opts.intent) type = opts.intent;
+      if (opts.duration !== undefined) dur = opts.duration;
+    }
+    showToastGlobal(msg, type, dur);
   }, []);
 }
 
