@@ -10,7 +10,7 @@ export const STATUS_STYLES: Record<string, PillStyle> = {
   prospect:  { background: tokens.colorPaletteDarkOrangeBackground1, color: tokens.colorPaletteDarkOrangeForeground2, border: tokens.colorPaletteDarkOrangeBorder1 },
   customer:  { background: tokens.colorPaletteGreenBackground1,      color: tokens.colorPaletteGreenForeground2,      border: tokens.colorPaletteGreenBorder1 },
   lead:      { background: tokens.colorPaletteYellowBackground1,     color: tokens.colorPaletteYellowForeground2,     border: tokens.colorPaletteYellowBorder1 },
-  partner:   { background: tokens.colorPaletteLavenderBackground1,   color: tokens.colorPaletteLavenderForeground2,   border: tokens.colorPaletteLavenderBorder1 },
+  partner:   { background: tokens.colorPaletteLavenderBackground2,   color: tokens.colorPaletteLavenderForeground2,   border: tokens.colorPaletteLavenderBorderActive },
   other:     { background: tokens.colorPaletteRedBackground1,        color: tokens.colorPaletteRedForeground2,        border: tokens.colorPaletteRedBorder1 },
 };
 
