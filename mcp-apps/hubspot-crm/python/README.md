@@ -404,6 +404,12 @@ The agent works best when your HubSpot account has records to interact with. If 
 - **Unicode errors on Windows** — Set `PYTHONIOENCODING=utf-8` before running the server.
 - **Port in use** — Another process is on 8082. Kill it or change `PORT` in `.env`.
 
+### Deploy & upload
+
+- **Agent upload fails with `401`** — The MOS3 token expired. Delete `.mos3_token_cache.json` and re-run `LocalDeploy.ps1` (it will re-run the device-code sign-in).
+- **`TooLongInstructions` (HTTP 400) on upload** — `instruction.txt` is at or above 8,000 characters. Trim it below the limit and redeploy.
+- **Manifest "drift detected" — not safe to upload** — The live server's tool list no longer matches `agent/appPackage/mcp-tools.json`. Re-run `deploy\regen_manifests.py` to regenerate the manifests against the running server, then redeploy.
+
 ### Common questions
 
 - **Can I run without Docker?** — Yes. Fill `.env`, run `LocalDeploy.ps1`. Dev tunnel handles the rest.

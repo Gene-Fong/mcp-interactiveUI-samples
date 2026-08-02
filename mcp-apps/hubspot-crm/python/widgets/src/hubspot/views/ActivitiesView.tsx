@@ -12,14 +12,30 @@ const TYPE_LABELS: Record<string, string> = {
   note: 'Notes', call: 'Calls', task: 'Tasks', meeting: 'Meetings', email: 'Emails',
 };
 
+function stripHtml(s: string): string {
+  return s
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function formatCell(apiName: string, value: any): string {
   if (!value || value === '') return '—';
   if (apiName === 'hs_timestamp' || apiName === 'hs_meeting_start_time' || apiName === 'hs_meeting_end_time') {
     try { return new Date(value).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }); } catch { return value; }
   }
+  let str = String(value);
+  // Activity bodies (notes/emails) are stored as HTML — strip tags for display
+  if (/<[a-z!/][^>]*>/i.test(str)) str = stripHtml(str);
   // Truncate long bodies
-  if (typeof value === 'string' && value.length > 60) return value.slice(0, 57) + '…';
-  return String(value);
+  if (str.length > 60) return str.slice(0, 57) + '…';
+  return str;
 }
 
 // ── ActivitiesView — schema-driven ────────────────────────────────────────

@@ -67,14 +67,24 @@ export default function HubSpotApp() {
         />
       );
       break;
+    case 'error':
+      // Server error result — was previously falling through to the Companies widget
+      content = (
+        <div className={styles.card} style={{ padding: '24px', textAlign: 'center' }}>
+          <p style={{ fontSize: '14px', fontWeight: 600, marginBottom: '8px' }}>⚠️ Error</p>
+          <p style={{ fontSize: '13px' }}>{data.message || 'Something went wrong.'}</p>
+        </div>
+      );
+      break;
     case 'alert':
-      // FK alert — show message in error card (persistent)
+      // FK / not-found alert — single heading + one suggestions line.
+      // `data.message` already embeds the title and the "Did you mean" text, so we
+      // render `title` (or `message` when there is no title) once, then suggestions once.
       content = (
         <div className={styles.card} style={{ padding: '24px', textAlign: 'center' }}>
           <p style={{ fontSize: '14px', fontWeight: 600, marginBottom: '8px', color: tokens.colorPaletteRedForeground1 }}>
-            ⚠️ {data.title || 'Alert'}
+            ⚠️ {data.title || data.message || 'Alert'}
           </p>
-          <p style={{ fontSize: '13px' }}>{data.message}</p>
           {data.suggestions?.length > 0 && (
             <p style={{ fontSize: '12px', color: tokens.colorBrandForeground1, marginTop: 8 }}>
               Did you mean: {data.suggestions.join(', ')}?
