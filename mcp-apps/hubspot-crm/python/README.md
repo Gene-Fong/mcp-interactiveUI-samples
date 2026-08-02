@@ -138,6 +138,8 @@ create company Contoso, type PROSPECT, city Seattle
 log a note for contact Maria
 ```
 
+You do not have to phrase things this precisely — plain English works — but keeping the verb first, the entity second, and any filter last is the most reliable way to be understood.
+
 ### 2.3 Fields, filters, and picklists
 
 Each entity exposes a set of filterable fields and picklist-constrained form fields. Fields marked 🔗 accept plain names and are resolved to record IDs on Save.
@@ -169,9 +171,13 @@ Each entity exposes a set of filterable fields and picklist-constrained form fie
 
 Ask for any entity by name. The agent returns the most recent records as a sortable table with ✏️ Edit / ➕ New controls per row.
 
+![show companies widget](../media/HS-ShowCompanies.gif)
+
 #### FILTER — narrow the list
 
 Add conditions to your request — *"prospect companies"*, *"orders over 5000"*, *"contacts for Acme"*. The agent maps your natural language to the correct HubSpot filter operators (`CONTAINS_TOKEN` for text, `EQ` for picklists, `GTE`/`LTE` for numeric ranges). Foreign-key filters like *"orders for Acme"* traverse HubSpot associations server-side.
+
+![filter orders widget](../media/HS-FilterOrders.gif)
 
 #### IDENTIFY — show a specific record
 
@@ -181,13 +187,19 @@ Mention a name and the entity word. If it matches multiple records, the agent su
 
 Say *"edit"* followed by a name. If one match, the edit form opens directly with the fields pre-filled. If multiple match, the list is shown so you can pick the right one. Date fields (deal close date, order close date, task due date) open a date picker.
 
+![edit record form](../media/HS-EditRecord.gif)
+
 #### CREATE — open a pre-filled form
 
 The agent picks out values from your sentence — name, type, company — and pre-fills the create form. You review, complete any remaining fields, and submit. The form's Save button performs the write.
 
+![create company form](../media/HS-CreateCompany.gif)
+
 #### DRILL — open the 360 modal
 
 In the full-screen widget, each row shows a 👁 eye icon. Click it to open a 360 modal that lists the record's associated data inline — for example, a Deal shows its Contacts, Companies, and Tickets; an Order shows its Deals, Line Items, and Companies.
+
+![360 modal](../media/HS-360Modal.gif)
 
 #### RESOLVE FK — type names, not IDs
 
@@ -309,13 +321,49 @@ You should get a JSON-RPC response.
 
 ### Step 4 — Run with Docker (optional)
 
-This step hosts the MCP server in a container instead of your terminal. The container keeps the server running without your terminal open.
+This step hosts the MCP server in a container instead of your terminal, so the server keeps running without your terminal open. The container hosts **only the server** — Copilot still reaches it through the same public HTTPS URL and uploaded agent package from Step 3.
+
+**Prerequisites:**
+- 🐳 **Docker** (Docker Desktop, or any engine ≥ 20.10)
+- ✅ Step 2 complete — a HubSpot Private App Token
+- 🌐 A way to expose the container's port over public HTTPS (the same Dev Tunnel from Step 3, or your own endpoint) so Copilot can reach `/mcp`
+
+**Action:** Build the image from the `python/` folder. That folder is the build context — the Dockerfile bundles the React widget and the Python server into one image, exposes port `8082`, and runs `python -m hs_crm_mcp`:
 
 ```powershell
 cd mcp-apps/hubspot-crm/python
 docker build -t hs-mcp-copilot .
+```
+
+Then run it with your configuration. The container reads the **same variables as local run**, so the simplest option is to reuse the `.env` file you created in Step 3 with `--env-file`:
+
+```powershell
+docker run -p 8082:8082 --env-file .env hs-mcp-copilot
+```
+
+Or pass the token inline instead of a file:
+
+```powershell
 docker run -p 8082:8082 -e HUBSPOT_ACCESS_TOKEN=pat-na2-... hs-mcp-copilot
 ```
+
+| Variable | Required | Value |
+|---|---|---|
+| `HUBSPOT_ACCESS_TOKEN` | ✅ | Your Private App Token (e.g. `pat-na2-...`) |
+| `PORT` | — | Server port inside the container, default `8082`. If you change it, update the `-p` mapping and the Dockerfile `EXPOSE` to match. |
+| `CORS_ORIGINS` | — | Comma-separated allowed origins, default `*` |
+| `APPINSIGHTS_CONNECTION_STRING` | — | App Insights connection string for telemetry |
+
+> [!NOTE]
+> The `-p 8082:8082` flag maps the container's port to your host. Point your public HTTPS URL (Dev Tunnel or otherwise) at that host port, then upload the agent package so Copilot targets that URL. Running the container alone does **not** register the agent — that is what `LocalDeploy.ps1` does in Step 3.
+
+**Validate:**
+1. Confirm the container serves locally:
+```powershell
+curl -X POST http://localhost:8082/mcp -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"initialize","id":1}'
+```
+You should get a JSON-RPC response (not a connection error).
+2. Check the container is up: `docker ps` should list `hs-mcp-copilot` with `0.0.0.0:8082->8082/tcp`.
 
 ---
 
