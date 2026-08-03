@@ -136,6 +136,7 @@ MCP server that recommends learning and training courses with embedded video pre
 <p align="center">
   <img src="https://img.shields.io/badge/🏛️_Salesforce-CRM-00A1E0?style=for-the-badge" alt="Salesforce" />
   <img src="https://img.shields.io/badge/🎫_ServiceNow-ITSM-293E40?style=for-the-badge" alt="ServiceNow" />
+  <img src="https://img.shields.io/badge/🟠_HubSpot-CRM-FF7A59?style=for-the-badge" alt="HubSpot" />
   <br/><br/>
   <img src="https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white" alt="Python" />
   <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black" alt="React" />
@@ -156,6 +157,7 @@ Each app ships with:
 |---|---|---|---|
 | 1 | 🏛️ **Ask - Salesforce** | 30 | [mcp-apps/salesforce-crm/python/](mcp-apps/salesforce-crm/python/README.md) |
 | 2 | 🎫 **Ask - ServiceNow** | 31 | [mcp-apps/servicenow-itsm/python/](mcp-apps/servicenow-itsm/python/README.md) |
+| 3 | 🟠 **Ask - HubSpot** | 19 | [mcp-apps/hubspot-crm/python/](mcp-apps/hubspot-crm/python/README.md) |
 
 [![Watch the demo](https://img.youtube.com/vi/eELXlXAn2ac/maxresdefault.jpg)](https://youtu.be/eELXlXAn2ac)
 
@@ -167,6 +169,9 @@ Each app ships with:
 | Show me open incidents. | Lists recent ServiceNow incidents with priority indicators. |
 | Resolve INC0010001 as solved remotely. | Opens the resolve form with close-code picklist. |
 | Search knowledge for VPN setup. | Searches published ServiceNow knowledge base articles. |
+| Show me deals for Acme. | Lists HubSpot deals for a company with stage and amount, inline edit/create. |
+| Create a task to follow up with Acme. | Opens a prefilled HubSpot activity form (task/call/note/meeting/email). |
+| Show me contacts at Acme. | Lists HubSpot contacts associated with a company. |
 
 ## Repository structure
 
@@ -175,6 +180,7 @@ mcp-apps/                        # MCP Apps SDK samples
   employee-training/node/        # Learning course recommendations
   expense-submission/node/       # Expense filing with Entra SSO & file handling
   fieldops/node/                 # Field service dispatch
+  hubspot-crm/python/            # Enterprise HubSpot CRM (19 tools)
   salesforce-crm/python/         # Enterprise Salesforce CRM (30 tools)
   servicenow-itsm/python/        # Enterprise ServiceNow ITSM + HR (31 tools)
   trey-research/node/            # HR consultant management
