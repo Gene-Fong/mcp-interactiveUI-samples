@@ -170,8 +170,8 @@ Each app ships with:
 | Resolve INC0010001 as solved remotely. | Opens the resolve form with close-code picklist. |
 | Search knowledge for VPN setup. | Searches published ServiceNow knowledge base articles. |
 | Show me deals for Acme. | Lists HubSpot deals for a company with stage and amount, inline edit/create. |
-| Create a task to follow up with Acme. | Opens a prefilled HubSpot activity form (task/call/note/meeting/email). |
-| Show me contacts at Acme. | Lists HubSpot contacts associated with a company. |
+| Show me orders over 5000. | Filters HubSpot Commerce orders by total amount, with drill-down to line items and companies. |
+| Log a note for contact Maria. | Opens a prefilled HubSpot activity form (note/call/task/meeting/email) linked to the contact. |
 
 ## Repository structure
 

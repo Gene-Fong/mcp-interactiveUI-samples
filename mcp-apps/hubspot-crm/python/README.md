@@ -9,17 +9,18 @@ The flow is simple. A user types a request in plain English. Copilot calls the s
 The server provides the following capabilities:
 
 - The widgets render inline in the Copilot chat rather than in a separate browser tab.
-- A user can read, create, and update records across five CRM entities — Companies, Contacts, Deals, Orders, and Products — plus five activity types (Notes, Calls, Tasks, Meetings, Emails).
+- A user can read, create, and update records across six CRM entities — Companies, Contacts, Deals, Orders, Products, and Activities (Notes, Calls, Tasks, Meetings, Emails).
 - Each record opens a 360 view that drills into its associated records (contacts, deals, tickets, line items, companies) inside a modal.
 - Lookup fields accept plain names instead of numeric HubSpot record IDs, and the agent resolves each name to the correct record when the form is saved.
-- The server runs either on a local laptop or in a Docker container.
-- Deployment is scripted. One command deploys the server locally.
+- The server runs either on a local laptop or on Azure Container Apps.
+- Deployment is scripted. One command deploys the server locally, and two idempotent scripts deploy it to Azure.
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white" alt="Python" />
   <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white" alt="React" />
   <img src="https://img.shields.io/badge/Fluent_UI-v9-0078D4" alt="Fluent UI" />
   <img src="https://img.shields.io/badge/FastMCP-1.26-6E40C9" alt="FastMCP" />
+  <img src="https://img.shields.io/badge/Azure-Container_Apps-0078D4?logo=microsoftazure&logoColor=white" alt="Azure" />
   <img src="https://img.shields.io/badge/HubSpot-CRM-FF7A59?logo=hubspot&logoColor=white" alt="HubSpot" />
   <img src="https://img.shields.io/badge/M365-Copilot-7B83EB" alt="M365 Copilot" />
   <img src="https://img.shields.io/badge/version-0.5.0-blue" alt="Version" />
@@ -41,16 +42,16 @@ The server provides the following capabilities:
 You can run the server in one of two ways:
 
 - **Local.** Your laptop hosts the server, and a dev tunnel exposes it to Copilot over HTTPS. This option suits development, because you can change the code and test it quickly.
-- **Docker.** The same server runs in a container. Because the container hosts the server rather than your laptop terminal, the agent stays available without your terminal open.
+- **Azure.** The same server runs in Azure Container Apps. Because Azure hosts the server rather than your laptop, the agent stays available when your laptop is off, and anyone in your Microsoft 365 tenant can use it.
 
 ```mermaid
 flowchart LR
     U([You]) -->|prompt| C[M365 Copilot<br/>orchestrator]
     C -->|tool call| T{Where's the server?}
     T -->|local| DT[Dev Tunnel]
-    T -->|docker| D[Docker<br/>Container]
+    T -->|cloud| ACA[Azure<br/>Container App]
     DT --> S[HS MCP server<br/>FastMCP + 19 tools]
-    D --> S
+    ACA --> S
     S -->|PAT + REST| HS[(HubSpot CRM)]
     S -.->|widget HTML| C
     C -.->|render| U
@@ -60,7 +61,7 @@ flowchart LR
     classDef hs fill:#FF7A59,stroke:#CC5E47,color:#fff
     class U user
     class C,S server
-    class DT,D,T cloud
+    class DT,ACA,T cloud
     class HS hs
 ```
 
@@ -96,7 +97,7 @@ Drill-down sits outside an entity's GET/CREATE/UPDATE trio. It is powered by the
 
 | # | Operation | What you say | What happens | Tips |
 |---|---|---|---|---|
-| 6 | **DRILL** | *(click the 👁 eye on a row)* | Opens a 360 modal with associated records | In full-screen view, click the eye to see contacts, deals, tickets, line items, and companies linked to the record |
+| 6 | **DRILL** | *(click the view icon on a row)* | Opens a 360 modal with associated records | In full-screen view, click the view icon to see contacts, deals, tickets, line items, and companies linked to the record |
 
 ### 2.2 What you can do with each record type
 
@@ -110,10 +111,6 @@ Not every record type supports every operation. The table below shows, in plain 
 | **Order** | ✓ | ✓ | ✓ | Deals, Line Items, Companies |
 | **Product** | ✓ | ✓ | ✓ | — |
 | **Activity** (Note / Call / Task / Meeting / Email) | ✓ | ✓ | ✓ | Attaches to Company, Contact, or Deal |
-| **Ticket** | ✓ (drill-down only) | — | — | Surfaced as an association on Companies, Contacts, and Deals |
-
-> [!NOTE]
-> Tickets are **view-only**: they appear inside the 360 modal of Companies, Contacts, and Deals via `hs__get_associations`. There is no standalone Ticket create/edit tool.
 
 Most requests follow one simple pattern:
 
@@ -140,31 +137,6 @@ log a note for contact Maria
 
 You do not have to phrase things this precisely — plain English works — but keeping the verb first, the entity second, and any filter last is the most reliable way to be understood.
 
-#### Filterable fields and picklist values
-
-Each entity exposes a set of filterable fields and picklist-constrained form fields. Fields marked 🔗 accept plain names and are resolved to record IDs on Save.
-
-**Companies** — filters: name, domain, type, lifecycle stage, city, country.
-- **Type:** `PROSPECT`, `PARTNER`, `RESELLER`, `VENDOR`, `OTHER`
-- **Lifecycle Stage:** `subscriber`, `lead`, `marketingqualifiedlead`, `salesqualifiedlead`, `opportunity`, `customer`, `evangelist`, `other`
-
-**Contacts** — filters: first name, last name, email, job title, city, lifecycle stage, company (🔗).
-
-**Deals** — filters: deal name, stage, pipeline, deal type, company (🔗).
-- **Stage:** Lead Captured, Qualified, Proposal Sent, Negotiation, Closed Won, Closed Lost
-- **Deal Type:** `newbusiness`, `existingbusiness`
-
-**Orders** — filters: order name, fulfillment status, payment status, currency, total range (`hs_total_price_min` / `hs_total_price_max`), company (🔗), contact (🔗), deal (🔗).
-- **Fulfillment:** `pending`, `fulfilled`, `shipped`, `canceled`
-- **Payment:** `pending`, `paid`, `refunded`, `failed`
-- **Currency:** `USD`, `EUR`, `GBP`, `CAD`, `AUD`, `INR`
-
-**Products** — filters: name, status, product type.
-- **Status:** `active`, `inactive`
-- **Product Type:** `inventory`, `non_inventory`, `service`
-
-**Activities** — filtered by type (note, call, task, meeting, email) and optionally by parent company/contact/deal (🔗). Tasks filter by status, priority, and subject text; calls filter by direction/status and meetings by outcome; meetings also filter by title text and emails by direction/status plus subject text.
-
 ### 2.3 In action
 
 #### GET — list recent records
@@ -173,21 +145,29 @@ Ask for any entity by name. The agent returns the most recent records as a sorta
 
 ![show companies widget](../media/HS-ShowCompanies.gif)
 
+![get tasks widget](../media/HS-GetTasks.png)
+
 #### FILTER — narrow the list
 
 Add conditions to your request — *"prospect companies"*, *"orders over 5000"*, *"contacts for Acme"*. The agent maps your natural language to the correct HubSpot filter operators (`CONTAINS_TOKEN` for text, `EQ` for picklists, `GTE`/`LTE` for numeric ranges). Foreign-key filters like *"orders for Acme"* traverse HubSpot associations server-side.
 
 ![filter orders widget](../media/HS-FilterOrders.gif)
 
+![filter reseller companies widget](../media/HS-FilterCompanies.png)
+
 #### IDENTIFY — show a specific record
 
 Mention a name and the entity word. If it matches multiple records, the agent surfaces all matches. If it resolves to one, it shows that single record.
 
+![show company Himalayan Encounters](../media/HS-IdentifyCompany.png)
+
 #### EDIT — modify a record
 
-Say *"edit"* followed by a name. If one match, the edit form opens directly with the fields pre-filled. If multiple match, the list is shown so you can pick the right one. Date fields (deal close date, order close date, task due date) open a date picker.
+Say *"edit"* followed by a name. The matching records appear in the list, and you edit one by following the standard pattern — click the view icon on its row to open the record, then Edit. Date fields (deal close date, order close date, task due date) open a date picker.
 
 ![edit record form](../media/HS-EditRecord.gif)
+
+![edit contact Mariaer Johnsoner](../media/HS-EditContact.png)
 
 #### CREATE — open a pre-filled form
 
@@ -195,15 +175,21 @@ The agent picks out values from your sentence — name, type, company — and pr
 
 ![create company form](../media/HS-CreateCompany.gif)
 
+![create contact Linda with prefilled email and company](../media/HS-CreateContact.png)
+
 #### DRILL — open the 360 modal
 
-In the full-screen widget, each row shows a 👁 eye icon. Click it to open a 360 modal that lists the record's associated data inline — for example, a Deal shows its Contacts, Companies, and Tickets; an Order shows its Deals, Line Items, and Companies.
+In the full-screen widget, each row shows a view icon. Click it to open a 360 modal that lists the record's associated data inline — for example, a Deal shows its Contacts, Companies, and Tickets; an Order shows its Deals, Line Items, and Companies.
+
+![get company GlobalFizz 360 modal](../media/HS-Drill360.png)
 
 ![360 modal](../media/HS-360Modal.gif)
 
 #### RESOLVE FK — type names, not IDs
 
 Fields marked with 🔗 accept plain names. Type a name, hit Save — the agent resolves it to the HubSpot record ID. If there's no exact match, you get up to five suggestions to pick from.
+
+![get orders for Mariaer Johnsoner](../media/HS-ResolveFK.png)
 
 > [!TIP]
 > Look for the 🔗 icon on form fields — those are the ones that accept names instead of IDs.
@@ -218,7 +204,7 @@ If a name could apply to more than one entity type, the agent asks first.
 
 ## 3. Install
 
-The installation has four steps: get the app folder, configure your credentials, run the server locally, and optionally run it in Docker. The whole process takes about 15 minutes.
+The installation has four steps: get the app folder, configure your credentials, run the server locally, and optionally deploy it to Azure. The whole process takes about 30 minutes.
 
 ### Step 1 — Get the app folder
 
@@ -319,51 +305,53 @@ You should get a JSON-RPC response.
 
 ---
 
-### Step 4 — Run with Docker (optional)
+### Step 4 — Deploy to Azure (optional)
 
-This step hosts the MCP server in a container instead of your terminal, so the server keeps running without your terminal open. The container hosts **only the server** — Copilot still reaches it through the same public HTTPS URL and uploaded agent package from Step 3.
+This step hosts the MCP server in Azure Container Apps instead of on your laptop. Once the server runs in Azure, the agent stays available when your laptop is off, and anyone in your Microsoft 365 tenant can use it.
 
 **Prerequisites:**
-- 🐳 **Docker** (Docker Desktop, or any engine ≥ 20.10)
-- ✅ Step 2 complete — a HubSpot Private App Token
-- 🌐 A way to expose the container's port over public HTTPS (the same Dev Tunnel from Step 3, or your own endpoint) so Copilot can reach `/mcp`
+- ☁️ **Azure CLI ≥ 2.50** — sign in with `az login`
+- 💳 **Azure subscription** with Contributor permissions
 
-**Action:** Build the image from the `python/` folder. That folder is the build context — the Dockerfile bundles the React widget and the Python server into one image, exposes port `8082`, and runs `python -m hs_crm_mcp`:
+**Action:** Copy `deploy/parameters.example.bicepparam` to `deploy/parameters.bicepparam` and fill in your credentials:
 
+| Param | Value |
+|---|---|
+| `hubspotAccessToken` | Your HubSpot Private App access token (`pat-...`) |
+| `acrName` | Globally unique, lowercase alphanumeric, 5–50 chars |
+| `location` | Azure region (e.g. `eastus`, `westeurope`) |
+| `appInsightsConnectionString` | *(optional)* App Insights connection string |
+
+Then run the **two server scripts** in order. They're split by responsibility and both are idempotent — safe to re-run.
+
+**1. Set up the Azure infrastructure** (one time, or after you change an infrastructure parameter):
 ```powershell
-cd mcp-apps/hubspot-crm/python
-docker build -t hs-mcp-copilot .
+.\deploy\AzureImageSetup.ps1
 ```
+This script provisions the Resource Group, Container Registry, Container Apps Environment, Container App (with a placeholder image), Log Analytics workspace, and Managed Identity. The first run takes 5–10 minutes, and later runs only verify that the stack is already in place.
 
-Then run it with your configuration. The container reads the **same variables as local run**, so the simplest option is to reuse the `.env` file you created in Step 3 with `--env-file`:
-
+**2. Deploy the server and agent** (every time you ship new code):
 ```powershell
-docker run -p 8082:8082 --env-file .env hs-mcp-copilot
+.\deploy\ServerDeploy.ps1
 ```
-
-Or pass the token inline instead of a file:
-
-```powershell
-docker run -p 8082:8082 -e HUBSPOT_ACCESS_TOKEN=pat-na2-... hs-mcp-copilot
-```
-
-| Variable | Required | Value |
-|---|---|---|
-| `HUBSPOT_ACCESS_TOKEN` | ✅ | Your Private App Token (e.g. `pat-na2-...`) |
-| `PORT` | — | Server port inside the container, default `8082`. If you change it, update the `-p` mapping and the Dockerfile `EXPOSE` to match. |
-| `CORS_ORIGINS` | — | Comma-separated allowed origins, default `*` |
-| `APPINSIGHTS_CONNECTION_STRING` | — | App Insights connection string for telemetry |
+This script builds the container image in ACR, points the Container App at that image, and then regenerates the agent manifest against the live Azure URL and uploads it to Microsoft 365 Copilot. If the infrastructure does not exist yet, the script stops and asks you to run `AzureImageSetup.ps1` first.
 
 > [!NOTE]
-> The `-p 8082:8082` flag maps the container's port to your host. Point your public HTTPS URL (Dev Tunnel or otherwise) at that host port, then upload the agent package so Copilot targets that URL. Running the container alone does **not** register the agent — that is what `LocalDeploy.ps1` does in Step 3.
+> **Response speed depends on your Azure Container Apps plan.** The default Consumption plan cold-starts containers on each request after idle timeout (~5–15 s first response). For production or demo use, consider a **Dedicated plan** or set `minReplicas: 1` in your container app config to keep the container warm.
 
 **Validate:**
-1. Confirm the container serves locally:
+1. The script prints a public Azure FQDN. Test it:
 ```powershell
-curl -X POST http://localhost:8082/mcp -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"initialize","id":1}'
+curl -X POST <FQDN>/mcp -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"initialize","id":1}'
 ```
 You should get a JSON-RPC response (not a connection error).
-2. Check the container is up: `docker ps` should list `hs-mcp-copilot` with `0.0.0.0:8082->8082/tcp`.
+2. Verify the container image: `az containerapp show -g <rg> -n <app> --query "properties.template.containers[0].image" -o tsv` — should return your ACR image.
+
+> [!TIP]
+> When you ship new server or agent code later, re-run `.\deploy\ServerDeploy.ps1`. It rebuilds the image and re-uploads the agent against the same infrastructure. You only need to re-run `AzureImageSetup.ps1` when you change an infrastructure parameter such as the region or the ACR name.
+
+> [!NOTE]
+> To tear down later: `.\deploy\ServerDestroy.ps1` removes the provisioned resources but leaves your resource group and M365 agent registration intact.
 
 ---
 
@@ -400,3 +388,7 @@ The agent works best when your HubSpot account has records to interact with. If 
 | Agent upload fails with `401` | MOS3 token expired — delete `.mos3_token_cache.json` and re-run `LocalDeploy.ps1` (re-runs the device-code sign-in). |
 | `TooLongInstructions` (HTTP 400) on upload | `instruction.txt` is at or above 8,000 chars — trim it below the limit and redeploy. |
 | Manifest "drift detected" — not safe to upload | Live server's tool list no longer matches `agent/appPackage/mcp-tools.json` — re-run `deploy\regen_manifests.py`, then redeploy. |
+| `/mcp` returns 502 / refused after Azure deploy | Container failed to start — `az containerapp logs show -g <rg> -n <app> --tail 100`; usually a wrong token in `parameters.bicepparam`. |
+| `RegistryNameInUse` during Azure deploy | ACR names are global — pick a different `acrName` in `parameters.bicepparam`. |
+| Azure infra not found | Run `.\deploy\AzureImageSetup.ps1` first, then `.\deploy\ServerDeploy.ps1`. |
+| Tools show dev-tunnel URL after Azure deploy | Re-run `.\deploy\ServerDeploy.ps1` — it re-registers the agent against the live Azure URL. |
