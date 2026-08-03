@@ -33,6 +33,36 @@ export function prettyEnum(v: string): string {
   return v.split(/[_\s]+/).map(w => (w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : w)).join(' ');
 }
 
+// Convert a stored HubSpot date/datetime value (ISO 8601 string or epoch ms)
+// into the string an <input type="date"> ("yyyy-MM-dd") or
+// type="datetime-local" ("yyyy-MM-ddThh:mm") expects. Without this the input
+// can't parse a full ISO datetime and renders an empty mm/dd/yyyy placeholder.
+// Idempotent: an already-formatted value passes straight through.
+export function toDateInput(value: string, inputType?: string): string {
+  if (!value) return '';
+  if (inputType !== 'date' && inputType !== 'datetime-local') return value;
+  const s = String(value);
+  const iso = s.match(/^(\d{4}-\d{2}-\d{2})(?:[T ](\d{2}:\d{2}))?/);
+  let d: Date;
+  if (iso) {
+    if (inputType === 'date') return iso[1];
+    if (iso[2]) return `${iso[1]}T${iso[2]}`;
+    d = new Date(s);
+  } else if (/^\d+$/.test(s)) {
+    d = new Date(Number(s)); // epoch ms
+  } else {
+    d = new Date(s);
+  }
+  if (isNaN(d.getTime())) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  // Date-only fields are stored at midnight UTC — read in UTC to avoid a tz
+  // day-shift. datetime-local (e.g. meeting times) must display in LOCAL time.
+  if (inputType === 'date') {
+    return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+  }
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 // ── Form field definitions ─────────────────────────────────────────────────
 export const COMPANY_FORM_FIELDS = [
   { label: 'Company Name *', key: 'name' },

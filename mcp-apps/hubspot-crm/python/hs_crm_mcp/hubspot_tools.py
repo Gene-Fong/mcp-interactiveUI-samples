@@ -516,6 +516,20 @@ def _deal_not_found_alert(name: str, suggestions: list[str]) -> types.CallToolRe
     )
 
 
+def _empty_list_on_not_found(result_type: str, schema: Any, alert: types.CallToolResult) -> types.CallToolResult:
+    """Render an empty entity widget (correct list type) instead of a standalone
+    alert widget when a FK filter target is not found. The "not found / did you
+    mean" text is surfaced in chat (per instructions), not in a separate widget."""
+    notice = alert.content[0].text if alert.content else "Not found."
+    return types.CallToolResult(
+        content=[TextContent(type="text", text=notice)],
+        structuredContent={
+            "type": result_type, "items": [], "total": 0,
+            "_schema": schema, "_cache": {"hit": False, "cached_at": _now_iso()},
+        },
+    )
+
+
 def _build_filter_groups(entity: str, params: dict[str, str]) -> list[dict] | None:
     """Build HubSpot Search API filterGroups from provided params.
 
@@ -1372,7 +1386,7 @@ async def hs__get_deals(
             client = get_client()
             co_id, suggestions = await _resolve_company(client, company_name)
             if not co_id:
-                return _company_not_found_alert(company_name, suggestions)
+                return _empty_list_on_not_found("deals", schema, _company_not_found_alert(company_name, suggestions))
             deal_ids = await client.get_associated_ids("companies", co_id, "deals")
             if not deal_ids:
                 return types.CallToolResult(
@@ -1723,7 +1737,7 @@ async def hs__get_orders(
             client = get_client()
             co_id, suggestions = await _resolve_company(client, company_name)
             if not co_id:
-                return _company_not_found_alert(company_name, suggestions)
+                return _empty_list_on_not_found("orders", schema, _company_not_found_alert(company_name, suggestions))
             order_ids = await client.get_associated_ids("companies", co_id, "orders")
             if not order_ids:
                 return types.CallToolResult(
@@ -1753,7 +1767,7 @@ async def hs__get_orders(
             client = get_client()
             ct_id, suggestions = await _resolve_contact(client, contact_name)
             if not ct_id:
-                return _contact_not_found_alert(contact_name, suggestions)
+                return _empty_list_on_not_found("orders", schema, _contact_not_found_alert(contact_name, suggestions))
             order_ids = await client.get_associated_ids("contacts", ct_id, "orders")
             if not order_ids:
                 return types.CallToolResult(
@@ -1783,7 +1797,7 @@ async def hs__get_orders(
             client = get_client()
             d_id, suggestions = await _resolve_deal(client, deal_name)
             if not d_id:
-                return _deal_not_found_alert(deal_name, suggestions)
+                return _empty_list_on_not_found("orders", schema, _deal_not_found_alert(deal_name, suggestions))
             order_ids = await client.get_associated_ids("deals", d_id, "orders")
             if not order_ids:
                 return types.CallToolResult(
@@ -2387,7 +2401,7 @@ _ACTIVITY_SCHEMAS: dict[str, dict] = {
         "formFields": [
             {"name": "hs_email_subject", "label": "Subject", "required": True},
             {"name": "hs_email_direction", "label": "Direction", "picklist": ["EMAIL", "INCOMING_EMAIL", "FORWARDED_EMAIL"]},
-            {"name": "hs_email_text", "label": "Body", "multiline": True, "fullWidth": True},
+            {"name": "hs_email_text", "label": "Details", "multiline": True, "fullWidth": True},
         ],
     },
 }
@@ -2462,9 +2476,12 @@ async def _enrich_related_to(client: Any, obj_type: str, items: list[dict]) -> N
     if not ids:
         return
 
-    # Batch-read associations to companies, contacts, deals
+    # Batch-read associations to deals, contacts, companies — MOST SPECIFIC FIRST.
+    # HubSpot auto-associates a contact's company (and a deal's contact/company),
+    # so we must let the explicit, more-specific association win. Company is the
+    # implicit/auto one, so it is checked LAST.
     related: dict[str, dict] = {}  # activity_id → {"type": ..., "name": ...}
-    for entity_plural, entity_label in [("companies", "Company"), ("contacts", "Contact"), ("deals", "Deal")]:
+    for entity_plural, entity_label in [("deals", "Deal"), ("contacts", "Contact"), ("companies", "Company")]:
         try:
             resp = await client._request(
                 "POST",
@@ -2508,6 +2525,29 @@ async def _enrich_related_to(client: Any, obj_type: str, items: list[dict]) -> N
             item["_related_to"] = f"{rel['type']}: {rel['name']}"
         else:
             item["_related_to"] = ""
+
+
+async def _owner_name_map(client: Any) -> dict[str, str]:
+    """Map owner id (str) → 'First Last' from the cached owners list."""
+    owners = await _get_owners(client)
+    return {str(o["id"]): f"{o.get('firstName', '')} {o.get('lastName', '')}".strip() for o in owners}
+
+
+async def _enrich_assigned_to(client: Any, items: list[dict]) -> None:
+    """Enrich activity items with _assigned_to (owner display name).
+
+    hubspot_owner_id is a numeric id; resolve it to a name for display. An
+    activity with an owner id we can't resolve (e.g. deactivated user) shows
+    '—'; one with no owner is left blank so the field is omitted."""
+    if not items:
+        return
+    try:
+        name_map = await _owner_name_map(client)
+    except Exception:
+        name_map = {}
+    for item in items:
+        oid = str(item.get("hubspot_owner_id") or "")
+        item["_assigned_to"] = (name_map.get(oid, "—") if oid else "")
 
 
 async def hs__get_activities(
@@ -2602,6 +2642,12 @@ async def hs__get_activities(
             return _error_result(f"Error looking up {activity_type}: {exc}")
 
         prefill = {field["name"]: record.get(field["name"], "") or "" for field in cfg["formFields"]}
+        oid = str(record.get("hubspot_owner_id") or "")
+        if oid:
+            try:
+                prefill["_owner_name"] = (await _owner_name_map(client)).get(oid, "")
+            except Exception:
+                prefill["_owner_name"] = ""
         return types.CallToolResult(
             content=[TextContent(type="text", text=f"Opening edit form for {activity_type} {activity_id}.")],
             structuredContent={
@@ -2625,6 +2671,11 @@ async def hs__get_activities(
             return _error_result(f"Error fetching {activity_type}: {exc}")
 
         items = [record]
+        try:
+            await _enrich_related_to(client, obj_type, items)
+            await _enrich_assigned_to(client, items)
+        except Exception as exc:
+            log.warning("enrich single-view failed", error=str(exc))
         return types.CallToolResult(
             content=[TextContent(type="text", text=f"1 {activity_type}(s).")],
             structuredContent={
@@ -2645,7 +2696,19 @@ async def hs__get_activities(
         except Exception as exc:
             return _error_result(f"Error resolving {entity_type}: {exc}")
         if not entity_id:
-            return alert_fn(entity_name, suggestions)
+            # Do NOT render a separate alert widget. Show the correct (empty)
+            # entity widget and surface the "not found / did you mean" text in
+            # chat, per instructions.
+            alert = alert_fn(entity_name, suggestions)
+            notice = alert.content[0].text if alert.content else f"{entity_type} '{entity_name}' not found."
+            return types.CallToolResult(
+                content=[TextContent(type="text", text=notice)],
+                structuredContent={
+                    "type": "activities", "activity_type": activity_type,
+                    "total": 0, "items": [],
+                    "_schema": cfg, "_cache": {"hit": False, "cached_at": _now_iso()},
+                },
+            )
 
         # Get associated activity IDs
         try:
@@ -2662,6 +2725,7 @@ async def hs__get_activities(
         # also populate _related_to so the widget's "Related To" column renders).
         try:
             await _enrich_related_to(client, obj_type, items)
+            await _enrich_assigned_to(client, items)
         except Exception as exc:
             log.warning("enrich_related_to failed", error=str(exc))
         return types.CallToolResult(
@@ -2697,6 +2761,7 @@ async def hs__get_activities(
     # Enrich with Related To
     try:
         await _enrich_related_to(client, obj_type, items)
+        await _enrich_assigned_to(client, items)
     except Exception as exc:
         log.warning("enrich_related_to failed", error=str(exc))
 
@@ -2848,6 +2913,8 @@ async def hs__create_activity(
     # Refresh list
     try:
         items = await client.search_objects(obj_type, _activity_list_props(activity_type), limit=10)
+        await _enrich_related_to(client, obj_type, items)
+        await _enrich_assigned_to(client, items)
     except Exception:
         items = []
 
@@ -2965,6 +3032,10 @@ async def hs__update_activity(
     # Refresh list
     try:
         items = await client.search_objects(obj_type, _activity_list_props(activity_type), limit=10)
+        # Enrich with Related To — parity with hs__get_activities so the refreshed
+        # list (and the edit popup that reads item._related_to) keeps the column.
+        await _enrich_related_to(client, obj_type, items)
+        await _enrich_assigned_to(client, items)
     except Exception:
         items = []
 

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Button, Input, Label, Select, Textarea, tokens } from '@fluentui/react-components';
-import { ArrowLeftRegular, CalendarRegular, CheckmarkRegular } from '@fluentui/react-icons';
+import { CalendarRegular, CheckmarkRegular } from '@fluentui/react-icons';
 import { useStyles } from '../styles';
 import { hs } from '../theme';
-import { prettyEnum } from '../constants';
+import { prettyEnum, toDateInput } from '../constants';
 import { HsFooter } from '../components/HsFooter';
 import { ExpandButton } from '../../shared/ExpandButton';
 import { useMcpBridge } from '../../shared/McpBridge';
@@ -26,12 +26,12 @@ export function ActivityFormView({ data, callTool, toast, theme }: {
 
   const [form, setForm] = useState<Record<string, string>>(() => {
     const f: Record<string, string> = {};
-    formFields.forEach((ff: any) => { f[ff.name] = prefill?.[ff.name] || ''; });
+    formFields.forEach((ff: any) => { f[ff.name] = toDateInput(prefill?.[ff.name] || '', ff.inputType); });
     return f;
   });
   const [entityInput, setEntityInput] = useState(entity_name || '');
   const [entityTypeInput, setEntityTypeInput] = useState(entity_type || '');
-  const [ownerInput, setOwnerInput] = useState('');
+  const [ownerInput, setOwnerInput] = useState(prefill?._owner_name || '');
   const [saving, setSaving] = useState(false);
 
   const setF = (k: string, v: string) => setForm(p => ({ ...p, [k]: v }));
@@ -73,7 +73,6 @@ export function ActivityFormView({ data, callTool, toast, theme }: {
   return (
     <div className={styles.card} style={{ padding: '20px 24px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-        <Button appearance="subtle" icon={<ArrowLeftRegular />} size="small" onClick={handleBack} aria-label="Back" />
         <CalendarRegular style={{ fontSize: 18, color: tokens.colorBrandForeground1 }} />
         <span style={{ fontSize: 16, fontWeight: 700, color: t.text }}>{title}</span>
         <span style={{ marginLeft: 'auto' }}><ExpandButton /></span>
@@ -84,7 +83,7 @@ export function ActivityFormView({ data, callTool, toast, theme }: {
         {!isEdit && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <Label style={{ fontSize: 12, fontWeight: 600, color: t.textWeak }}>
-              Associate with
+              🔗 Associate with
             </Label>
             <div style={{ display: 'flex', gap: 8 }}>
               <Select
@@ -107,13 +106,16 @@ export function ActivityFormView({ data, callTool, toast, theme }: {
                 style={{ flex: 1 }}
               />
             </div>
+            <div style={{ fontSize: 11, color: t.textWeak, lineHeight: 1.4 }}>
+              Linking to a contact or deal also attaches its parent company automatically. “Related To” shows the most specific link — Deal › Contact › Company.
+            </div>
           </div>
         )}
 
         {/* Assigned To (owner) field */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <Label style={{ fontSize: 12, fontWeight: 600, color: t.textWeak }}>
-            Assigned To
+            🔗 Assigned To
           </Label>
           <Input
             value={ownerInput}
@@ -156,7 +158,7 @@ export function ActivityFormView({ data, callTool, toast, theme }: {
                   <Textarea
                     value={form[ff.name] || ''}
                     onChange={(_, d) => setF(ff.name, d.value)}
-                    rows={8}
+                    rows={7}
                     resize="vertical"
                     size="small"
                   />
@@ -167,7 +169,7 @@ export function ActivityFormView({ data, callTool, toast, theme }: {
         })()}
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20, marginBottom: 16 }}>
         <Button appearance="secondary" onClick={handleBack} disabled={saving}>Cancel</Button>
         <Button appearance="primary" icon={<CheckmarkRegular />} onClick={handleSave} disabled={saving}>
           {saving ? 'Saving…' : 'Save'}

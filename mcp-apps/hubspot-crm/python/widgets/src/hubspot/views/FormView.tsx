@@ -4,6 +4,7 @@ import { SaveRegular, AddRegular } from '@fluentui/react-icons';
 import { useStyles } from '../styles';
 import { hs } from '../theme';
 import { FormSelect } from '../components/FormSelect';
+import { toDateInput } from '../constants';
 import { HsFooter } from '../components/HsFooter';
 import { ExpandButton } from '../../shared/ExpandButton';
 import { useMcpBridge } from '../../shared/McpBridge';
@@ -43,7 +44,7 @@ export function FormView({ data, callTool, toast, theme }: {
 
   const [form, setForm] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
-    formFields.forEach((f: any) => { init[f.name] = prefill[f.name] || ''; });
+    formFields.forEach((f: any) => { init[f.name] = toDateInput(prefill[f.name] || '', f.inputType); });
     return init;
   });
   const [saving, setSaving] = useState(false);

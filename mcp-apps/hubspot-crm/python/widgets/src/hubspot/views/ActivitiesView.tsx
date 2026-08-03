@@ -7,6 +7,7 @@ import { StatusPill } from '../components/StatusPill';
 import { HsViewHeader } from '../components/ViewHeader';
 import { RecordDialog } from '../components/RecordDialog';
 import { HsFooter } from '../components/HsFooter';
+import { toDateInput } from '../constants';
 
 const TYPE_LABELS: Record<string, string> = {
   note: 'Notes', call: 'Calls', task: 'Tasks', meeting: 'Meetings', email: 'Emails',
@@ -57,9 +58,7 @@ export function ActivitiesView({ items: initItems, callTool, toast, theme, cache
   const [viewingItem, setViewingItem] = useState<any | null>(null);
 
   const columns = schema?.columns || [];
-  const hiddenColumns = schema?.hiddenColumns || [];
   const formFields = schema?.formFields || [];
-  const allViewFields = [...columns, ...hiddenColumns];
 
   useEffect(() => { setLocalItems(initItems); setCacheInfo(initCacheInfo); }, [initItems]);
 
@@ -79,7 +78,7 @@ export function ActivitiesView({ items: initItems, callTool, toast, theme, cache
     setViewingItem(null);
     setEditingId(item.id);
     const f: Record<string, string> = {};
-    formFields.forEach((ff: any) => { f[ff.name] = item[ff.name] || ''; });
+    formFields.forEach((ff: any) => { f[ff.name] = toDateInput(item[ff.name] || '', ff.inputType); });
     f['_related_to'] = item['_related_to'] || '';
     if (activityType === 'email') f['hs_email_status'] = item['hs_email_status'] || '';
     setForm(f);
@@ -109,7 +108,11 @@ export function ActivitiesView({ items: initItems, callTool, toast, theme, cache
   const fFields: any[] = [];
   // Read-only: Related To
   if (form['_related_to']) {
-    fFields.push({ label: 'Related To', key: '_related_to', value: form['_related_to'], type: 'text', readonly: true, onChange: () => {} });
+    fFields.push({ label: '🔗 Related To', key: '_related_to', value: form['_related_to'], type: 'text', readonly: true, onChange: () => {} });
+  }
+  // Read-only: Assigned To (owner)
+  if (form['_assigned_to']) {
+    fFields.push({ label: '🔗 Assigned To', key: '_assigned_to', value: form['_assigned_to'], type: 'text', readonly: true, onChange: () => {} });
   }
   // Read-only: Email Status
   if (activityType === 'email' && form['hs_email_status']) {
@@ -128,11 +131,20 @@ export function ActivitiesView({ items: initItems, callTool, toast, theme, cache
     });
   });
 
-  const viewFields = viewingItem ? allViewFields.map((col: any) => ({
-    label: col.label, value: formatCell(col.apiName, viewingItem[col.apiName]),
-  })) : [];
+  const viewFields = viewingItem ? [
+    ...(viewingItem['_related_to'] ? [{ label: '🔗 Related To', value: viewingItem['_related_to'], fk: true }] : []),
+    ...(viewingItem['_assigned_to'] ? [{ label: '🔗 Assigned To', value: viewingItem['_assigned_to'], fk: true }] : []),
+    ...(activityType === 'email' && viewingItem['hs_email_status']
+      ? [{ label: 'Status', value: formatCell('hs_email_status', viewingItem['hs_email_status']), fk: false }] : []),
+    ...formFields.map((f: any) => ({ label: f.label, value: formatCell(f.name, viewingItem[f.name]), fk: false })),
+  ] : [];
 
   const title = TYPE_LABELS[activityType] || 'Activities';
+
+  // Distribute column widths explicitly. Under tableLayout:'fixed' with an empty
+  // body (colSpan row), columns with no width collapse and clipped headers vanish.
+  const colCount = columns.length + 1; // + Related To
+  const colW = `${(100 / colCount).toFixed(2)}%`;
 
   return (
     <div className={styles.card}>
@@ -149,9 +161,9 @@ export function ActivitiesView({ items: initItems, callTool, toast, theme, cache
         <TableHeader>
           <TableRow style={{ background: t.headerBg }}>
             {columns.map((col: any) => (
-              <TableHeaderCell key={col.apiName} style={{ ...H_CELL, color: t.textWeak }}>{col.label}</TableHeaderCell>
+              <TableHeaderCell key={col.apiName} style={{ ...H_CELL, color: t.textWeak, width: colW }}>{col.label}</TableHeaderCell>
             ))}
-            <TableHeaderCell style={{ ...H_CELL, color: t.textWeak }}>Related To</TableHeaderCell>
+            <TableHeaderCell style={{ ...H_CELL, color: t.textWeak, width: colW }}>Related To</TableHeaderCell>
             {isFullscreen && <TableHeaderCell style={{ ...H_CELL, width: 50, color: t.textWeak }} />}
           </TableRow>
         </TableHeader>
@@ -203,7 +215,7 @@ export function ActivitiesView({ items: initItems, callTool, toast, theme, cache
                   {viewFields.map((field: any) => (
                     <React.Fragment key={field.label}>
                       <div style={{ color: t.textWeak, fontSize: 12, fontWeight: 600 }}>{field.label}</div>
-                      <div style={{ color: t.text, fontSize: 13, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{field.value || '—'}</div>
+                      <div style={{ color: field.fk ? tokens.colorBrandForeground1 : t.text, fontSize: 13, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{field.value || '—'}</div>
                     </React.Fragment>
                   ))}
                 </div>
