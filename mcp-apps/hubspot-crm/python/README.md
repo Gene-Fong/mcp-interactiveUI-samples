@@ -91,12 +91,12 @@ These are built on the standard three-tool pattern of GET, CREATE, and UPDATE, p
 
 Drill-down sits outside an entity's GET/CREATE/UPDATE trio. It is powered by the one shared `hs__get_associations` tool, which reads a record's associated objects on demand rather than through that record's own three tools:
 
+> [!NOTE]
+> Drill-down is **read-only** — it never changes a record. HubSpot has no one-shot state-change operation (no approve, reject, or convert), so unlike a write, nothing you do from the chat is irreversible.
+
 | # | Operation | What you say | What happens | Tips |
 |---|---|---|---|---|
 | 6 | **DRILL** | *(click the 👁 eye on a row)* | Opens a 360 modal with associated records | In full-screen view, click the eye to see contacts, deals, tickets, line items, and companies linked to the record |
-
-> [!NOTE]
-> Drill-down is **read-only** — it never changes a record. HubSpot has no one-shot state-change operation (no approve, reject, or convert), so unlike a write, nothing you do from the chat is irreversible.
 
 ### 2.2 What you can do with each record type
 
@@ -140,7 +140,7 @@ log a note for contact Maria
 
 You do not have to phrase things this precisely — plain English works — but keeping the verb first, the entity second, and any filter last is the most reliable way to be understood.
 
-### 2.3 Fields, filters, and picklists
+#### Filterable fields and picklist values
 
 Each entity exposes a set of filterable fields and picklist-constrained form fields. Fields marked 🔗 accept plain names and are resolved to record IDs on Save.
 
@@ -165,7 +165,7 @@ Each entity exposes a set of filterable fields and picklist-constrained form fie
 
 **Activities** — filtered by type (note, call, task, meeting, email) and optionally by parent company/contact/deal (🔗). Tasks filter by status, priority, and subject text; calls filter by direction/status and meetings by outcome; meetings also filter by title text and emails by direction/status plus subject text.
 
-### 2.4 In action
+### 2.3 In action
 
 #### GET — list recent records
 
