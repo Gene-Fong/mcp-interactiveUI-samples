@@ -386,33 +386,17 @@ The agent works best when your HubSpot account has records to interact with. If 
 
 ## 4. Troubleshooting
 
-### Agent & Copilot
-
-- **Agent missing from the picker** — Wait 1–2 minutes after upload, then refresh. Check that Custom App Upload is enabled in M365 admin.
-- **"Oops! Something went wrong"** — Dev tunnel dropped momentarily. Wait 5–10 seconds and re-send.
-- **Widget doesn't render** — Confirm the server is running and responding at `/mcp`.
-
-### HubSpot connection
-
-- **`401 Unauthorized`** — Token is invalid or expired. Regenerate in HubSpot Settings → Private Apps.
-- **Empty results for one entity** — Your Private App is likely missing that object's CRM scope. Add the matching `.read`/`.write` scope (see Step 2) and regenerate the token.
-- **`HTTP 400 — One or more associations are invalid`** — The record you are linking to does not exist or is not associable with the source object. Confirm the parent (company, contact, or deal) exists and is spelled exactly.
-
-### MCP server
-
-- **`/mcp` returns 421 "Invalid Host header"** — DNS rebinding protection. Already disabled in this codebase via `enable_dns_rebinding_protection=False`.
-- **Unicode errors on Windows** — Set `PYTHONIOENCODING=utf-8` before running the server.
-- **Port in use** — Another process is on 8082. Kill it or change `PORT` in `.env`.
-
-### Deploy & upload
-
-- **Agent upload fails with `401`** — The MOS3 token expired. Delete `.mos3_token_cache.json` and re-run `LocalDeploy.ps1` (it will re-run the device-code sign-in).
-- **`TooLongInstructions` (HTTP 400) on upload** — `instruction.txt` is at or above 8,000 characters. Trim it below the limit and redeploy.
-- **Manifest "drift detected" — not safe to upload** — The live server's tool list no longer matches `agent/appPackage/mcp-tools.json`. Re-run `deploy\regen_manifests.py` to regenerate the manifests against the running server, then redeploy.
-
-### Common questions
-
-- **Can I run without Docker?** — Yes. Fill `.env`, run `LocalDeploy.ps1`. Dev tunnel handles the rest.
-- **Which entities are supported?** — Companies, Contacts, Deals, Orders, and Products (full read / create / update), plus Activities (Notes, Calls, Tasks, Meetings, Emails). Tickets are read-only via drill-down.
-- **How do I add a new entity?** — Add a `get`/`create`/`update` trio to `hs_crm_mcp/hubspot_tools.py`, add the entity schema to `_ENTITY_SCHEMAS`, register the tools with the server, add a widget view under `widgets/src/hubspot/views/`, and re-run deploy.
-- **Is this production-ready?** — It's a reference implementation for demos and pilots. For production: move secrets to Key Vault, add audit logging and rate limiting, and review the HubSpot scopes granted to the Private App.
+| Symptom | Fix |
+|---|---|
+| Agent missing from the picker | Wait 1–2 min after upload and refresh; ensure Custom App Upload is enabled in M365 admin. |
+| "Oops! Something went wrong" | Dev tunnel blip — wait 5–10s and resend. |
+| Widget doesn't render | Confirm the server is running and responding at `/mcp`. |
+| `401 Unauthorized` | Token is invalid or expired — regenerate in HubSpot Settings → Private Apps. |
+| Empty results for one entity | Private App is missing that object's CRM scope — add the matching `.read`/`.write` scope (see Step 2) and regenerate the token. |
+| `HTTP 400 — One or more associations are invalid` | The record you are linking to does not exist or is not associable — confirm the parent (company, contact, or deal) exists and is spelled exactly. |
+| `/mcp` returns 421 "Invalid Host header" | DNS-rebinding protection — already disabled in this codebase via `enable_dns_rebinding_protection=False`. |
+| Unicode errors on Windows | Set `PYTHONIOENCODING=utf-8` before running the server. |
+| Port in use | Another process is on 8082 — kill it or change `PORT` in `.env`. |
+| Agent upload fails with `401` | MOS3 token expired — delete `.mos3_token_cache.json` and re-run `LocalDeploy.ps1` (re-runs the device-code sign-in). |
+| `TooLongInstructions` (HTTP 400) on upload | `instruction.txt` is at or above 8,000 chars — trim it below the limit and redeploy. |
+| Manifest "drift detected" — not safe to upload | Live server's tool list no longer matches `agent/appPackage/mcp-tools.json` — re-run `deploy\regen_manifests.py`, then redeploy. |
