@@ -4,17 +4,17 @@
     Container App, and upload the Copilot agent to MOS3.
 
 .DESCRIPTION
-    This is the SECOND of the two server scripts. It assumes the Azure infra
-    already exists -- run AzureImageSetup.ps1 first to create it.
+    This is the ONLY server script you run -- it does the whole job end to
+    end. It first calls AzureImageSetup.ps1 to provision (or verify) the
+    Azure infra, then builds the container image, deploys it, and registers
+    the Copilot agent against the live Azure URL. Idempotent: re-run it any
+    time you ship new server or agent code -- existing infra is verified
+    (incremental Bicep), not recreated.
 
-        1. AzureImageSetup.ps1   (create/verify Azure infra)
-        2. ServerDeploy.ps1  <-- you are here (build + deploy + upload agent)
-
-    ServerDeploy provisions NO infrastructure. It builds a fresh image in
-    ACR, points the existing Container App at it, and re-registers the agent
-    against the live Azure URL. Idempotent: re-run it any time you ship new
-    server or agent code. If the infra isn't there yet, it stops and tells
-    you to run AzureImageSetup.ps1.
+    AzureImageSetup.ps1 remains the single source of truth for all infra
+    provisioning; ServerDeploy simply invokes it and does NOT duplicate any
+    infra logic. You can still run AzureImageSetup.ps1 on its own to stand up
+    infra without deploying code.
 
     Use LocalDeploy.ps1 instead when you want the server running on this
     laptop via a dev tunnel. This script is OPERATIONALLY INDEPENDENT of
@@ -22,19 +22,19 @@
     (dot-sourced below).
 
     Phases:
-      0. Pre-flight checks (az signed in, files in place, infra exists)
-      1. Build image in ACR + point the Container App at it
-      2. Read the live ACA FQDN back from the container app
-      3. Regen manifests against the ACA URL
-      4. Build appPackage zip + upload to MOS3
+      0. Pre-flight checks (az signed in, files in place)
+      1. Provision Azure infra (delegates to AzureImageSetup.ps1)
+      2. Build image in ACR + point the Container App at it
+      3. Read the live ACA FQDN back from the container app
+      4. Regen manifests against the ACA URL
+      5. Build appPackage zip + upload to MOS3
 
 .EXAMPLE
     .\deploy\ServerDeploy.ps1
 
 .NOTES
-    Requires: Azure CLI 2.50+, signed in to a subscription with Contributor
-    rights on the resource group, and the infra already provisioned by
-    AzureImageSetup.ps1. Run from hubspot-crm/python/.
+    Requires: Azure CLI 2.50+, signed in (az login) to a subscription with
+    Contributor rights on the resource group. Run from hubspot-crm/python/.
 #>
 
 # Fixed deploy targets -- run this script with no parameters.
@@ -90,7 +90,7 @@ Write-Host ""
 # ---------------------------------------------------------------------------
 # Phase 0: Pre-flight checks
 # ---------------------------------------------------------------------------
-Write-Host ">> Phase 0/4: pre-flight checks" -ForegroundColor Cyan
+Write-Host ">> Phase 0/5: pre-flight checks" -ForegroundColor Cyan
 
 Assert-File -Path "$App\pyproject.toml" `
     -Why "ServerDeploy.ps1 must be run from the app root (script is in deploy/)." `
@@ -109,8 +109,13 @@ Assert-Tool -Name "robocopy" `
     -Hint "robocopy is built into Windows; if it is missing your PATH likely lost C:\Windows\System32. Repair PATH."
 
 Assert-File -Path $paramsFile `
-    -Why "Bicep parameters file required for deploy." `
-    -Hint "Setup step: edit $paramsFile and fill in your HubSpot Private App access token, then re-run."
+    -Why "Bicep parameters file required for deploy (holds your HubSpot token; gitignored, so it is not in the repo)." `
+    -Hint @"
+First-time setup:
+  1. Copy  deploy\parameters.example.bicepparam  to  deploy\parameters.bicepparam
+  2. Edit it and set  hubspotAccessToken = 'pat-...'  (your HubSpot Private App token)
+  3. Re-run  .\deploy\ServerDeploy.ps1  (it provisions infra, then builds + deploys).
+"@
 
 Assert-File -Path "$SrcDir\ai-plugin.json"        -Why "Agent runtime descriptor."     -Hint "Pull latest from git."
 Assert-File -Path "$SrcDir\mcp-tools.json"        -Why "MCP tools manifest."           -Hint "Pull latest from git."
@@ -130,27 +135,34 @@ $account = $accountJson | ConvertFrom-Json
 Write-Host "   Subscription: $($account.name) ($($account.id))" -ForegroundColor Gray
 Write-Host "   Tenant:       $($account.tenantId)" -ForegroundColor Gray
 Write-Host "   User:         $($account.user.name)" -ForegroundColor Gray
-
-# Infra must already exist -- ServerDeploy provisions nothing. If the Container
-# App isn't there, the user skipped AzureImageSetup.ps1.
-$existingFqdn = az containerapp show `
-    --resource-group $ResourceGroup `
-    --name $containerAppName `
-    --query "properties.configuration.ingress.fqdn" `
-    --output tsv 2>$null
-if ($LASTEXITCODE -ne 0 -or -not $existingFqdn) {
-    Write-FailBlock -What "Azure infra not found (container app '$containerAppName' in resource group '$ResourceGroup')" `
-        -Detail "ServerDeploy builds and ships code onto existing infra -- it does not create any." `
-        -Hint "Run .\deploy\AzureImageSetup.ps1 first (same -ResourceGroup / -Location / -AcrName), then re-run ServerDeploy."
-    exit 1
-}
 Write-Host "   All pre-flight checks passed." -ForegroundColor Green
 Write-Host ""
 
 # ---------------------------------------------------------------------------
-# Phase 1: Build image in ACR + point the Container App at it
+# Phase 1: Provision (or verify) Azure infra -- delegates to AzureImageSetup
 # ---------------------------------------------------------------------------
-Write-Host ">> Phase 1/4: build image + deploy to container app" -ForegroundColor Cyan
+# ServerDeploy is self-sufficient: it calls AzureImageSetup.ps1 to stand up
+# the resource group, ACR, Container Apps environment and the Container App
+# before shipping code. AzureImageSetup is idempotent -- it CREATES the infra
+# on a first-ever run and simply RE-VERIFIES it on every subsequent run
+# (incremental Bicep), so this is safe to call on every deploy. All infra
+# logic lives in AzureImageSetup.ps1 (single source of truth); ServerDeploy
+# duplicates none of it. Invoked with the call operator (&) so its `exit 1`
+# on failure returns control here (child scope) and we can stop cleanly.
+Write-Host ">> Phase 1/5: provision Azure infra (AzureImageSetup.ps1)" -ForegroundColor Cyan
+& "$PSScriptRoot\AzureImageSetup.ps1"
+if ($LASTEXITCODE -ne 0) {
+    Write-FailBlock -What "Infra provisioning failed (AzureImageSetup.ps1 exited $LASTEXITCODE)" `
+        -Detail "ServerDeploy calls AzureImageSetup.ps1 to create/verify the resource group, ACR and Container App before deploying." `
+        -Hint "Scroll up for AzureImageSetup's own failure block -- it prints the exact Azure error. Fix that, then re-run ServerDeploy."
+    exit 1
+}
+Write-Host ""
+
+# ---------------------------------------------------------------------------
+# Phase 2: Build image in ACR + point the Container App at it
+# ---------------------------------------------------------------------------
+Write-Host ">> Phase 2/5: build image + deploy to container app" -ForegroundColor Cyan
 Write-Host "   Resource group: $ResourceGroup" -ForegroundColor Gray
 Write-Host "   Location:       $Location" -ForegroundColor Gray
 Write-Host "   ACR:            $AcrName" -ForegroundColor Gray
@@ -275,10 +287,10 @@ Re-apply manually:
 Write-Host "      sticky-sessions = sticky" -ForegroundColor Gray
 
 # ---------------------------------------------------------------------------
-# Phase 2: Read the live FQDN
+# Phase 3: Read the live FQDN
 # ---------------------------------------------------------------------------
 Write-Host ""
-Write-Host ">> Phase 2/4: reading ACA public FQDN..." -ForegroundColor Cyan
+Write-Host ">> Phase 3/5: reading ACA public FQDN..." -ForegroundColor Cyan
 $acaFqdn = az containerapp show `
     --resource-group $ResourceGroup `
     --name $containerAppName `
@@ -298,17 +310,17 @@ $acaUrl = "https://$acaFqdn"
 Write-Host "   FQDN: $acaUrl" -ForegroundColor Gray
 
 # ---------------------------------------------------------------------------
-# Phase 3: Regen manifests against the ACA URL
+# Phase 4: Regen manifests against the ACA URL
 # ---------------------------------------------------------------------------
 Write-Host ""
-Write-Host ">> Phase 3/4: syncing tools into manifests (regen_manifests.py)..." -ForegroundColor Cyan
+Write-Host ">> Phase 4/5: syncing tools into manifests (regen_manifests.py)..." -ForegroundColor Cyan
 Invoke-RegenManifests -GatewayUrl $acaUrl -PythonExe $VenvPython -ScriptPath $RegenPy
 
 # ---------------------------------------------------------------------------
-# Phase 4: MOS3 -- token, build, upload
+# Phase 5: MOS3 -- token, build, upload
 # ---------------------------------------------------------------------------
 Write-Host ""
-Write-Host ">> Phase 4/4: acquiring MOS3 token..." -ForegroundColor Cyan
+Write-Host ">> Phase 5/5: acquiring MOS3 token..." -ForegroundColor Cyan
 $token = Get-MOS3Token -ClientId $ClientId -TenantId $TenantId -Scope $Scope -TokenCachePath $TokenCache
 
 Write-Host "  >> Building app package..." -ForegroundColor Cyan

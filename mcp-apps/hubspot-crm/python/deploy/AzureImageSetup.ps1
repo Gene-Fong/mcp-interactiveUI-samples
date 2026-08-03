@@ -77,8 +77,13 @@ Assert-Tool -Name "az" `
     -Hint "Install: 'winget install Microsoft.AzureCLI'. Then close + reopen PowerShell so PATH refreshes."
 
 Assert-File -Path $paramsFile `
-    -Why "Bicep parameters file required to provision the stack." `
-    -Hint "Copy deploy\parameters.example.bicepparam to deploy\parameters.bicepparam and fill in your HubSpot Private App access token."
+    -Why "Bicep parameters file required to provision the stack (holds your HubSpot token; gitignored, so it is not in the repo)." `
+    -Hint @"
+First-time setup:
+  1. Copy  deploy\parameters.example.bicepparam  to  deploy\parameters.bicepparam
+  2. Edit it and set  hubspotAccessToken = 'pat-...'  (your HubSpot Private App token)
+  3. Re-run this script.
+"@
 
 # Azure CLI signed in
 $accountJson = az account show --output json 2>$null
