@@ -530,6 +530,35 @@ def _empty_list_on_not_found(result_type: str, schema: Any, alert: types.CallToo
     )
 
 
+def _expand_filter(fdef: dict, value: str) -> list[dict]:
+    """Expand one filterField def + value into HubSpot Search API filter dicts.
+
+    Shared by entity filtering (``_build_filter_groups``) and activity filtering
+    (``hs__get_activities`` Branch 4) so both apply identical operator conventions:
+      - CONTAINS_TOKEN -> wrapped ``*value*`` for substring ("like")
+      - ON_DATE        -> expanded to a same-day GTE/LTE range so it matches an
+                          exact calendar day for both date and datetime properties
+                          (ON_DATE is not a real HubSpot operator on its own)
+      - anything else  -> emitted as-is (EQ / GTE / LTE / ...)
+    """
+    op = fdef["operator"]
+    prop = fdef["property"]
+    if op == "CONTAINS_TOKEN":
+        v = value if "*" in value else f"*{value}*"
+        return [{"propertyName": prop, "operator": op, "value": v}]
+    if op == "ON_DATE":
+        start = _to_hs_date(value)
+        try:
+            end = str(int(start) + 86_400_000 - 1)
+        except (TypeError, ValueError):
+            start = end = value
+        return [
+            {"propertyName": prop, "operator": "GTE", "value": start},
+            {"propertyName": prop, "operator": "LTE", "value": end},
+        ]
+    return [{"propertyName": prop, "operator": op, "value": value}]
+
+
 def _build_filter_groups(entity: str, params: dict[str, str]) -> list[dict] | None:
     """Build HubSpot Search API filterGroups from provided params.
 
@@ -549,21 +578,7 @@ def _build_filter_groups(entity: str, params: dict[str, str]) -> list[dict] | No
         fdef = filter_defs.get(param_name)
         if not fdef:
             continue
-        op = fdef["operator"]
-        prop = fdef["property"]
-        if op == "CONTAINS_TOKEN":
-            v = value if "*" in value else f"*{value}*"
-            filters.append({"propertyName": prop, "operator": op, "value": v})
-        elif op == "ON_DATE":
-            start = _to_hs_date(value)
-            try:
-                end = str(int(start) + 86_400_000 - 1)
-            except (TypeError, ValueError):
-                start = end = value
-            filters.append({"propertyName": prop, "operator": "GTE", "value": start})
-            filters.append({"propertyName": prop, "operator": "LTE", "value": end})
-        else:
-            filters.append({"propertyName": prop, "operator": op, "value": value})
+        filters.extend(_expand_filter(fdef, value))
     if not filters:
         return None
     return [{"filters": filters}]
@@ -2309,7 +2324,10 @@ _ACTIVITY_SCHEMAS: dict[str, dict] = {
             {"apiName": "hs_timestamp", "label": "Date"},
         ],
         "hiddenColumns": [],
-        "filterFields": {},
+        "filterFields": {
+            "hs_note_body": {"operator": "CONTAINS_TOKEN", "property": "hs_note_body"},
+            "hs_timestamp": {"operator": "ON_DATE", "property": "hs_timestamp"},
+        },
         "formFields": [
             {"name": "hs_note_body", "label": "Note Body", "multiline": True, "required": True},
         ],
@@ -2328,6 +2346,8 @@ _ACTIVITY_SCHEMAS: dict[str, dict] = {
         "filterFields": {
             "hs_call_direction": {"operator": "EQ", "property": "hs_call_direction"},
             "hs_call_status": {"operator": "EQ", "property": "hs_call_status"},
+            "hs_call_body": {"operator": "CONTAINS_TOKEN", "property": "hs_call_body"},
+            "hs_timestamp": {"operator": "ON_DATE", "property": "hs_timestamp"},
         },
         "formFields": [
             {"name": "hs_call_body", "label": "Call Notes", "multiline": True},
@@ -2373,6 +2393,8 @@ _ACTIVITY_SCHEMAS: dict[str, dict] = {
         "filterFields": {
             "hs_meeting_outcome": {"operator": "EQ", "property": "hs_meeting_outcome"},
             "hs_meeting_title": {"operator": "CONTAINS_TOKEN", "property": "hs_meeting_title"},
+            "hs_meeting_start_time": {"operator": "ON_DATE", "property": "hs_meeting_start_time"},
+            "hs_meeting_end_time": {"operator": "ON_DATE", "property": "hs_meeting_end_time"},
         },
         "formFields": [
             {"name": "hs_meeting_title", "label": "Title", "required": True},
@@ -2397,6 +2419,7 @@ _ACTIVITY_SCHEMAS: dict[str, dict] = {
             "hs_email_status": {"operator": "EQ", "property": "hs_email_status"},
             "hs_email_direction": {"operator": "EQ", "property": "hs_email_direction"},
             "hs_email_subject": {"operator": "CONTAINS_TOKEN", "property": "hs_email_subject"},
+            "hs_timestamp": {"operator": "ON_DATE", "property": "hs_timestamp"},
         },
         "formFields": [
             {"name": "hs_email_subject", "label": "Subject", "required": True},
@@ -2595,8 +2618,13 @@ async def hs__get_activities(
                  ("hs_meeting_title", hs_meeting_title),
                  ("hs_email_status", hs_email_status), ("hs_email_direction", hs_email_direction),
                  ("hs_email_subject", hs_email_subject),
-                 # Content/body + time fields — used for create prefill only (not in
-                 # filterFields, so Branch 4 ignores them for filtering).
+                 # Body/content fields: hs_note_body & hs_call_body are now
+                 # searchable (CONTAINS_TOKEN); hs_task_body & hs_meeting_body
+                 # remain create-prefill only (not in any filterFields).
+                 # Time fields: hs_timestamp (note/call/email date) and
+                 # hs_meeting_start_time/hs_meeting_end_time are searchable
+                 # (ON_DATE); for other types they are prefill only. Branch 4
+                 # only turns a kwarg into a filter when it is in filterFields.
                  ("hs_timestamp", hs_timestamp), ("hs_note_body", hs_note_body),
                  ("hs_call_body", hs_call_body), ("hs_task_body", hs_task_body),
                  ("hs_meeting_body", hs_meeting_body),
@@ -2744,7 +2772,7 @@ async def hs__get_activities(
     for param_name, value in filter_params.items():
         fdef = filter_defs.get(param_name)
         if fdef:
-            filters.append({"propertyName": fdef["property"], "operator": fdef["operator"], "value": value})
+            filters.extend(_expand_filter(fdef, value))
     filter_groups = [{"filters": filters}] if filters else None
 
     try:
@@ -3238,12 +3266,16 @@ TOOL_SPECS: list[dict] = [
             "Get activities from HubSpot CRM. REQUIRED: activity_type (note/call/task/meeting/email). "
             "Pass activity_id to view one; add action='edit' to open edit form; action='create' for new. "
             "Filter by entity: entity_type (company/contact/deal) + entity_name. "
-            "Filter by fields: call(hs_call_direction, hs_call_status), "
+            "Filter by fields: note(hs_note_body, hs_timestamp), "
+            "call(hs_call_direction, hs_call_status, hs_call_body, hs_timestamp), "
             "task(hs_task_subject, hs_task_status, hs_task_priority), "
-            "meeting(hs_meeting_outcome, hs_meeting_title), email(hs_email_status, hs_email_direction, hs_email_subject). "
-            "On action='create', prefill content/time from the utterance: note(hs_note_body), "
-            "call(hs_call_body), task(hs_task_body, hs_timestamp), "
-            "meeting(hs_meeting_body, hs_meeting_start_time, hs_meeting_end_time), email(hs_email_text)."
+            "meeting(hs_meeting_outcome, hs_meeting_title, hs_meeting_start_time, hs_meeting_end_time), "
+            "email(hs_email_status, hs_email_direction, hs_email_subject, hs_timestamp). "
+            "Body fields (hs_note_body, hs_call_body) match text as a substring (\"notes/calls mentioning X\"); "
+            "date fields (hs_timestamp, hs_meeting_start_time, hs_meeting_end_time) match one exact calendar day (YYYY-MM-DD); "
+            "open-ended ranges (before/after/between) are not supported. "
+            "On action='create', these same fields prefill the form, plus form-only content: "
+            "task(hs_task_body), meeting(hs_meeting_body), email(hs_email_text)."
         ),
         "handler": hs__get_activities,
     },

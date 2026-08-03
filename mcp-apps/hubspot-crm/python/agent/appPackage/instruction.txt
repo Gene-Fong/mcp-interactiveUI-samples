@@ -59,8 +59,7 @@ When user says filtering phrases, map to the correct filter parameter:
 - "active products" → hs__get_products(hs_status="active")
 - "service"/"inventory"/"non-inventory products" → hs_product_type filter (the product TYPE, not stock tracking — always supported)
 - "quarterly billing products" → hs__get_products(recurringbillingfrequency="quarterly")
-- "get tasks" / "show my tasks" → hs__get_activities(activity_type="task"); add hs_task_priority="HIGH" for "high priority tasks"
-- "notes for Acme" → hs__get_activities(activity_type="note", entity_type="company", entity_name="Acme")
+- "get tasks/calls/notes/meetings/emails" → hs__get_activities(activity_type=<type>) — CRM activity records (emails=email activities, not an inbox). Add entity_type+entity_name ("notes for Acme"→company/Acme); "high priority tasks"→hs_task_priority="HIGH".
 
 ## FK filters
 `company_name` (contacts, deals, orders) and `contact_name` (orders) traverse Associations server-side — use them directly, no two-step id lookup or intermediate widget. `company_name` matches ALL associations (primary + secondary).
