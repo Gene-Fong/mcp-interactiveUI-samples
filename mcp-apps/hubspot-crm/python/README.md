@@ -149,7 +149,7 @@ Ask for any entity by name. The agent returns the most recent records as a sorta
 
 #### FILTER — narrow the list
 
-Add conditions to your request — *"prospect companies"*, *"orders over 5000"*, *"contacts for Acme"*. The agent maps your natural language to the correct HubSpot filter operators (`CONTAINS_TOKEN` for text, `EQ` for picklists, `GTE`/`LTE` for numeric ranges). Foreign-key filters like *"orders for Acme"* traverse HubSpot associations server-side.
+Add conditions to your request — *"prospect companies"*, *"orders over 5000"*, *"contacts for Acme"*, *"meetings titled kickoff"*, *"notes mentioning renewal"*. The agent maps your natural language to the correct HubSpot filter operators (`CONTAINS_TOKEN` for text, `EQ` for picklists, `GTE`/`LTE` for numeric ranges). Foreign-key filters like *"orders for Acme"* traverse HubSpot associations server-side.
 
 ![filter orders widget](../media/HS-FilterOrders.gif)
 
