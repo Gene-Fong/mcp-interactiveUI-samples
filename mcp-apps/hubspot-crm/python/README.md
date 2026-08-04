@@ -143,53 +143,53 @@ You do not have to phrase things this precisely — plain English works — but 
 
 Ask for any entity by name. The agent returns the most recent records as a sortable table with ✏️ Edit / ➕ New controls per row.
 
-![show companies widget](../media/HS-ShowCompanies.gif)
+![GET — list recent records](../media/HS-ShowCompanies.gif)
 
-![get tasks widget](../media/HS-GetTasks.png)
+![GET — list recent records](../media/HS-GetTasks.png)
 
 #### FILTER — narrow the list
 
 Add conditions to your request — *"prospect companies"*, *"orders over 5000"*, *"contacts for Acme"*, *"meetings titled kickoff"*, *"notes mentioning renewal"*. The agent maps your natural language to the correct HubSpot filter operators (`CONTAINS_TOKEN` for text, `EQ` for picklists, `GTE`/`LTE` for numeric ranges). Foreign-key filters like *"orders for Acme"* traverse HubSpot associations server-side.
 
-![filter orders widget](../media/HS-FilterOrders.gif)
+![FILTER — narrow the list](../media/HS-FilterOrders.gif)
 
-![filter reseller companies widget](../media/HS-FilterCompanies.png)
+![FILTER — narrow the list](../media/HS-FilterCompanies.png)
 
 #### IDENTIFY — show a specific record
 
 Mention a name and the entity word. If it matches multiple records, the agent surfaces all matches. If it resolves to one, it shows that single record.
 
-![show company Himalayan Encounters](../media/HS-IdentifyCompany.png)
+![IDENTIFY — show a specific record](../media/HS-IdentifyCompany.png)
 
 #### EDIT — modify a record
 
 Say *"edit"* followed by a name. The matching records appear in the list, and you edit one by following the standard pattern — click the view icon on its row to open the record, then Edit. Date fields (deal close date, order close date, task due date) open a date picker.
 
-![edit record form](../media/HS-EditRecord.gif)
+![EDIT — modify a record](../media/HS-EditRecord.gif)
 
-![edit contact Mariaer Johnsoner](../media/HS-EditContact.png)
+![EDIT — modify a record](../media/HS-EditContact.png)
 
 #### CREATE — open a pre-filled form
 
 The agent picks out values from your sentence — name, type, company — and pre-fills the create form. You review, complete any remaining fields, and submit. The form's Save button performs the write.
 
-![create company form](../media/HS-CreateCompany.gif)
+![CREATE — open a pre-filled form](../media/HS-CreateCompany.gif)
 
-![create contact Linda with prefilled email and company](../media/HS-CreateContact.png)
+![CREATE — open a pre-filled form](../media/HS-CreateContact.png)
 
 #### DRILL — open the 360 modal
 
 In the full-screen widget, each row shows a view icon. Click it to open a 360 modal that lists the record's associated data inline — for example, a Deal shows its Contacts, Companies, and Tickets; an Order shows its Deals, Line Items, and Companies.
 
-![get company GlobalFizz 360 modal](../media/HS-Drill360.png)
+![DRILL — open the 360 modal](../media/HS-Drill360.png)
 
-![360 modal](../media/HS-360Modal.gif)
+![DRILL — open the 360 modal](../media/HS-360Modal.gif)
 
 #### RESOLVE FK — type names, not IDs
 
 Fields marked with 🔗 accept plain names. Type a name, hit Save — the agent resolves it to the HubSpot record ID. If there's no exact match, you get up to five suggestions to pick from.
 
-![get orders for Mariaer Johnsoner](../media/HS-ResolveFK.png)
+![RESOLVE FK — type names, not IDs](../media/HS-ResolveFK.png)
 
 > [!TIP]
 > Look for the 🔗 icon on form fields — those are the ones that accept names instead of IDs.
