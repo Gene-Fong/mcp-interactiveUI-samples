@@ -144,7 +144,7 @@ You do not have to phrase things this precisely — plain English works — but 
 
 Ask for any entity by name. The agent returns the most recent records as a sortable table with priority indicators and per-row ✏️ Edit / ▾ Expand controls.
 
-![show open incidents](../media/Service%20Now-%20Open%20Incident.gif)
+![GET — list recent records](../media/Service%20Now-%20Open%20Incident.gif)
 
 #### FILTER — narrow the list
 
@@ -161,7 +161,7 @@ Every ServiceNow record number carries its type in the prefix (`INC` / `REQ` / `
 
 Say *"edit"* followed by a record number and the inline form opens, pre-filled with current values. Change what you need and hit Save.
 
-![edit change request](../media/ServiceNow-Change%20Request.gif)
+![EDIT — modify a record](../media/ServiceNow-Change%20Request.gif)
 
 #### CREATE — open a pre-filled form
 
@@ -172,7 +172,7 @@ The agent picks out values from your sentence — caller, priority, description 
 - *"resolve INC0010005"* → opens the resolve form with a close-code picklist
 - *"show my pending approvals"* → lists approvals; approve or reject inline from the widget
 
-![resolve incident](../media/Resolve%20Incident.gif)
+![ACTION — one-shot state change](../media/Resolve%20Incident.gif)
 
 #### DRILL — expand child records
 
@@ -181,14 +181,14 @@ Requests and Changes have a ▾ expand icon on each row. Click it to see child r
 - **Service Request** → request items
 - **Change Request** → change tasks
 
-![show service requests](../media/Service-Now-ShowService-Request.gif)
+![DRILL — expand child records](../media/Service-Now-ShowService-Request.gif)
 
 #### SEARCH — knowledge and catalog
 
 - *"search knowledge for VPN setup"* → searches published knowledge articles
 - *"browse service catalog"* → lists available catalog items
 
-![knowledge search results](../media/ServiceNow-Show-KB.gif)
+![SEARCH — knowledge and catalog](../media/ServiceNow-Show-KB.gif)
 
 #### RESOLVE FK — type names, not IDs
 
