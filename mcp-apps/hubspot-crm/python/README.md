@@ -143,43 +143,43 @@ You do not have to phrase things this precisely — plain English works — but 
 
 Ask for any entity by name. The agent returns the most recent records as a sortable table with ✏️ Edit / ➕ New controls per row.
 
-![GET — list recent records](../media/HS-ShowCompanies.png)
+![GET — list recent records](media/HS-ShowCompanies.png)
 
 #### FILTER — narrow the list
 
 Add conditions to your request — *"prospect companies"*, *"orders over 5000"*, *"contacts for Acme"*, *"meetings titled kickoff"*, *"notes mentioning renewal"*. The agent maps your natural language to the correct HubSpot filter operators (`CONTAINS_TOKEN` for text, `EQ` for picklists, `GTE`/`LTE` for numeric ranges). Foreign-key filters like *"orders for Acme"* traverse HubSpot associations server-side.
 
-![FILTER — narrow the list](../media/HS-FilterOrders.png)
+![FILTER — narrow the list](media/HS-FilterOrders.png)
 
 #### IDENTIFY — show a specific record
 
 Mention a name and the entity word. If it matches multiple records, the agent surfaces all matches. If it resolves to one, it shows that single record.
 
-![IDENTIFY — show a specific record](../media/HS-IdentifyCompany.png)
+![IDENTIFY — show a specific record](media/HS-IdentifyCompany.png)
 
 #### EDIT — modify a record
 
 Say *"edit"* followed by a name. The matching records appear in the list, and you edit one by following the standard pattern — click the view icon on its row to open the record, then Edit. Date fields (deal close date, order close date, task due date) open a date picker.
 
-![EDIT — modify a record](../media/HS-EditContact.png)
+![EDIT — modify a record](media/HS-EditContact.png)
 
 #### CREATE — open a pre-filled form
 
 The agent picks out values from your sentence — such as name, city, stage, or company — and pre-fills the create form. You review, complete any remaining fields, and submit. The form's Save button performs the write.
 
-![CREATE — open a pre-filled form](../media/HS-CreateContact.png)
+![CREATE — open a pre-filled form](media/HS-CreateContact.png)
 
 #### DRILL — open the 360 modal
 
 In the full-screen widget, each row shows a view icon. Click it to open a 360 modal that lists the record's associated data inline — for example, a Company shows its Contacts, Deals, and Tickets; a Deal shows its Contacts, Companies, and Tickets; an Order shows its Deals, Line Items, and Companies.
 
-![DRILL — open the 360 modal](../media/HS-360Modal.png)
+![DRILL — open the 360 modal](media/HS-360Modal.png)
 
 #### RESOLVE FK — type names, not IDs
 
 Fields marked with 🔗 accept plain names. Type a name, hit Save — the agent resolves it to the HubSpot record ID. If there's no exact match, you get up to five suggestions to pick from.
 
-![RESOLVE FK — type names, not IDs](../media/HS-ResolveFK.png)
+![RESOLVE FK — type names, not IDs](media/HS-ResolveFK.png)
 
 > [!TIP]
 > Look for the 🔗 icon on form fields — those are the ones that accept names instead of IDs.
