@@ -147,7 +147,7 @@ You do not have to phrase things this precisely — plain English works — but 
 
 Ask for any entity by name. The agent returns the most recent records as a sortable table with ✏️ Edit / ➕ New controls per row.
 
-![GET — list recent records](../media/ShowmeLeads.gif)
+![GET — list recent records](media/ShowmeLeads.gif)
 
 #### FILTER — narrow the list
 
@@ -167,7 +167,7 @@ Say *"edit"* followed by a name. If multiple match, pick from a list. If one mat
 
 The agent picks out values from your sentence — name, amount, probability — and pre-fills the form. You review, complete any remaining fields, and submit.
 
-![CREATE — open a pre-filled form](../media/CreateLead.gif)
+![CREATE — open a pre-filled form](media/CreateLead.gif)
 
 #### ACTION — one-shot state change
 
@@ -185,7 +185,7 @@ Opportunities and Cases have a ▾ expand icon on each row. Click it to see chil
 
 *"show me the sales pipeline dashboard"* aggregates open opportunities by stage and presents a horizontal bar chart with a top-accounts panel.
 
-![DASHBOARD — pipeline analytics](../media/SF-Sales-Dashboard.gif)
+![DASHBOARD — pipeline analytics](media/SF-Sales-Dashboard.gif)
 
 #### RESOLVE FK — type names, not IDs
 
