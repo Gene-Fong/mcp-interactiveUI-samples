@@ -306,6 +306,12 @@ Then run:
 .\deploy\LocalDeploy.ps1
 ```
 
+> **Note:** If PowerShell blocks this with a "not digitally signed" / execution-policy
+> error, run it with a per-run bypass instead (changes nothing permanently):
+> ```powershell
+> powershell -ExecutionPolicy Bypass -File .\deploy\LocalDeploy.ps1
+> ```
+
 The script takes 3–4 minutes the first time:
 1. 🐍 Python venv + dependencies (~60s)
 2. ⚛️ React widget bundle (~45s)
