@@ -180,9 +180,9 @@ mcp-apps/                        # MCP Apps SDK samples
   employee-training/node/        # Learning course recommendations
   expense-submission/node/       # Expense filing with Entra SSO & file handling
   fieldops/node/                 # Field service dispatch
-  hubspot-crm/python/            # Enterprise HubSpot CRM (19 tools)
-  salesforce-crm/python/         # Enterprise Salesforce CRM (30 tools)
-  servicenow-itsm/python/        # Enterprise ServiceNow ITSM + HR (31 tools)
+  hubspot-crm/python/            # Enterprise HubSpot CRM
+  salesforce-crm/python/         # Enterprise Salesforce CRM
+  servicenow-itsm/python/        # Enterprise ServiceNow ITSM + HR
   trey-research/node/            # HR consultant management
   zava-insurance/node/           # Insurance claims management
 
