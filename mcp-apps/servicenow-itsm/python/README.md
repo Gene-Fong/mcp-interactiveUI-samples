@@ -142,80 +142,104 @@ You do not have to phrase things this precisely — plain English works — but 
 
 #### GET — list recent records
 
+
 Ask for any entity by name. The agent returns the most recent records as a sortable table with priority indicators and per-row ✏️ Edit / ▾ Expand controls.
 
-![show open incidents](../media/Service%20Now-%20Open%20Incident.gif)
+![GET — list recent records](media/get%20all%20incidents.png)
 
 #### FILTER — narrow the list
 
+
 Add conditions to your request — state, priority, assignee, date range. The agent figures out which filter to apply from your wording. Lookup fields (like Assigned To) accept names — the agent resolves them to IDs when querying.
 
+![FILTER — narrow the list](media/get%20all%20incidents%20assigned%20to%20Beth%20Anglin.png)
+
 #### IDENTIFY — show one record
+
 
 Every ServiceNow record number carries its type in the prefix (`INC` / `REQ` / `CHG` / `PRB` / `HRC`). Mention a number and the agent routes to the correct entity automatically.
 
 - *"show INC0010001"* → displays that single incident
 - *"get CHG0000079"* → displays that single change request
 
+![IDENTIFY — show one record](media/get%20incident%20INC0010012%20-%20single%20INC-CHG%20IDENTIFY.png)
+
 #### EDIT — modify a record
+
 
 Say *"edit"* followed by a record number and the inline form opens, pre-filled with current values. Change what you need and hit Save.
 
-![edit change request](../media/ServiceNow-Change%20Request.gif)
+![EDIT — modify a record](media/inline%20edit%20incidents.png)
 
 #### CREATE — open a pre-filled form
 
+
 The agent picks out values from your sentence — caller, priority, description — and pre-fills the form. You review, complete any remaining fields, and submit.
 
+![CREATE — open a pre-filled form](media/create%20a%20indent%20multiple%20inputs%20-%20create%20a%20hr%20case%20with%20HRC0001003%20with%20state%20awaiting%20approval%20and%20subject%20%20description.png)
+
 #### ACTION — one-shot state change
+
 
 - *"resolve INC0010005"* → opens the resolve form with a close-code picklist
 - *"show my pending approvals"* → lists approvals; approve or reject inline from the widget
 
-![resolve incident](../media/Resolve%20Incident.gif)
+![ACTION — one-shot state change](media/Resolve%20INC0010005.png)
 
 #### DRILL — expand child records
+
 
 Requests and Changes have a ▾ expand icon on each row. Click it to see child records inline:
 
 - **Service Request** → request items
 - **Change Request** → change tasks
 
-![show service requests](../media/Service-Now-ShowService-Request.gif)
+![DRILL — expand child records](media/2%20level%20drill%20down.png)
 
 #### SEARCH — knowledge and catalog
+
 
 - *"search knowledge for VPN setup"* → searches published knowledge articles
 - *"browse service catalog"* → lists available catalog items
 
-![knowledge search results](../media/ServiceNow-Show-KB.gif)
+![SEARCH — knowledge and catalog](media/ServiceNow-Show-KB.gif)
 
 #### RESOLVE FK — type names, not IDs
+
 
 Fields marked with 🔗 accept plain names. Type a name, hit Save — the agent resolves it. If there's no exact match, you get up to five suggestions to pick from.
 
 > [!TIP]
 > Look for the 🔗 icon on form fields — those are the ones that accept names instead of IDs.
 
+![RESOLVE FK — type names, not IDs](media/HR%20Services%20not%20found%20-%20suggested..png)
+
 #### CLARIFY — agent asks when ambiguous
+
 
 If your request could apply to more than one entity type, the agent asks first.
 
 *"show me the network outage from yesterday"* → Agent: *"Is that an incident, request, change request, problem, or HR case?"*
 
+![CLARIFY — agent asks when ambiguous](media/get%20me%20-%20SN%20%E2%80%94%20CLARIFY%20%28disambiguation%20prompt%29.png)
+
 ---
 
 ## 3. Install
 
-The installation has four steps: clone the repository, configure your credentials, run the server locally, and optionally deploy it to Azure. The whole process takes about 30 minutes.
+The installation has four steps: get the app folder, configure your credentials, run the server locally, and optionally deploy it to Azure. The whole process takes about 30 minutes.
 
-### Step 1 — Clone the repo
+### Step 1 — Get the app folder
 
-**Action:**
+Use **either** option, then `cd` into the app folder.
+
+**Option A — Clone the repo:**
 ```powershell
 git clone https://github.com/microsoft/mcp-interactiveUI-samples.git
 cd mcp-interactiveUI-samples/mcp-apps/servicenow-itsm/python
 ```
+
+**Option B — Extract the distributed zip:** unzip the app package, then open a terminal in the extracted folder (it already contains everything below — no clone needed).
 
 **Validate:** You should see `servicenow_mcp/`, `shared_mcp/`, `widgets/`, `deploy/`, and `agent/` directories.
 
@@ -282,6 +306,12 @@ Then run:
 .\deploy\LocalDeploy.ps1
 ```
 
+> **Note:** If PowerShell blocks this with a "not digitally signed" / execution-policy
+> error, run it with a per-run bypass instead (changes nothing permanently):
+> ```powershell
+> powershell -ExecutionPolicy Bypass -File .\deploy\LocalDeploy.ps1
+> ```
+
 The script takes 3–4 minutes the first time:
 1. 🐍 Python venv + dependencies (~60s)
 2. ⚛️ React widget bundle (~45s)
@@ -302,7 +332,9 @@ The script takes 3–4 minutes the first time:
 ```
 2. Run `curl -X POST http://localhost:8081/mcp -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"initialize","id":1}'` — you should get a JSON-RPC response.
 3. Open M365 Copilot → pick **Ask - ServiceNow** from the agent picker.
-4. Try *"show me open incidents"* — a widget should render with an incident list.
+4. Wait ~30–60 s for the agent to register; refresh if it doesn't appear.
+5. Confirm your ServiceNow instance is awake — a hibernating developer instance returns no data. If it has been idle, wake it at [developer.servicenow.com](https://developer.servicenow.com) and wait ~30–60 s.
+6. Try *"show me open incidents"* — a widget should render with an incident list.
 
 > [!TIP]
 > If the agent doesn't appear in the picker, wait 1–2 minutes and refresh. Still missing? Jump to [§4 Troubleshooting](#4-troubleshooting).
@@ -352,6 +384,10 @@ curl -X POST <FQDN>/mcp -H "Content-Type: application/json" -d '{"jsonrpc":"2.0"
 ```
 You should get a JSON-RPC response (not a connection error).
 2. Verify the container image: `az containerapp show -g <rg> -n <app> --query "properties.template.containers[0].image" -o tsv` — should return your ACR image.
+3. Open M365 Copilot → pick **Ask - ServiceNow** from the agent picker.
+4. Wait ~30–60 s for the agent to register; refresh if it doesn't appear.
+5. Confirm your ServiceNow instance is awake — a hibernating developer instance returns no data. If it has been idle, wake it at [developer.servicenow.com](https://developer.servicenow.com) and wait ~30–60 s.
+6. Try *"show me open incidents"* — a widget should render with an incident list.
 
 > [!TIP]
 > When you ship new server or agent code later, re-run `.\deploy\ServerDeploy.ps1`. It rebuilds the image and re-uploads the agent against the same infrastructure. You only need to re-run `AzureImageSetup.ps1` when you change an infrastructure parameter such as the region or the ACR name.
