@@ -1,0 +1,14 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+node_modules/
+dist/
+web/widget.html
+.mos3_token_cache.json
+deploy/parameters.bicepparam
+deploy/last_server_deploy.log
+agent/appPackage/build/
+agent/appPackage/_tmp_zip/
+logs/
+logs_test/

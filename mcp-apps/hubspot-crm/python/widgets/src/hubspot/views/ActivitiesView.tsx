@@ -1,0 +1,236 @@
+import React, { useEffect, useState } from 'react';
+import { Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow, Text, tokens } from '@fluentui/react-components';
+import { CalendarRegular, DismissRegular, EditRegular, EyeRegular } from '@fluentui/react-icons';
+import { useStyles, H_CELL, D_CELL } from '../styles';
+import { hs } from '../theme';
+import { StatusPill } from '../components/StatusPill';
+import { HsViewHeader } from '../components/ViewHeader';
+import { RecordDialog } from '../components/RecordDialog';
+import { HsFooter } from '../components/HsFooter';
+import { toDateInput } from '../constants';
+
+const TYPE_LABELS: Record<string, string> = {
+  note: 'Notes', call: 'Calls', task: 'Tasks', meeting: 'Meetings', email: 'Emails',
+};
+
+function stripHtml(s: string): string {
+  return s
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function formatCell(apiName: string, value: any): string {
+  if (!value || value === '') return '—';
+  if (apiName === 'hs_timestamp' || apiName === 'hs_meeting_start_time' || apiName === 'hs_meeting_end_time') {
+    try { return new Date(value).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }); } catch { return value; }
+  }
+  let str = String(value);
+  // Activity bodies (notes/emails) are stored as HTML — strip tags for display
+  if (/<[a-z!/][^>]*>/i.test(str)) str = stripHtml(str);
+  // Truncate long bodies
+  if (str.length > 60) return str.slice(0, 57) + '…';
+  return str;
+}
+
+// ── ActivitiesView — schema-driven ────────────────────────────────────────
+export function ActivitiesView({ items: initItems, callTool, toast, theme, cacheInfo: initCacheInfo, isFullscreen, activityType, schema }: {
+  items: any[]; callTool: (n: string, a?: any) => Promise<any>;
+  toast: (m: string, t?: any) => void; theme: 'light' | 'dark';
+  cacheInfo?: { hit: boolean; cached_at: string }; isFullscreen?: boolean;
+  activityType: string; schema: any;
+}) {
+  const styles = useStyles();
+  const t = hs(theme);
+  const [localItems, setLocalItems] = useState(initItems);
+  const [cacheInfo, setCacheInfo] = useState(initCacheInfo);
+  const [refreshing, setRefreshing] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState<Record<string, string>>({});
+  const [lastSavedId, setLastSavedId] = useState<string | null>(null);
+  const [viewingItem, setViewingItem] = useState<any | null>(null);
+
+  const columns = schema?.columns || [];
+  const formFields = schema?.formFields || [];
+
+  useEffect(() => { setLocalItems(initItems); setCacheInfo(initCacheInfo); }, [initItems]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const res = await callTool('hs__get_activities', { activity_type: activityType, refresh: true });
+      setLocalItems(res?.items || []);
+      setCacheInfo(res?._cache);
+    } catch (e: any) { toast(e.message || 'Refresh failed', 'error'); }
+    finally { setRefreshing(false); }
+  };
+
+  const openView = (item: any) => { setViewingItem(item); };
+
+  const openEdit = (item: any) => {
+    setViewingItem(null);
+    setEditingId(item.id);
+    const f: Record<string, string> = {};
+    formFields.forEach((ff: any) => { f[ff.name] = toDateInput(item[ff.name] || '', ff.inputType); });
+    f['_related_to'] = item['_related_to'] || '';
+    if (activityType === 'email') f['hs_email_status'] = item['hs_email_status'] || '';
+    setForm(f);
+  };
+  const cancel = () => { setEditingId(null); };
+
+  const handleSave = async () => {
+    if (!editingId) return;
+    setSaving(true);
+    try {
+      const result = await callTool('hs__update_activity', { activity_type: activityType, activity_id: editingId, ...form });
+      if (result?.type === 'error' || result?.type === 'alert') {
+        toast(result.message || 'Update failed', { intent: 'error' });
+        setSaving(false);
+        return;
+      }
+      if (result?.items) { setLocalItems(result.items); setCacheInfo(result?._cache); }
+      toast(`${activityType} updated`); setLastSavedId(editingId);
+      cancel();
+    } catch (e: any) { toast(e.message || 'Failed', 'error'); }
+    finally { setSaving(false); }
+  };
+
+  useEffect(() => { if (lastSavedId) { const x = setTimeout(() => setLastSavedId(null), 4800); return () => clearTimeout(x); } }, [lastSavedId]);
+
+  const setF = (k: string, v: string) => setForm(p => ({ ...p, [k]: v }));
+  const fFields: any[] = [];
+  // Read-only: Related To
+  if (form['_related_to']) {
+    fFields.push({ label: '🔗 Related To', key: '_related_to', value: form['_related_to'], type: 'text', readonly: true, onChange: () => {} });
+  }
+  // Read-only: Assigned To (owner)
+  if (form['_assigned_to']) {
+    fFields.push({ label: '🔗 Assigned To', key: '_assigned_to', value: form['_assigned_to'], type: 'text', readonly: true, onChange: () => {} });
+  }
+  // Read-only: Email Status
+  if (activityType === 'email' && form['hs_email_status']) {
+    fFields.push({ label: 'Status', key: 'hs_email_status', value: form['hs_email_status'], type: 'text', readonly: true, onChange: () => {} });
+  }
+  // Editable form fields
+  formFields.forEach((f: any) => {
+    fFields.push({
+      label: f.label,
+      key: f.name,
+      value: form[f.name] || '',
+      type: f.picklist ? 'select' as const : f.multiline ? 'textarea' as const : 'text' as const,
+      inputType: f.inputType,
+      options: f.picklist,
+      onChange: (v: string) => setF(f.name, v),
+    });
+  });
+
+  const viewFields = viewingItem ? [
+    ...(viewingItem['_related_to'] ? [{ label: '🔗 Related To', value: viewingItem['_related_to'], fk: true }] : []),
+    ...(viewingItem['_assigned_to'] ? [{ label: '🔗 Assigned To', value: viewingItem['_assigned_to'], fk: true }] : []),
+    ...(activityType === 'email' && viewingItem['hs_email_status']
+      ? [{ label: 'Status', value: formatCell('hs_email_status', viewingItem['hs_email_status']), fk: false }] : []),
+    ...formFields.map((f: any) => ({ label: f.label, value: formatCell(f.name, viewingItem[f.name]), fk: false })),
+  ] : [];
+
+  const title = TYPE_LABELS[activityType] || 'Activities';
+
+  // Distribute column widths explicitly. Under tableLayout:'fixed' with an empty
+  // body (colSpan row), columns with no width collapse and clipped headers vanish.
+  const colCount = columns.length + 1; // + Related To
+  const colW = `${(100 / colCount).toFixed(2)}%`;
+
+  return (
+    <div className={styles.card}>
+      <HsViewHeader
+        icon={<CalendarRegular style={{ fontSize: '18px', color: tokens.colorBrandForeground1 }} />}
+        title={title}
+        count={localItems.length}
+        theme={theme}
+        cacheInfo={cacheInfo}
+        onRefresh={isFullscreen ? handleRefresh : undefined}
+        refreshing={refreshing}
+      />
+      <Table size="small" aria-label={title} style={{ borderCollapse: 'collapse', tableLayout: 'fixed', width: '100%' }}>
+        <TableHeader>
+          <TableRow style={{ background: t.headerBg }}>
+            {columns.map((col: any) => (
+              <TableHeaderCell key={col.apiName} style={{ ...H_CELL, color: t.textWeak, width: colW }}>{col.label}</TableHeaderCell>
+            ))}
+            <TableHeaderCell style={{ ...H_CELL, color: t.textWeak, width: colW }}>Related To</TableHeaderCell>
+            {isFullscreen && <TableHeaderCell style={{ ...H_CELL, width: 50, color: t.textWeak }} />}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {localItems.length === 0 && (
+            <TableRow><TableCell colSpan={99} className={styles.empty}><Text>No {activityType}s found.</Text></TableCell></TableRow>
+          )}
+          {localItems.map((item: any) => (
+            <TableRow key={item.id} className="hs-row"
+              style={{ borderBottom: `1px solid ${tokens.colorNeutralStroke2}`, ...(lastSavedId === item.id ? { animation: 'hsRowFlash 2s ease-out' } : {}) }}
+            >
+              {columns.map((col: any) => (
+                <TableCell key={col.apiName} style={{ ...D_CELL, ...(col.apiName.includes('body') || col.apiName.includes('subject') || col.apiName.includes('title') ? { fontWeight: 600 } : {}) }}>
+                  {col.apiName.includes('status') || col.apiName.includes('direction') || col.apiName.includes('outcome') || col.apiName.includes('priority')
+                    ? <StatusPill status={item[col.apiName] || ''} />
+                    : formatCell(col.apiName, item[col.apiName])
+                  }
+                </TableCell>
+              ))}
+              <TableCell style={{ ...D_CELL, fontSize: 11, color: t.textWeak }}>
+                {item._related_to || '—'}
+              </TableCell>
+              {isFullscreen && (
+                <TableCell style={D_CELL}>
+                  <Button appearance="subtle" icon={<EyeRegular />} size="small" onClick={() => openView(item)} aria-label="View" title="View" />
+                </TableCell>
+              )}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <RecordDialog
+        open={editingId !== null}
+        title={`Edit ${activityType}`}
+        fields={fFields}
+        onSave={handleSave}
+        onCancel={cancel}
+        saving={saving}
+      />
+      <Dialog open={!!viewingItem} onOpenChange={(_, data) => { if (!data.open) setViewingItem(null); }}>
+        <DialogSurface style={{ maxWidth: '720px', width: '90vw', padding: '24px' }}>
+          <DialogBody>
+            <DialogTitle style={{ fontSize: '18px', fontWeight: 700, color: tokens.colorBrandForeground1 }}>
+              {title.slice(0, -1)} Details
+            </DialogTitle>
+            <DialogContent style={{ paddingTop: '16px' }}>
+              {viewingItem && (
+                <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: '10px 12px' }}>
+                  {viewFields.map((field: any) => (
+                    <React.Fragment key={field.label}>
+                      <div style={{ color: t.textWeak, fontSize: 12, fontWeight: 600 }}>{field.label}</div>
+                      <div style={{ color: field.fk ? tokens.colorBrandForeground1 : t.text, fontSize: 13, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{field.value || '—'}</div>
+                    </React.Fragment>
+                  ))}
+                </div>
+              )}
+            </DialogContent>
+            <DialogActions style={{ paddingTop: '16px' }}>
+              <Button appearance="secondary" icon={<DismissRegular />} onClick={() => setViewingItem(null)}>Close</Button>
+              {viewingItem && (
+                <Button appearance="primary" icon={<EditRegular />} onClick={() => openEdit(viewingItem)}>Edit</Button>
+              )}
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
+      <HsFooter theme={theme} />
+    </div>
+  );
+}
