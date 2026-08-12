@@ -1,0 +1,14 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+.mos3_token_cache.json
+node_modules/
+dist/
+agent/appPackage/build/
+sf_crm_mcp/web/widget.html
+deploy/parameters.bicepparam
+deploy/last_server_deploy.log
+
+logs/
+logs_test/
