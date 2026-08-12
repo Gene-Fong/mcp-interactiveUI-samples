@@ -26,6 +26,11 @@
     Run from the hubspot-crm/python/ directory.
 #>
 
+#Updates
+# 2024-06-05: Initial version, adapted from salesforce-crm/python/deploy/LocalDeploy.ps1
+# 2026-08-12: Commented out $Pkg, 
+
+
 param(
     [switch]$SkipServer,
     [switch]$SkipTunnel,
