@@ -46,7 +46,7 @@ $ErrorActionPreference = "Stop"
 
 $App        = Split-Path -Parent $PSScriptRoot               # hubspot-crm\python\
 $VenvPython = "$App\.venv\Scripts\python.exe"
-$Pkg        = "hs_crm_mcp"
+#$Pkg        = "hs_crm_mcp"
 
 $ClientId   = "7ea7c24c-b1f6-4a20-9d11-9ae12e9e7ac0"
 $TenantId   = "0033e475-49c7-401c-8c23-2468502f497a"
