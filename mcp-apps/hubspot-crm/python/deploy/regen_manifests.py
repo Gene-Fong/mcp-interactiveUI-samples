@@ -94,12 +94,15 @@ def validate_written(prefix: str) -> list[str]:
     plugin = json.loads(PLUGIN_PATH.read_text(encoding="utf-8"))
     plugin_functions = {f["name"] for f in plugin.get("functions", [])}
     tool_names = {t["name"] for t in tools}
+    ui_mode = os.getenv("MCP_UI_MODE", "auto").strip().lower()
+    require_ui_meta = ui_mode != "plain"
 
-    # 1. Every tool has _meta.ui.resourceUri
-    missing_meta = [t["name"] for t in tools
-                    if not t.get("_meta", {}).get("ui", {}).get("resourceUri")]
-    if missing_meta:
-        errors.append(f"missing _meta.ui.resourceUri: {sorted(missing_meta)}")
+    # 1. In UI-capable modes, every tool has _meta.ui.resourceUri.
+    if require_ui_meta:
+        missing_meta = [t["name"] for t in tools
+                        if not t.get("_meta", {}).get("ui", {}).get("resourceUri")]
+        if missing_meta:
+            errors.append(f"missing _meta.ui.resourceUri: {sorted(missing_meta)}")
 
     # 2. Every tool appears in ai-plugin.json functions
     not_in_plugin = tool_names - plugin_functions

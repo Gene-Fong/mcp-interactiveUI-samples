@@ -19,6 +19,10 @@ param logRetentionDays int = 30
 @secure()
 param hubspotAccessToken string = ''
 
+@description('Dual mode: auto serves the widget plus markdown text, ui is widget-only, plain is text-only')
+@allowed(['auto', 'ui', 'plain'])
+param mcpUiMode string = 'auto'
+
 // ── App Insights (optional) ───────────────────────────────────────────────────
 @secure()
 param appInsightsConnectionString string = ''
@@ -139,6 +143,7 @@ resource caHs 'Microsoft.App/containerApps@2024-03-01' = {
           [
             { name: 'HUBSPOT_ACCESS_TOKEN', secretRef: 'hubspot-access-token' }
             { name: 'PORT',                 value: '8082' }
+            { name: 'MCP_UI_MODE',          value: mcpUiMode }
           ],
           empty(appInsightsConnectionString) ? [] : [
             { name: 'APPINSIGHTS_CONNECTION_STRING', secretRef: 'appinsights-conn-string' }

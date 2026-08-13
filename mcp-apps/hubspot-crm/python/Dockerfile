@@ -26,5 +26,8 @@ COPY --from=builder /build/shared_mcp /opt/venv/lib/python3.11/site-packages/sha
 COPY --from=builder /build/web /opt/venv/lib/python3.11/site-packages/web
 ENV PATH="/opt/venv/bin:$PATH" PYTHONPATH="/opt/venv/lib/python3.11/site-packages"
 ENV PYTHONUNBUFFERED=1
+# auto | ui | plain — see .env.example
+ARG UI_MODE=auto
+ENV MCP_UI_MODE=${UI_MODE}
 EXPOSE 8082
 CMD ["python", "-m", "hs_crm_mcp"]

@@ -1,6 +1,8 @@
 """HubSpot CRM settings — pydantic-settings with dotenv support."""
 
 from functools import lru_cache
+from typing import Literal
+
 from pydantic_settings import BaseSettings
 
 
@@ -13,6 +15,12 @@ class HubSpotSettings(BaseSettings):
     # Server
     port: int = 8082
     cors_origins: str = "*"
+    mcp_transport: Literal["http", "stdio"] = "http"
+
+    # Dual mode: "ui" always renders the widget, "plain" is a conventional
+    # text-only MCP server, "auto" decides per request from client capabilities.
+    mcp_ui_mode: Literal["auto", "ui", "plain"] = "auto"
+    plain_max_rows: int = 25
 
     # Telemetry (optional)
     appinsights_connection_string: str = ""

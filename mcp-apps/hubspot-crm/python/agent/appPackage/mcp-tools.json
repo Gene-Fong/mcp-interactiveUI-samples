@@ -2,7 +2,7 @@
     "tools": [
         {
             "name": "hs__get_companies",
-            "description": "Get companies from HubSpot CRM (10 most recent). Pass company_id to view one record; add action='edit' to open the edit form. Filters: name (text search), domain (text search), type (PROSPECT, PARTNER, RESELLER, VENDOR, OTHER), lifecyclestage (subscriber, lead, marketingqualifiedlead, salesqualifiedlead, opportunity, customer, evangelist, other), city, country.",
+            "description": "Get companies from HubSpot CRM (10 most recent). Pass company_id to view one record; add action='edit' to open the edit form. Filters: name (text search), domain (text search), type (PROSPECT, PARTNER, RESELLER, VENDOR, OTHER), lifecyclestage (subscriber, lead, marketingqualifiedlead, salesqualifiedlead, opportunity, customer, evangelist, other), city, country. Results are returned as markdown in the text content.",
             "inputSchema": {
                 "properties": {
                     "company_id": {
@@ -45,16 +45,11 @@
                 "type": "object",
                 "required": []
             },
-            "title": "Get companies",
-            "_meta": {
-                "ui": {
-                    "resourceUri": "ui://widget/hubspot.html"
-                }
-            }
+            "title": "Get companies"
         },
         {
             "name": "hs__create_company",
-            "description": "Create a new Company in HubSpot CRM. Requires: name. Optional: domain, type (PROSPECT/PARTNER/RESELLER/VENDOR/OTHER), lifecyclestage (subscriber/lead/marketingqualifiedlead/salesqualifiedlead/opportunity/customer/evangelist/other), city, phone, country, description.",
+            "description": "Create a new Company in HubSpot CRM. Requires: name. Optional: domain, type (PROSPECT/PARTNER/RESELLER/VENDOR/OTHER), lifecyclestage (subscriber/lead/marketingqualifiedlead/salesqualifiedlead/opportunity/customer/evangelist/other), city, phone, country, description. Results are returned as markdown in the text content.",
             "inputSchema": {
                 "properties": {
                     "name": {
@@ -94,16 +89,11 @@
                 ],
                 "type": "object"
             },
-            "title": "Create company",
-            "_meta": {
-                "ui": {
-                    "resourceUri": "ui://widget/hubspot.html"
-                }
-            }
+            "title": "Create company"
         },
         {
             "name": "hs__update_company",
-            "description": "Update an existing Company in HubSpot CRM by its record Id. Only fields provided will be updated. Fields: name, domain, type, lifecyclestage, city, phone, country, description.",
+            "description": "Update an existing Company in HubSpot CRM by its record Id. Only fields provided will be updated. Fields: name, domain, type, lifecyclestage, city, phone, country, description. Results are returned as markdown in the text content.",
             "inputSchema": {
                 "properties": {
                     "company_id": {
@@ -147,16 +137,11 @@
                 ],
                 "type": "object"
             },
-            "title": "Update company",
-            "_meta": {
-                "ui": {
-                    "resourceUri": "ui://widget/hubspot.html"
-                }
-            }
+            "title": "Update company"
         },
         {
             "name": "hs__get_associations",
-            "description": "Get records associated to an entity in HubSpot CRM. Required: entity_type (companies or contacts), entity_id, association_type (contacts, deals, tickets, or companies). Returns fields relevant to the target type.",
+            "description": "Get records associated to an entity in HubSpot CRM. Required: entity_type (companies or contacts), entity_id, association_type (contacts, deals, tickets, or companies). Returns fields relevant to the target type. Results are returned as markdown in the text content.",
             "inputSchema": {
                 "properties": {
                     "entity_type": {
@@ -180,16 +165,11 @@
                 ],
                 "type": "object"
             },
-            "title": "Get associations",
-            "_meta": {
-                "ui": {
-                    "resourceUri": "ui://widget/hubspot.html"
-                }
-            }
+            "title": "Get associations"
         },
         {
             "name": "hs__get_contacts",
-            "description": "Get contacts from HubSpot CRM (10 most recent). Pass contact_id to view one record; add action='edit' to open the edit form; action='create' to open a blank create form. Filters: firstname, lastname, email, jobtitle, city, phone, company_name (FK \u2014 searches all associations), lifecyclestage (subscriber/lead/marketingqualifiedlead/salesqualifiedlead/opportunity/customer/evangelist/other). With action='create', prefills the form from any of: firstname, lastname, email, phone, jobtitle, lifecyclestage, city, company_name.",
+            "description": "Get contacts from HubSpot CRM (10 most recent). Pass contact_id to view one record; add action='edit' to open the edit form; action='create' to open a blank create form. Filters: firstname, lastname, email, jobtitle, city, phone, company_name (FK \u2014 searches all associations), lifecyclestage (subscriber/lead/marketingqualifiedlead/salesqualifiedlead/opportunity/customer/evangelist/other). With action='create', prefills the form from any of: firstname, lastname, email, phone, jobtitle, lifecyclestage, city, company_name. Results are returned as markdown in the text content.",
             "inputSchema": {
                 "properties": {
                     "contact_id": {
@@ -240,16 +220,11 @@
                 "type": "object",
                 "required": []
             },
-            "title": "Get contacts",
-            "_meta": {
-                "ui": {
-                    "resourceUri": "ui://widget/hubspot.html"
-                }
-            }
+            "title": "Get contacts"
         },
         {
             "name": "hs__create_contact",
-            "description": "Create a new Contact in HubSpot CRM. Requires: firstname, lastname, email. Optional: phone, jobtitle, lifecyclestage, city, company_name (associates to matching company).",
+            "description": "Create a new Contact in HubSpot CRM. Requires: firstname, lastname, email. Optional: phone, jobtitle, lifecyclestage, city, company_name (associates to matching company). Results are returned as markdown in the text content.",
             "inputSchema": {
                 "properties": {
                     "firstname": {
@@ -289,16 +264,11 @@
                 ],
                 "type": "object"
             },
-            "title": "Create contact",
-            "_meta": {
-                "ui": {
-                    "resourceUri": "ui://widget/hubspot.html"
-                }
-            }
+            "title": "Create contact"
         },
         {
             "name": "hs__update_contact",
-            "description": "Update an existing Contact in HubSpot CRM by its record Id. Only fields provided will be updated. Fields: firstname, lastname, email, phone, jobtitle, lifecyclestage, city.",
+            "description": "Update an existing Contact in HubSpot CRM by its record Id. Only fields provided will be updated. Fields: firstname, lastname, email, phone, jobtitle, lifecyclestage, city. Results are returned as markdown in the text content.",
             "inputSchema": {
                 "properties": {
                     "contact_id": {
@@ -338,16 +308,11 @@
                 ],
                 "type": "object"
             },
-            "title": "Update contact",
-            "_meta": {
-                "ui": {
-                    "resourceUri": "ui://widget/hubspot.html"
-                }
-            }
+            "title": "Update contact"
         },
         {
             "name": "hs__get_deals",
-            "description": "Get deals from HubSpot CRM (10 most recent). Pass deal_id to view one record; add action='edit' to open the edit form; action='create' to open a blank create form. Filters: dealname (text search), dealstage (stage ID or closedwon/closedlost), pipeline (default), dealtype (newbusiness/existingbusiness), amount_min / amount_max (numeric amount range, >= / <=), closedate (exact calendar day, e.g. 2026-08-31), company_name (FK \u2014 finds deals associated to that company). With action='create', prefills the form from any of: dealname, amount, closedate (YYYY-MM-DD), dealstage, pipeline, dealtype, company_name.",
+            "description": "Get deals from HubSpot CRM (10 most recent). Pass deal_id to view one record; add action='edit' to open the edit form; action='create' to open a blank create form. Filters: dealname (text search), dealstage (stage ID or closedwon/closedlost), pipeline (default), dealtype (newbusiness/existingbusiness), amount_min / amount_max (numeric amount range, >= / <=), closedate (exact calendar day, e.g. 2026-08-31), company_name (FK \u2014 finds deals associated to that company). With action='create', prefills the form from any of: dealname, amount, closedate (YYYY-MM-DD), dealstage, pipeline, dealtype, company_name. Results are returned as markdown in the text content.",
             "inputSchema": {
                 "properties": {
                     "deal_id": {
@@ -410,16 +375,11 @@
                 "type": "object",
                 "required": []
             },
-            "title": "Get deals",
-            "_meta": {
-                "ui": {
-                    "resourceUri": "ui://widget/hubspot.html"
-                }
-            }
+            "title": "Get deals"
         },
         {
             "name": "hs__create_deal",
-            "description": "Create a new Deal in HubSpot CRM. Required: dealname, dealstage, pipeline. Optional: amount, closedate (ISO date), dealtype (newbusiness/existingbusiness), description, company_name (associates to matching company), contact_name (associates to matching contact).",
+            "description": "Create a new Deal in HubSpot CRM. Required: dealname, dealstage, pipeline. Optional: amount, closedate (ISO date), dealtype (newbusiness/existingbusiness), description, company_name (associates to matching company), contact_name (associates to matching contact). Results are returned as markdown in the text content.",
             "inputSchema": {
                 "properties": {
                     "dealname": {
@@ -462,16 +422,11 @@
                 "type": "object",
                 "required": []
             },
-            "title": "Create deal",
-            "_meta": {
-                "ui": {
-                    "resourceUri": "ui://widget/hubspot.html"
-                }
-            }
+            "title": "Create deal"
         },
         {
             "name": "hs__update_deal",
-            "description": "Update an existing Deal in HubSpot CRM by its record Id. Only fields provided will be updated. Fields: dealname, amount, pipeline, dealstage, closedate, dealtype, description.",
+            "description": "Update an existing Deal in HubSpot CRM by its record Id. Only fields provided will be updated. Fields: dealname, amount, pipeline, dealstage, closedate, dealtype, description. Results are returned as markdown in the text content.",
             "inputSchema": {
                 "properties": {
                     "deal_id": {
@@ -510,16 +465,11 @@
                 "type": "object",
                 "required": []
             },
-            "title": "Update deal",
-            "_meta": {
-                "ui": {
-                    "resourceUri": "ui://widget/hubspot.html"
-                }
-            }
+            "title": "Update deal"
         },
         {
             "name": "hs__get_orders",
-            "description": "Get orders from HubSpot CRM (10 most recent). Pass order_id to view one record; add action='edit' to open the edit form; action='create' to open a blank create form. Filters: hs_order_name (text search), hs_fulfillment_status, hs_payment_status, hs_currency_code, hs_total_price_min / hs_total_price_max (numeric total range \u2014 e.g. 'orders over 5000' -> hs_total_price_min=5000), hs_closed_date (exact calendar day, e.g. 2026-08-31), company_name (FK), contact_name (FK), deal_name (FK).",
+            "description": "Get orders from HubSpot CRM (10 most recent). Pass order_id to view one record; add action='edit' to open the edit form; action='create' to open a blank create form. Filters: hs_order_name (text search), hs_fulfillment_status, hs_payment_status, hs_currency_code, hs_total_price_min / hs_total_price_max (numeric total range \u2014 e.g. 'orders over 5000' -> hs_total_price_min=5000), hs_closed_date (exact calendar day, e.g. 2026-08-31), company_name (FK), contact_name (FK), deal_name (FK). Results are returned as markdown in the text content.",
             "inputSchema": {
                 "properties": {
                     "order_id": {
@@ -586,16 +536,11 @@
                 "type": "object",
                 "required": []
             },
-            "title": "Get orders",
-            "_meta": {
-                "ui": {
-                    "resourceUri": "ui://widget/hubspot.html"
-                }
-            }
+            "title": "Get orders"
         },
         {
             "name": "hs__create_order",
-            "description": "Create a new Order in HubSpot CRM. Required: hs_order_name. Optional: hs_total_price, hs_currency_code, hs_fulfillment_status, hs_payment_status, hs_source_store, company_name (associates to company), contact_name (associates to contact), deal_name (associates to deal).",
+            "description": "Create a new Order in HubSpot CRM. Required: hs_order_name. Optional: hs_total_price, hs_currency_code, hs_fulfillment_status, hs_payment_status, hs_source_store, company_name (associates to company), contact_name (associates to contact), deal_name (associates to deal). Results are returned as markdown in the text content.",
             "inputSchema": {
                 "properties": {
                     "hs_order_name": {
@@ -638,16 +583,11 @@
                 "type": "object",
                 "required": []
             },
-            "title": "Create order",
-            "_meta": {
-                "ui": {
-                    "resourceUri": "ui://widget/hubspot.html"
-                }
-            }
+            "title": "Create order"
         },
         {
             "name": "hs__update_order",
-            "description": "Update an existing Order in HubSpot CRM by its record Id. Only fields provided will be updated. Fields: hs_order_name, hs_total_price, hs_currency_code, hs_fulfillment_status, hs_payment_status, hs_source_store.",
+            "description": "Update an existing Order in HubSpot CRM by its record Id. Only fields provided will be updated. Fields: hs_order_name, hs_total_price, hs_currency_code, hs_fulfillment_status, hs_payment_status, hs_source_store. Results are returned as markdown in the text content.",
             "inputSchema": {
                 "properties": {
                     "order_id": {
@@ -682,16 +622,11 @@
                 "type": "object",
                 "required": []
             },
-            "title": "Update order",
-            "_meta": {
-                "ui": {
-                    "resourceUri": "ui://widget/hubspot.html"
-                }
-            }
+            "title": "Update order"
         },
         {
             "name": "hs__get_products",
-            "description": "Get products from HubSpot CRM (10 most recent). Pass product_id to view one record; add action='edit' to open the edit form; action='create' to open a blank create form. Filters: name (text search), hs_sku (text search), price_min / price_max (numeric price range, >= / <=), hs_product_type (inventory/non_inventory/service), hs_status (active/inactive), recurringbillingfrequency (weekly/biweekly/monthly/quarterly/per_six_months/annually/per_two_years/per_three_years/per_four_years/per_five_years).",
+            "description": "Get products from HubSpot CRM (10 most recent). Pass product_id to view one record; add action='edit' to open the edit form; action='create' to open a blank create form. Filters: name (text search), hs_sku (text search), price_min / price_max (numeric price range, >= / <=), hs_product_type (inventory/non_inventory/service), hs_status (active/inactive), recurringbillingfrequency (weekly/biweekly/monthly/quarterly/per_six_months/annually/per_two_years/per_three_years/per_four_years/per_five_years). Results are returned as markdown in the text content.",
             "inputSchema": {
                 "properties": {
                     "product_id": {
@@ -742,16 +677,11 @@
                 "type": "object",
                 "required": []
             },
-            "title": "Get products",
-            "_meta": {
-                "ui": {
-                    "resourceUri": "ui://widget/hubspot.html"
-                }
-            }
+            "title": "Get products"
         },
         {
             "name": "hs__create_product",
-            "description": "Create a new Product in HubSpot CRM. Required: name. Optional: hs_sku, price, hs_status (active/inactive), hs_product_type (inventory/non_inventory/service), recurringbillingfrequency (weekly/biweekly/monthly/quarterly/per_six_months/annually/per_two_years/per_three_years/per_four_years/per_five_years), hs_recurring_billing_period (term, e.g. '12 months' or '90 days'), description.",
+            "description": "Create a new Product in HubSpot CRM. Required: name. Optional: hs_sku, price, hs_status (active/inactive), hs_product_type (inventory/non_inventory/service), recurringbillingfrequency (weekly/biweekly/monthly/quarterly/per_six_months/annually/per_two_years/per_three_years/per_four_years/per_five_years), hs_recurring_billing_period (term, e.g. '12 months' or '90 days'), description. Results are returned as markdown in the text content.",
             "inputSchema": {
                 "properties": {
                     "name": {
@@ -791,16 +721,11 @@
                 ],
                 "type": "object"
             },
-            "title": "Create product",
-            "_meta": {
-                "ui": {
-                    "resourceUri": "ui://widget/hubspot.html"
-                }
-            }
+            "title": "Create product"
         },
         {
             "name": "hs__update_product",
-            "description": "Update an existing Product in HubSpot CRM by its record Id. Only fields provided will be updated. Fields: name, hs_sku, price, hs_status, hs_product_type, recurringbillingfrequency, hs_recurring_billing_period (term, e.g. '12 months'), description.",
+            "description": "Update an existing Product in HubSpot CRM by its record Id. Only fields provided will be updated. Fields: name, hs_sku, price, hs_status, hs_product_type, recurringbillingfrequency, hs_recurring_billing_period (term, e.g. '12 months'), description. Results are returned as markdown in the text content.",
             "inputSchema": {
                 "properties": {
                     "product_id": {
@@ -844,16 +769,11 @@
                 ],
                 "type": "object"
             },
-            "title": "Update product",
-            "_meta": {
-                "ui": {
-                    "resourceUri": "ui://widget/hubspot.html"
-                }
-            }
+            "title": "Update product"
         },
         {
             "name": "hs__get_activities",
-            "description": "Get activities from HubSpot CRM. REQUIRED: activity_type (note/call/task/meeting/email). Pass activity_id to view one; add action='edit' to open edit form; action='create' for new. Filter by entity: entity_type (company/contact/deal) + entity_name. Filter by fields: note(hs_note_body, hs_timestamp), call(hs_call_direction, hs_call_status, hs_call_body, hs_timestamp), task(hs_task_subject, hs_task_status, hs_task_priority), meeting(hs_meeting_outcome, hs_meeting_title, hs_meeting_start_time, hs_meeting_end_time), email(hs_email_status, hs_email_direction, hs_email_subject, hs_timestamp). Body fields (hs_note_body, hs_call_body) match text as a substring (\"notes/calls mentioning X\"); date fields (hs_timestamp, hs_meeting_start_time, hs_meeting_end_time) match one exact calendar day (YYYY-MM-DD); open-ended ranges (before/after/between) are not supported. On action='create', these same fields prefill the form, plus form-only content: task(hs_task_body), meeting(hs_meeting_body), email(hs_email_text).",
+            "description": "Get activities from HubSpot CRM. REQUIRED: activity_type (note/call/task/meeting/email). Pass activity_id to view one; add action='edit' to open edit form; action='create' for new. Filter by entity: entity_type (company/contact/deal) + entity_name. Filter by fields: note(hs_note_body, hs_timestamp), call(hs_call_direction, hs_call_status, hs_call_body, hs_timestamp), task(hs_task_subject, hs_task_status, hs_task_priority), meeting(hs_meeting_outcome, hs_meeting_title, hs_meeting_start_time, hs_meeting_end_time), email(hs_email_status, hs_email_direction, hs_email_subject, hs_timestamp). Body fields (hs_note_body, hs_call_body) match text as a substring (\"notes/calls mentioning X\"); date fields (hs_timestamp, hs_meeting_start_time, hs_meeting_end_time) match one exact calendar day (YYYY-MM-DD); open-ended ranges (before/after/between) are not supported. On action='create', these same fields prefill the form, plus form-only content: task(hs_task_body), meeting(hs_meeting_body), email(hs_email_text). Results are returned as markdown in the text content.",
             "inputSchema": {
                 "properties": {
                     "activity_type": {
@@ -956,16 +876,11 @@
                 "type": "object",
                 "required": []
             },
-            "title": "Get activities",
-            "_meta": {
-                "ui": {
-                    "resourceUri": "ui://widget/hubspot.html"
-                }
-            }
+            "title": "Get activities"
         },
         {
             "name": "hs__create_activity",
-            "description": "Create an activity in HubSpot CRM. REQUIRED: activity_type (note/call/task/meeting/email). Optional: entity_type (company/contact/deal) + entity_name to associate. Note fields: hs_note_body. Call: hs_call_body, hs_call_direction, hs_call_status. Task: hs_task_subject, hs_task_body, hs_task_status, hs_task_priority. Meeting: hs_meeting_title, hs_meeting_body, hs_meeting_start_time, hs_meeting_end_time, hs_meeting_outcome. Email: hs_email_subject, hs_email_text, hs_email_direction, hs_email_status.",
+            "description": "Create an activity in HubSpot CRM. REQUIRED: activity_type (note/call/task/meeting/email). Optional: entity_type (company/contact/deal) + entity_name to associate. Note fields: hs_note_body. Call: hs_call_body, hs_call_direction, hs_call_status. Task: hs_task_subject, hs_task_body, hs_task_status, hs_task_priority. Meeting: hs_meeting_title, hs_meeting_body, hs_meeting_start_time, hs_meeting_end_time, hs_meeting_outcome. Email: hs_email_subject, hs_email_text, hs_email_direction, hs_email_status. Results are returned as markdown in the text content.",
             "inputSchema": {
                 "properties": {
                     "activity_type": {
@@ -1061,16 +976,11 @@
                 ],
                 "type": "object"
             },
-            "title": "Create activity",
-            "_meta": {
-                "ui": {
-                    "resourceUri": "ui://widget/hubspot.html"
-                }
-            }
+            "title": "Create activity"
         },
         {
             "name": "hs__update_activity",
-            "description": "Update an existing activity in HubSpot CRM. REQUIRED: activity_type + activity_id. Only provided fields are updated. Fields depend on activity_type.",
+            "description": "Update an existing activity in HubSpot CRM. REQUIRED: activity_type + activity_id. Only provided fields are updated. Fields depend on activity_type. Results are returned as markdown in the text content.",
             "inputSchema": {
                 "properties": {
                     "activity_type": {
@@ -1162,12 +1072,7 @@
                 ],
                 "type": "object"
             },
-            "title": "Update activity",
-            "_meta": {
-                "ui": {
-                    "resourceUri": "ui://widget/hubspot.html"
-                }
-            }
+            "title": "Update activity"
         }
     ]
 }

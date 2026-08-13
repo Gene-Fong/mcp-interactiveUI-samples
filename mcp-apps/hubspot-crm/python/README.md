@@ -257,6 +257,8 @@ You need a **Private App Token** from your HubSpot account.
 |---|---|
 | `HUBSPOT_ACCESS_TOKEN` | Your Private App Token (e.g. `pat-na2-...`) |
 | `PORT` | *(optional)* Server port, default `8082` |
+| `MCP_TRANSPORT` | *(optional)* `http` (default) or `stdio` |
+| `MCP_UI_MODE` | *(optional)* `auto` (default), `ui`, or `plain` — see [§3.5](#step-5--use-it-as-a-plain-mcp-server-optional) |
 | `APPINSIGHTS_CONNECTION_STRING` | *(optional)* App Insights connection string for telemetry |
 
 Then run:
@@ -365,6 +367,46 @@ The agent works best when your HubSpot account has records to interact with. If 
 
 > [!TIP]
 > A HubSpot developer test account seeds a handful of sample companies and contacts out of the box. Add a few deals, orders, products, and activities as above for the fullest demo across every widget.
+
+---
+
+### Step 5 — Use it as a plain MCP server (optional)
+
+The same server also runs as a conventional MCP server for clients that cannot render
+interactive apps (Claude Desktop, VS Code, stdio agents). `MCP_UI_MODE` controls this:
+
+| Mode | Behaviour |
+|---|---|
+| `auto` *(default)* | Serves the widget **and** renders the full result as markdown in the text content. UI hosts render the app as before; plain clients read the text. No client sniffing involved. |
+| `ui` | Widget only — the original behaviour, with the text content left as a row count. |
+| `plain` | Text-only. The `ui://widget/hubspot.html` resource and the per-tool `meta.ui` hint are not registered at all, widget-only fields are stripped from `structuredContent`, and `web/widget.html` is not required. |
+
+In the non-`ui` modes each tool returns a markdown table (or, for a single record, a
+field list) built from the same schema the widget uses, so the model sees the full
+result — record ids included, so it can chain follow-up calls. Requests that would have
+opened a form return the field list and the exact create/update tool to call instead.
+
+Run it over stdio:
+
+```jsonc
+// .vscode/mcp.json (or claude_desktop_config.json)
+{
+  "servers": {
+    "hubspot-crm": {
+      "command": "python",
+      "args": ["-m", "hs_crm_mcp"],
+      "cwd": "<path>/mcp-apps/hubspot-crm/python",
+      "env": {
+        "HUBSPOT_ACCESS_TOKEN": "pat-na2-...",
+        "MCP_TRANSPORT": "stdio",
+        "MCP_UI_MODE": "plain"
+      }
+    }
+  }
+}
+```
+
+Run the dual-mode tests with `pip install -e ".[dev]"` then `pytest`.
 
 ---
 
