@@ -45,7 +45,12 @@
                 "type": "object",
                 "required": []
             },
-            "title": "Get companies"
+            "title": "Get companies",
+            "_meta": {
+                "ui": {
+                    "resourceUri": "ui://widget/hubspot.html"
+                }
+            }
         },
         {
             "name": "hs__create_company",
@@ -89,7 +94,12 @@
                 ],
                 "type": "object"
             },
-            "title": "Create company"
+            "title": "Create company",
+            "_meta": {
+                "ui": {
+                    "resourceUri": "ui://widget/hubspot.html"
+                }
+            }
         },
         {
             "name": "hs__update_company",
@@ -137,7 +147,12 @@
                 ],
                 "type": "object"
             },
-            "title": "Update company"
+            "title": "Update company",
+            "_meta": {
+                "ui": {
+                    "resourceUri": "ui://widget/hubspot.html"
+                }
+            }
         },
         {
             "name": "hs__get_associations",
@@ -165,7 +180,12 @@
                 ],
                 "type": "object"
             },
-            "title": "Get associations"
+            "title": "Get associations",
+            "_meta": {
+                "ui": {
+                    "resourceUri": "ui://widget/hubspot.html"
+                }
+            }
         },
         {
             "name": "hs__get_contacts",
@@ -220,7 +240,12 @@
                 "type": "object",
                 "required": []
             },
-            "title": "Get contacts"
+            "title": "Get contacts",
+            "_meta": {
+                "ui": {
+                    "resourceUri": "ui://widget/hubspot.html"
+                }
+            }
         },
         {
             "name": "hs__create_contact",
@@ -264,7 +289,12 @@
                 ],
                 "type": "object"
             },
-            "title": "Create contact"
+            "title": "Create contact",
+            "_meta": {
+                "ui": {
+                    "resourceUri": "ui://widget/hubspot.html"
+                }
+            }
         },
         {
             "name": "hs__update_contact",
@@ -308,7 +338,12 @@
                 ],
                 "type": "object"
             },
-            "title": "Update contact"
+            "title": "Update contact",
+            "_meta": {
+                "ui": {
+                    "resourceUri": "ui://widget/hubspot.html"
+                }
+            }
         },
         {
             "name": "hs__get_deals",
@@ -375,7 +410,12 @@
                 "type": "object",
                 "required": []
             },
-            "title": "Get deals"
+            "title": "Get deals",
+            "_meta": {
+                "ui": {
+                    "resourceUri": "ui://widget/hubspot.html"
+                }
+            }
         },
         {
             "name": "hs__create_deal",
@@ -422,7 +462,12 @@
                 "type": "object",
                 "required": []
             },
-            "title": "Create deal"
+            "title": "Create deal",
+            "_meta": {
+                "ui": {
+                    "resourceUri": "ui://widget/hubspot.html"
+                }
+            }
         },
         {
             "name": "hs__update_deal",
@@ -465,7 +510,12 @@
                 "type": "object",
                 "required": []
             },
-            "title": "Update deal"
+            "title": "Update deal",
+            "_meta": {
+                "ui": {
+                    "resourceUri": "ui://widget/hubspot.html"
+                }
+            }
         },
         {
             "name": "hs__get_orders",
@@ -536,7 +586,12 @@
                 "type": "object",
                 "required": []
             },
-            "title": "Get orders"
+            "title": "Get orders",
+            "_meta": {
+                "ui": {
+                    "resourceUri": "ui://widget/hubspot.html"
+                }
+            }
         },
         {
             "name": "hs__create_order",
@@ -583,7 +638,12 @@
                 "type": "object",
                 "required": []
             },
-            "title": "Create order"
+            "title": "Create order",
+            "_meta": {
+                "ui": {
+                    "resourceUri": "ui://widget/hubspot.html"
+                }
+            }
         },
         {
             "name": "hs__update_order",
@@ -622,7 +682,12 @@
                 "type": "object",
                 "required": []
             },
-            "title": "Update order"
+            "title": "Update order",
+            "_meta": {
+                "ui": {
+                    "resourceUri": "ui://widget/hubspot.html"
+                }
+            }
         },
         {
             "name": "hs__get_products",
@@ -677,7 +742,12 @@
                 "type": "object",
                 "required": []
             },
-            "title": "Get products"
+            "title": "Get products",
+            "_meta": {
+                "ui": {
+                    "resourceUri": "ui://widget/hubspot.html"
+                }
+            }
         },
         {
             "name": "hs__create_product",
@@ -721,7 +791,12 @@
                 ],
                 "type": "object"
             },
-            "title": "Create product"
+            "title": "Create product",
+            "_meta": {
+                "ui": {
+                    "resourceUri": "ui://widget/hubspot.html"
+                }
+            }
         },
         {
             "name": "hs__update_product",
@@ -769,7 +844,12 @@
                 ],
                 "type": "object"
             },
-            "title": "Update product"
+            "title": "Update product",
+            "_meta": {
+                "ui": {
+                    "resourceUri": "ui://widget/hubspot.html"
+                }
+            }
         },
         {
             "name": "hs__get_activities",
@@ -876,7 +956,12 @@
                 "type": "object",
                 "required": []
             },
-            "title": "Get activities"
+            "title": "Get activities",
+            "_meta": {
+                "ui": {
+                    "resourceUri": "ui://widget/hubspot.html"
+                }
+            }
         },
         {
             "name": "hs__create_activity",
@@ -976,7 +1061,12 @@
                 ],
                 "type": "object"
             },
-            "title": "Create activity"
+            "title": "Create activity",
+            "_meta": {
+                "ui": {
+                    "resourceUri": "ui://widget/hubspot.html"
+                }
+            }
         },
         {
             "name": "hs__update_activity",
@@ -1072,7 +1162,12 @@
                 ],
                 "type": "object"
             },
-            "title": "Update activity"
+            "title": "Update activity",
+            "_meta": {
+                "ui": {
+                    "resourceUri": "ui://widget/hubspot.html"
+                }
+            }
         }
     ]
 }

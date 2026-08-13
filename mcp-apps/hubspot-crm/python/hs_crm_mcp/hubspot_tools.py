@@ -16,6 +16,10 @@ from .hubspot_client import HubSpotAPIError, HubSpotAuthError, get_client
 
 log = structlog.get_logger("hs")
 
+# HubSpot's CRM search endpoint caps a single page at 100 — use the full page
+# for list/refresh calls so filtered results aren't silently truncated to 10.
+_LIST_LIMIT = 100
+
 
 # ── Entity Schemas ────────────────────────────────────────────────────────────
 
@@ -703,7 +707,7 @@ async def hs__get_companies(
     try:
         client = get_client()
         props = _get_list_props("Company")
-        items = await client.search_objects("companies", props, filter_groups=filter_groups, limit=10)
+        items = await client.search_objects("companies", props, filter_groups=filter_groups, limit=_LIST_LIMIT)
     except HubSpotAuthError as exc:
         return _error_result(f"HubSpot authentication failed: {exc}")
     except HubSpotAPIError as exc:
@@ -763,7 +767,7 @@ async def hs__create_company(
 
     # Refresh list
     try:
-        items = await client.search_objects("companies", _get_list_props("Company"), limit=10)
+        items = await client.search_objects("companies", _get_list_props("Company"), limit=_LIST_LIMIT)
         items = await _ensure_created(client, "companies", "Company", new_id, items)
     except Exception:
         items = []
@@ -827,7 +831,7 @@ async def hs__update_company(
 
     # Refresh list
     try:
-        items = await client.search_objects("companies", _get_list_props("Company"), limit=10)
+        items = await client.search_objects("companies", _get_list_props("Company"), limit=_LIST_LIMIT)
     except Exception:
         items = []
 
@@ -1147,7 +1151,7 @@ async def hs__get_contacts(
     try:
         client = get_client()
         props = _get_list_props("Contact")
-        items = await client.search_objects("contacts", props, filter_groups=filter_groups, limit=10)
+        items = await client.search_objects("contacts", props, filter_groups=filter_groups, limit=_LIST_LIMIT)
     except HubSpotAuthError as exc:
         return _error_result(f"HubSpot authentication failed: {exc}")
     except HubSpotAPIError as exc:
@@ -1454,7 +1458,7 @@ async def hs__get_deals(
         client = get_client()
         filter_groups = _build_filter_groups("Deal", filter_params) if filter_params else None
         props = _get_list_props("Deal")
-        results = await client.search_objects("deals", [p for p in props if p != "company"], filter_groups=filter_groups, limit=10)
+        results = await client.search_objects("deals", [p for p in props if p != "company"], filter_groups=filter_groups, limit=_LIST_LIMIT)
     except HubSpotAuthError as exc:
         return _error_result(f"HubSpot authentication failed: {exc}")
     except HubSpotAPIError as exc:
@@ -1861,7 +1865,7 @@ async def hs__get_orders(
         client = get_client()
         filter_groups = _build_filter_groups("Order", filter_params) if filter_params else None
         native_props = [c["apiName"] for c in schema["columns"] if c["apiName"] not in ("contact", "company", "deal")]
-        results = await client.search_objects("orders", native_props, filter_groups=filter_groups, limit=10)
+        results = await client.search_objects("orders", native_props, filter_groups=filter_groups, limit=_LIST_LIMIT)
     except HubSpotAuthError as exc:
         return _error_result(f"HubSpot authentication failed: {exc}")
     except HubSpotAPIError as exc:
@@ -2158,7 +2162,7 @@ async def hs__get_products(
     try:
         client = get_client()
         props = _get_list_props("Product")
-        items = await client.search_objects("products", props, filter_groups=filter_groups, limit=10)
+        items = await client.search_objects("products", props, filter_groups=filter_groups, limit=_LIST_LIMIT)
     except HubSpotAuthError as exc:
         return _error_result(f"HubSpot authentication failed: {exc}")
     except HubSpotAPIError as exc:
@@ -2219,7 +2223,7 @@ async def hs__create_product(
 
     # Refresh list
     try:
-        items = await client.search_objects("products", _get_list_props("Product"), limit=10)
+        items = await client.search_objects("products", _get_list_props("Product"), limit=_LIST_LIMIT)
         items = await _ensure_created(client, "products", "Product", new_id, items)
     except Exception:
         items = []
@@ -2298,7 +2302,7 @@ async def hs__update_product(
 
     # Refresh list
     try:
-        items = await client.search_objects("products", _get_list_props("Product"), limit=10)
+        items = await client.search_objects("products", _get_list_props("Product"), limit=_LIST_LIMIT)
     except Exception:
         items = []
 
@@ -2778,7 +2782,7 @@ async def hs__get_activities(
     try:
         client = get_client()
         props = _activity_list_props(activity_type)
-        items = await client.search_objects(obj_type, props, filter_groups=filter_groups, limit=10)
+        items = await client.search_objects(obj_type, props, filter_groups=filter_groups, limit=_LIST_LIMIT)
     except HubSpotAuthError as exc:
         return _error_result(f"HubSpot authentication failed: {exc}")
     except HubSpotAPIError as exc:
@@ -2940,7 +2944,7 @@ async def hs__create_activity(
 
     # Refresh list
     try:
-        items = await client.search_objects(obj_type, _activity_list_props(activity_type), limit=10)
+        items = await client.search_objects(obj_type, _activity_list_props(activity_type), limit=_LIST_LIMIT)
         await _enrich_related_to(client, obj_type, items)
         await _enrich_assigned_to(client, items)
     except Exception:
@@ -3059,7 +3063,7 @@ async def hs__update_activity(
 
     # Refresh list
     try:
-        items = await client.search_objects(obj_type, _activity_list_props(activity_type), limit=10)
+        items = await client.search_objects(obj_type, _activity_list_props(activity_type), limit=_LIST_LIMIT)
         # Enrich with Related To — parity with hs__get_activities so the refreshed
         # list (and the edit popup that reads item._related_to) keeps the column.
         await _enrich_related_to(client, obj_type, items)

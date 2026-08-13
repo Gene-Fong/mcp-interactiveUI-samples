@@ -30,6 +30,8 @@ def render(structured: dict, max_rows: int = 25) -> str:
         return _render_alert(structured)
     if kind == "form":
         return _render_form(structured)
+    if kind == "activity_form":
+        return _render_activity_form(structured)
     if isinstance(structured.get("items"), list):
         return _render_records(structured, max_rows)
     return ""
@@ -75,6 +77,51 @@ def _render_form(structured: dict) -> str:
             parts.append(f"— allowed values: {allowed}")
         if field.get("fk"):
             parts.append("— match on the full record name")
+        value = prefill.get(name)
+        if value not in (None, ""):
+            parts.append(f"— current: {_cell(value)}")
+        lines.append(" ".join(parts))
+    return "\n".join(lines)
+
+
+def _render_activity_form(structured: dict) -> str:
+    """Activity forms carry activity_type instead of entity — describe the call."""
+    activity_type = structured.get("activity_type", "activity")
+    mode = structured.get("mode", "create")
+    schema = structured.get("_schema") or {}
+    fields = schema.get("formFields") or []
+    prefill = structured.get("prefill") or {}
+    record_id = structured.get("recordId", "")
+    entity_type = structured.get("entity_type", "")
+    entity_name = structured.get("entity_name", "")
+
+    if mode == "edit":
+        head = (
+            f"Current values for {activity_type} {record_id}. "
+            f"To apply changes call `hs__update_activity` with activity_type=\"{activity_type}\", "
+            f"activity_id=\"{record_id}\" plus only the fields you want to change."
+        )
+    else:
+        head = (
+            f"To create a {activity_type}, call `hs__create_activity` with "
+            f"activity_type=\"{activity_type}\" and these fields:"
+        )
+        if entity_name:
+            head += f" (associate with {entity_type or 'record'} \"{entity_name}\")"
+
+    lines = [head, ""]
+    for field in fields:
+        name = field.get("name", "")
+        if name.startswith("_"):
+            continue
+        parts = [f"- `{name}` — {field.get('label', name)}"]
+        if field.get("required"):
+            parts.append("(required)")
+        picklist = field.get("picklist")
+        if picklist:
+            labels = field.get("picklistLabels") or {}
+            allowed = ", ".join(f"{v} ({labels[v]})" if v in labels else str(v) for v in picklist)
+            parts.append(f"— allowed values: {allowed}")
         value = prefill.get(name)
         if value not in (None, ""):
             parts.append(f"— current: {_cell(value)}")
