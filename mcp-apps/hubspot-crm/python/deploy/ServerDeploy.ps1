@@ -65,7 +65,7 @@ $paramsFile       = Join-Path $deployRoot 'parameters.bicepparam'
 $containerAppName = 'lob-mcp-apps-hs'
 
 $ClientId   = "7ea7c24c-b1f6-4a20-9d11-9ae12e9e7ac0"
-$TenantId   = "8b7a11d9-6513-4d54-a468-f6630df73c8b"
+$TenantId   = "0033e475-49c7-401c-8c23-2468502f497a"
 $Scope      = "https://titles.prod.mos.microsoft.com/.default"
 $MOS3Url    = "https://titles.prod.mos.microsoft.com"
 $TokenCache = "$App\.mos3_token_cache.json"
